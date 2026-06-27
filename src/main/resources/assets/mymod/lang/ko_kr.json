@@ -1,11 +1,9 @@
 {
-  "item.mymod.villager_turret_spawn_egg": "주민 터렛 스폰알",
-  "entity.mymod.villager_turret": "주민 터렛",
   "item.mymod.turret_point_token": "터렛 포인트 토큰",
-  "item.mymod.speed_upgrade": "터렛 강화서: 화살 속도",
-  "item.mymod.recharge_upgrade": "터렛 강화서: 재장전 속도",
-  "item.mymod.burst_upgrade": "터렛 기술서: 일직선 속사",
-  "item.mymod.fan_upgrade": "터렛 기술서: 부채꼴 확산",
-  "item.mymod.poison_arrow_upgrade": "터렛 연금서: 치명적인 독화살",
-
+  "item.mymod.villager_turret_spawn_egg": "주민 터렛 스폰알",
+  "item.mymod.speed_upgrade": "터렛 강화 인증서: 화살 비행 속도",
+  "item.mymod.recharge_upgrade": "터렛 강화 인증서: 재장전 속도",
+  "item.mymod.burst_upgrade": "터렛 기술 인증서: 일직선 속사(점사)",
+  "item.mymod.fan_upgrade": "터렛 기술 인증서: 부채꼴 확산",
+  "item.mymod.poison_arrow_upgrade": "터렛 연금 인증서: 치명적인 독 화살"
 }

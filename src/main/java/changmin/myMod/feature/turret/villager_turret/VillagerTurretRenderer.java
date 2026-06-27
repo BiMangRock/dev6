@@ -43,27 +43,41 @@ public class VillagerTurretRenderer extends MobRenderer<VillagerTurretEntity, Vi
             poseStack.scale(-0.025F, -0.025F, 0.025F);
             Matrix4f matrix4f = poseStack.last().pose();
 
-            // 1. 레벨 정보 표시 (getTurretLevel 적용)
             Font font = this.getFont();
+
+            // 1. 레벨 및 체력 정보 텍스트 (Y축: -22.0F)
             String infoText = String.format("Lv. %d (%d/%d)", entity.getTurretLevel(), (int)entity.getHealth(), (int)entity.getMaxHealth());
             Component textComponent = new TextComponent(infoText);
             float textWidth = (float)font.width(textComponent);
             float textX = -textWidth / 2.0F;
-            float textY = -12.0F;
+            float hpTextY = -22.0F;
 
-            font.drawInBatch(textComponent, textX, textY, -1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(textComponent, textX, hpTextY, -1, false, matrix4f, buffer, false, 0, packedLight);
 
-            // 2. 가로 50px 고정형 그래픽 체력 바 비율 연산
+            // 2. 경험치 정보 텍스트 (Y축: -12.0F)
+            String xpText = String.format("XP: %d/%d", entity.getXp(), entity.getNeededXp());
+            Component xpComponent = new TextComponent(xpText);
+            float xpTextWidth = (float)font.width(xpComponent);
+            float xpTextX = -xpTextWidth / 2.0F;
+            float xpTextY = -12.0F;
+
+            font.drawInBatch(xpComponent, xpTextX, xpTextY, -1, false, matrix4f, buffer, false, 0, packedLight);
+
+            // 가로 50px 고정형 그래픽 바 위치 및 크기 선언
             float barWidth = 50.0F;
             float barHeight = 3.0F;
             float barX = -barWidth / 2.0F;
-            float barY = 2.0F;
 
+            // ==========================================
+            // 🟩 3. HP 바 렌더링 (위치 Y: 2.0F)
+            // ==========================================
+            float hpBarY = 2.0F;
             float hpRatio = (float)entity.getHealth() / (float)entity.getMaxHealth();
+            if (hpRatio > 1.0F) hpRatio = 1.0F;
             float currentHpWidth = barWidth * hpRatio;
 
-            // 배경 반투명 회색 바 그리기 (RenderType.lightning으로 맵핑 버전 충돌 해결)
-            drawSolidQuad(matrix4f, buffer, barX, barY, barX + barWidth, barY + barHeight, 0x80505050);
+            // [오류 수정] hpBarY + barHeight 변수 매핑 적용
+            drawSolidQuad(matrix4f, buffer, barX, hpBarY, barX + barWidth, hpBarY + barHeight, 0x80505050);
 
             // 남은 체력 비율에 따른 동적 색상 변화
             int healthColor = 0xFF00FF00;
@@ -72,9 +86,23 @@ public class VillagerTurretRenderer extends MobRenderer<VillagerTurretEntity, Vi
             } else if (hpRatio < 0.5F) {
                 healthColor = 0xFFFFFF00;
             }
+            // 체력 전경바 그리기
+            drawSolidQuad(matrix4f, buffer, barX, hpBarY, barX + currentHpWidth, hpBarY + barHeight, healthColor);
 
-            // 현재 체력 전경 색상바 그리기
-            drawSolidQuad(matrix4f, buffer, barX, barY, barX + currentHpWidth, barY + barHeight, healthColor);
+            // ==========================================
+            // 🟦 4. XP 바 렌더링 (위치 Y: 7.0F)
+            // ==========================================
+            float xpBarY = 7.0F;
+            float xpRatio = (float)entity.getXp() / (float)entity.getNeededXp();
+            if (xpRatio > 1.0F) xpRatio = 1.0F;
+            float currentXpWidth = barWidth * xpRatio;
+
+            // [오류 수정] xpBarY + barHeight 변수 매핑 적용
+            drawSolidQuad(matrix4f, buffer, barX, xpBarY, barX + barWidth, xpBarY + barHeight, 0x80505050);
+
+            // 경험치 전경바 그리기
+            int xpColor = 0xFF33CCFF;
+            drawSolidQuad(matrix4f, buffer, barX, xpBarY, barX + currentXpWidth, xpBarY + barHeight, xpColor);
 
             poseStack.popPose();
         }
@@ -86,7 +114,6 @@ public class VillagerTurretRenderer extends MobRenderer<VillagerTurretEntity, Vi
         float green = (float)(color >> 8 & 255) / 255.0F;
         float blue = (float)(color & 255) / 255.0F;
 
-        // textBackground() 대신 안전한 lightning() 단색 버퍼 유형 적용
         VertexConsumer consumer = buffer.getBuffer(RenderType.lightning());
         consumer.vertex(matrix, minX, maxY, 0.0F).color(red, green, blue, alpha).endVertex();
         consumer.vertex(matrix, maxX, maxY, 0.0F).color(red, green, blue, alpha).endVertex();
