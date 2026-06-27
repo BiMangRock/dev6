@@ -19,7 +19,6 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
@@ -48,11 +47,18 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
     private static final EntityDataAccessor<Integer> NEEDED_XP = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> PASS_BLOCKS = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> CAN_SEE_THROUGH_WALLS = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> ARROW_COUNT = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT); // 전용 데이터 연동 키
 
     private Player tradingPlayer;
     private MerchantOffers offers;
     private int attackCooldown = 0;
     private int customInvulnTicks = 0;
+
+    // 순차 사격 처리 변수
+    private int burstArrowsLeft = 0;
+    private int burstDelayTicks = 0;
+    private LivingEntity burstTarget = null;
+    private boolean isKnockbackBurst = false;
 
     public VillagerTurretEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -73,6 +79,7 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
         this.entityData.define(NEEDED_XP, 1);
         this.entityData.define(PASS_BLOCKS, 0);
         this.entityData.define(CAN_SEE_THROUGH_WALLS, 0);
+        this.entityData.define(ARROW_COUNT, 1); // 기본 1발 시작
     }
 
     @Override
@@ -106,17 +113,69 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
             if (this.customInvulnTicks > 0) this.customInvulnTicks--;
             if (this.getHealLevel() > 0 && this.tickCount % 100 == 0) this.heal(1.0F);
 
-            LivingEntity target = this.getTarget();
-            if (target != null && target.isAlive() && this.distanceToSqr(target) <= 400.0D) {
-                this.getLookControl().setLookAt(target, 30.0F, 30.0F);
-                if (this.attackCooldown <= 0) {
-                    TurretShooter.shootTarget(this, target);
-                    int baseCooldown = 40;
-                    int reduction = this.getRechargeLevel() * 5;
-                    this.attackCooldown = Math.max(10, baseCooldown - reduction);
+            // ==========================================
+            // 🏹 1. 순차 발사(연사) 루프 처리
+            // ==========================================
+            if (this.burstArrowsLeft > 0 && this.burstTarget != null) {
+                if (this.burstTarget.isAlive() && this.distanceToSqr(this.burstTarget) <= 400.0D) {
+                    this.getLookControl().setLookAt(this.burstTarget, 30.0F, 30.0F);
+                    if (this.burstDelayTicks > 0) {
+                        this.burstDelayTicks--;
+                    }
+                    if (this.burstDelayTicks <= 0) {
+                        // 화살 1발 격발
+                        int mode = this.isKnockbackBurst ? 3 : 2;
+                        TurretShooter.shootSingleArrow(this, this.burstTarget, mode, 0.0F);
+                        this.playSound(SoundEvents.SKELETON_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
+
+                        this.burstArrowsLeft--;
+                        if (this.burstArrowsLeft > 0) {
+                            this.burstDelayTicks = 2; // 0.1초 간격 (2틱)
+                        } else {
+                            // 발사가 완전히 모두 종료된 시점에 쿨타임 돌입
+                            this.attackCooldown = this.getCalculatedCooldown();
+                            this.burstTarget = null;
+                        }
+                    }
+                } else {
+                    // 사격 중 타겟 사망 혹은 거리 이탈 시 남은 잔여 사격 취소 및 즉시 쿨타임 처리
+                    this.burstArrowsLeft = 0;
+                    this.burstTarget = null;
+                    this.attackCooldown = this.getCalculatedCooldown();
+                }
+            }
+
+            // ==========================================
+            // ⚔️ 2. 신규 사격 결정 판단 루프 (순차 연사 중이 아닐 때만 판단)
+            // ==========================================
+            if (this.burstArrowsLeft <= 0) {
+                LivingEntity target = this.getTarget();
+                if (target != null && target.isAlive() && this.distanceToSqr(target) <= 400.0D) {
+                    this.getLookControl().setLookAt(target, 30.0F, 30.0F);
+                    if (this.attackCooldown <= 0) {
+                        int pattern = this.getArrowPattern();
+                        if (pattern == 2 || pattern == 3) {
+                            // 속사(2) 및 넉백(3) 모드일 경우 대기 스케줄만 시작하고 화살 격발은 순차 루프가 가로챕니다.
+                            this.burstArrowsLeft = this.getTurretArrowCount(); // 변경된 메소드 사용
+                            this.burstDelayTicks = 0; // 첫 발은 조준 즉시 격발
+                            this.burstTarget = target;
+                            this.isKnockbackBurst = (pattern == 3);
+                        } else {
+                            // 동시 타격 모드들 [일반(0), 부채꼴(1), 강공격(4)]
+                            TurretShooter.shootTarget(this, target);
+                            this.attackCooldown = this.getCalculatedCooldown();
+                        }
+                    }
                 }
             }
         }
+    }
+
+    // 기본 사격 쿨타임 계산 공식 (기본 3초 - 강화 레벨당 0.25초 감소)
+    public int getCalculatedCooldown() {
+        int baseCooldown = 60; // 3.0초 (60틱)
+        int reduction = this.getRechargeLevel() * 5; // 레벨당 5틱(0.25초) 감소
+        return Math.max(10, baseCooldown - reduction); // 최소 0.5초 쿨타임 보장
     }
 
     @Override
@@ -243,6 +302,10 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
     public int getCanSeeThroughWalls() { return this.entityData.get(CAN_SEE_THROUGH_WALLS); }
     public void setCanSeeThroughWalls(int enabled) { this.entityData.set(CAN_SEE_THROUGH_WALLS, enabled); }
 
+    // 이름 충돌을 피하기 위해 재배치된 고유 메소드들
+    public int getTurretArrowCount() { return this.entityData.get(ARROW_COUNT); }
+    public void setTurretArrowCount(int count) { this.entityData.set(ARROW_COUNT, count); }
+
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
@@ -258,6 +321,7 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
         tag.putInt("NeededXP", this.getNeededXp());
         tag.putInt("PassBlocksEnabled", this.getPassBlocksEnabled());
         tag.putInt("CanSeeThroughWalls", this.getCanSeeThroughWalls());
+        tag.putInt("ArrowCount", this.getTurretArrowCount()); // 변경된 메소드 적용
     }
 
     @Override
@@ -275,46 +339,10 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
         this.setNeededXp(tag.contains("NeededXP") ? tag.getInt("NeededXP") : this.getTurretLevel());
         if (tag.contains("PassBlocksEnabled")) this.setPassBlocksEnabled(tag.getInt("PassBlocksEnabled"));
         if (tag.contains("CanSeeThroughWalls")) this.setCanSeeThroughWalls(tag.getInt("CanSeeThroughWalls"));
+        if (tag.contains("ArrowCount")) this.setTurretArrowCount(tag.getInt("ArrowCount")); // 변경된 메소드 적용
 
         double loadedMax = 10.0D + (this.getTurretLevel() - 1) * 5.0D;
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(loadedMax);
-    }
-
-    // ==========================================
-    // ⚙️ 수동 시야 통제용 확장 인공지능 타겟 클래스 (기록용 로그 제거 완료)
-    // ==========================================
-    public static class TurretTargetGoal<T extends LivingEntity> extends NearestAttackableTargetGoal<T> {
-        private final VillagerTurretEntity turret;
-
-        public TurretTargetGoal(VillagerTurretEntity turret, Class<T> targetType) {
-            super(turret, targetType, false);
-            this.turret = turret;
-            this.targetConditions.ignoreLineOfSight();
-        }
-
-        @Override
-        public boolean canUse() {
-            boolean use = super.canUse();
-            // 투시 훈련(CanSeeThroughWalls) 업그레이드가 비활성화(0) 상태라면 수동으로 시야 충돌을 계산합니다.
-            if (use && this.turret.getCanSeeThroughWalls() == 0) {
-                if (this.target != null) {
-                    return this.turret.getSensing().hasLineOfSight(this.target);
-                }
-            }
-            return use;
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            boolean cont = super.canContinueToUse();
-            if (cont && this.turret.getCanSeeThroughWalls() == 0) {
-                LivingEntity currentTarget = this.turret.getTarget();
-                if (currentTarget != null) {
-                    return this.turret.getSensing().hasLineOfSight(currentTarget);
-                }
-            }
-            return cont;
-        }
     }
 
     @Override public Component getDisplayName() { return new TextComponent("주민 터렛"); }

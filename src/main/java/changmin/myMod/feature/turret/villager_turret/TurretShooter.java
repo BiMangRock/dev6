@@ -19,35 +19,38 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = MyMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class TurretShooter {
 
+    // 동시 격발 모드들에 대한 타격 계산 [일반(0), 부채꼴(1), 강공격(4)]
     public static void shootTarget(VillagerTurretEntity turret, LivingEntity target) {
         int pattern = turret.getArrowPattern();
-        int arrowCount = turret.getTurretLevel();
+        int arrowCount = turret.getTurretArrowCount(); // 고유 변경 메소드 적용 완료
         Level level = turret.level;
 
-        if (pattern == 2) {
+        if (pattern == 4) { // 강공격 모드 (완전 동시 격발)
             for (int i = 0; i < arrowCount; i++) {
-                shootSingleArrow(turret, target, VillagerTurretEntity.ARROW_SPEED + (i * 0.15F), 0.0F);
+                shootSingleArrow(turret, target, 4, 0.0F); // 모드 4 부여
             }
-        } else if (pattern == 1) {
+        } else if (pattern == 1) { // 부채꼴 사격 모드
             for (int i = 0; i < arrowCount; i++) {
                 float baseSpread = (float)(14 - level.getDifficulty().getId() * 4);
                 float angleOffset = (arrowCount > 1) ? (i - (arrowCount - 1) / 2.0F) * 4.0F : 0.0F;
-                shootSingleArrow(turret, target, VillagerTurretEntity.ARROW_SPEED, baseSpread + angleOffset);
+                shootSingleArrow(turret, target, 1, baseSpread + angleOffset); // 모드 1 부여
             }
-        } else {
-            shootSingleArrow(turret, target, VillagerTurretEntity.ARROW_SPEED, (float)(14 - level.getDifficulty().getId() * 4));
+        } else { // 기본 단발 모드 (0)
+            shootSingleArrow(turret, target, 0, (float)(14 - level.getDifficulty().getId() * 4));
         }
 
         turret.playSound(SoundEvents.SKELETON_SHOOT, 1.0F, 1.0F / (turret.getRandom().nextFloat() * 0.4F + 0.8F));
     }
 
-    private static void shootSingleArrow(VillagerTurretEntity turret, LivingEntity target, float speed, float spread) {
+    // 단발 화살 격발 상세 연산
+    public static void shootSingleArrow(VillagerTurretEntity turret, LivingEntity target, int mode, float spread) {
         ItemStack arrowStack;
         int type = turret.getArrowType();
 
@@ -65,12 +68,28 @@ public class TurretShooter {
         }
 
         AbstractArrow arrow = ProjectileUtil.getMobArrow(turret, arrowStack, 1.0F);
-        arrow.setBaseDamage(VillagerTurretEntity.ARROW_DAMAGE);
 
+        // 공격력 정밀 계산
+        double baseDamage = VillagerTurretEntity.ARROW_DAMAGE;
+        if (mode == 3) { // 넉백 모드일 시 정수 나눗셈 방지를 위해 실수형(0.1D) 곱셈으로 데미지 격감 처리 (하트 0.1칸 수준)
+            baseDamage = baseDamage * 0.1D;
+        }
+        arrow.setBaseDamage(baseDamage);
+
+        // 기본 터렛 소속 태그 지정
         arrow.addTag("turret_arrow");
 
         if (turret.getPassBlocksEnabled() == 1) {
             arrow.addTag("pass_blocks");
+        }
+
+        // ==========================================
+        // 🛡️ 무적 프레임 제어를 위한 충돌 분석용 태그 추가
+        // ==========================================
+        if (mode == 3) {
+            arrow.addTag("knockback_arrow");
+        } else if (mode == 4) {
+            arrow.addTag("heavy_arrow");
         }
 
         double d0 = target.getX() - turret.getX();
@@ -78,7 +97,7 @@ public class TurretShooter {
         double d2 = target.getZ() - turret.getZ();
         double d3 = Math.sqrt(d0 * d0 + d2 * d2);
 
-        float finalSpeed = speed + (turret.getSpeedLevel() * 0.15F);
+        float finalSpeed = VillagerTurretEntity.ARROW_SPEED + (turret.getSpeedLevel() * 0.15F);
 
         if (turret.getNoGravityEnabled() == 1) {
             arrow.setNoGravity(true);
@@ -89,6 +108,22 @@ public class TurretShooter {
         }
 
         turret.level.addFreshEntity(arrow);
+    }
+
+    // ==========================================
+    // 💥 넉백 및 강공격 무적 프레임 강제 무력화 이벤트 감지 연산
+    // ==========================================
+    @SubscribeEvent
+    public static void onLivingHurt(LivingHurtEvent event) {
+        // getImmediateSource() 대신 환경에 맞춘 getDirectEntity() 사용
+        if (event.getSource().getDirectEntity() instanceof AbstractArrow arrow) {
+            // 맞춘 화살이 넉백 모드 혹은 강공격 모드 전용 화살로 검출될 경우
+            if (arrow.getTags().contains("knockback_arrow") || arrow.getTags().contains("heavy_arrow")) {
+                LivingEntity victim = event.getEntityLiving();
+                // hurtResistantTime 대신 1.18.2의 실질 변수인 invulnerableTime을 0으로 강제 소거합니다.
+                victim.invulnerableTime = 0;
+            }
+        }
     }
 
     @SubscribeEvent
@@ -106,10 +141,6 @@ public class TurretShooter {
 
                         Vec3 hitLoc = result.getLocation();
                         Vec3 motion = arrow.getDeltaMovement().normalize();
-
-                        double prevX = arrow.getX();
-                        double prevY = arrow.getY();
-                        double prevZ = arrow.getZ();
 
                         double warpDist = 0.5;
                         boolean foundOpenSpace = false;
@@ -164,7 +195,6 @@ public class TurretShooter {
                                 }
 
                                 if (hitTarget.hurt(damageSource, (float)arrow.getBaseDamage())) {
-                                    // [오류 수정] protected 필드인 random 대신 공용 게터인 arrow.getRandom()을 호출해 충돌을 방지합니다.
                                     arrow.playSound(SoundEvents.ARROW_HIT, 1.0F, 1.2F / (arrow.level.random.nextFloat() * 0.2F + 0.9F));
                                     arrow.discard();
                                 }
