@@ -17,7 +17,8 @@ public class BossPatternGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        Player nearestPlayer = getNearestPlayerInRange(20.0D);
+        // 💡 [조정] 넉백에 밀려나도 타겟팅 상태를 유지하기 위해 플레이어 탐색 사거리를 40블록으로 확장합니다.
+        Player nearestPlayer = getNearestPlayerInRange(40.0D);
         if (nearestPlayer != null) {
             this.boss.setTarget(nearestPlayer);
         }
@@ -28,7 +29,8 @@ public class BossPatternGoal extends Goal {
 
     @Override
     public void tick() {
-        Player nearestPlayer = getNearestPlayerInRange(20.0D);
+        // 실시간 넉백 밀려남 보정을 위해 공격 시 작동하는 감지 범위도 40블록 기준으로 동작합니다.
+        Player nearestPlayer = getNearestPlayerInRange(40.0D);
         if (nearestPlayer != null && this.boss.getTarget() != nearestPlayer) {
             this.boss.setTarget(nearestPlayer);
         }
@@ -42,23 +44,22 @@ public class BossPatternGoal extends Goal {
                 this.patternCooldown--;
             }
 
-            // 조준 사격을 위해 걷기를 완전히 정지시킵니다.
             this.boss.getNavigation().stop();
 
-            // 쿨타임이 끝났고 사정거리(20블록) 내에 타겟이 있다면 2, 3, 5 중 랜덤 실행
+            // 💡 [조정] 공격 가동 한계 검사 거리를 20블록(제곱 400)에서 40블록(제곱 1600.0)으로 확장했습니다.
             if (this.boss.getActiveAttack() == 0 && this.patternCooldown <= 0) {
-                if (distanceSq < 400.0D) {
+                if (distanceSq < 1600.0D) {
                     int randomChoice = this.boss.getRandom().nextInt(3); // 0, 1, 2
 
                     if (randomChoice == 0) {
-                        this.boss.triggerAttack2(); // 기존 정밀 조준 사격
-                        this.patternCooldown = 80;  // 4초 대기
+                        this.boss.triggerAttack2();
+                        this.patternCooldown = 80;
                     } else if (randomChoice == 1) {
-                        this.boss.triggerAttack3(); // 3D 구형 부채꼴 나선 사격 (강화됨)
-                        this.patternCooldown = 120; // 6초 대기
+                        this.boss.triggerAttack3();
+                        this.patternCooldown = 120;
                     } else {
-                        this.boss.triggerAttack5(); // 🆕 제자리 360도 진공 난사 (신설)
-                        this.patternCooldown = 130; // 6.5초 대기
+                        this.boss.triggerAttack5();
+                        this.patternCooldown = 130;
                     }
                 }
             }

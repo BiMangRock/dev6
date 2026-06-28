@@ -6,17 +6,41 @@ public class ZombieBossAttackHelper {
 
     public static void handleAttackPatterns(ZombieBossEntity boss) {
         if (boss.getActiveAttack() == 2) {
-            handleAttack2(boss); // 정밀 조준 화살 사격 (기존 패턴 1)
+            handleAttack2(boss);
         } else if (boss.getActiveAttack() == 3) {
-            handleAttack3(boss); // 3D 구형/나선형 밀도 강화 사격 (수정됨)
+            handleAttack3(boss); // 💡 [수정] 수직 이동 수평 사방 원기둥 난사 패턴
         } else if (boss.getActiveAttack() == 5) {
-            handleAttack5(boss); // 🆕 제자리 360도 진공 화살 난사 (신설)
+            handleAttack5(boss);
         }
     }
 
-    // ==========================================
-    // 🎯 패턴 2: 정밀 조준 화살 발사 (기존 공격 1)
-    // ==========================================
+    // 광폭화 패시브 기믹: 체력 50% 이하일 때 2틱(0.1초)마다 꼬리물기 추적 사격 수행 [1]
+    public static void handlePassiveGimmick(ZombieBossEntity boss) {
+        if (boss.getHealth() <= boss.getMaxHealth() * 0.5F) {
+            LivingEntity target = boss.getTarget();
+            if (target != null && target.isAlive() && boss.tickCount % 2 == 0) {
+                shootPassiveTrackerArrow(boss, target);
+            }
+        }
+    }
+
+    private static void shootPassiveTrackerArrow(ZombieBossEntity boss, LivingEntity target) {
+        ZombieBossArrow arrow = new ZombieBossArrow(boss.level, boss);
+        arrow.setPos(boss.getX(), boss.getEyeY() - 0.1D, boss.getZ());
+
+        double dx = target.getX() - boss.getX();
+        double dy = target.getY(0.5D) - arrow.getY();
+        double dz = target.getZ() - boss.getZ();
+
+        arrow.shoot(dx, dy, dz, 0.25F, 0.0F);
+        arrow.setNoGravity(true);
+        arrow.setBaseDamage(2.0D);
+
+        arrow.setMaxLifeTicks(300); // 패시브 유도 화살만 수명을 15초(300틱)로 연장 [2]
+
+        boss.level.addFreshEntity(arrow);
+    }
+
     private static void handleAttack2(ZombieBossEntity boss) {
         boss.setAttackTick(boss.getAttackTick() + 1);
         LivingEntity target = boss.getTarget();
@@ -42,35 +66,22 @@ public class ZombieBossAttackHelper {
     }
 
     // ==========================================
-    // 🌀 패턴 3: 3D 구형/나선형 사격 (화살 밀도 대폭 증가)
+    // 🌀 패턴 3: [재설계] 수직 이동형 원기둥 탄막 난사 패턴 [1]
     // ==========================================
     private static void handleAttack3(ZombieBossEntity boss) {
         boss.setAttackTick(boss.getAttackTick() + 1);
         int currentTick = boss.getAttackTick();
 
+        // 수직 상승 및 하강 모션 제어
         if (currentTick <= 20) {
             boss.setDeltaMovement(boss.getDeltaMovement().x, 0.25D, boss.getDeltaMovement().z);
         } else if (currentTick <= 40) {
             boss.setDeltaMovement(boss.getDeltaMovement().x, -0.2D, boss.getDeltaMovement().z);
         }
 
-        // 기본 틱 회전 각도 계산
-        double yaw = boss.getYRot() + (currentTick * 18.0D);
-        double pitch = -60.0D + (Math.sin((currentTick * Math.PI) / 20.0D) * 60.0D);
-
-        // 💡 [개선] 바라보고 있는 조준 축 기준 부채꼴(-12도, 0도, 12도)로 3방향 뿜칠 사격을 진행해 밀도를 높입니다 [1].
-        double[] yawOffsets = {-12.0D, 0.0D, 12.0D};
-        for (double offset : yawOffsets) {
-            double totalYaw = yaw + offset;
-            double pitchRad = Math.toRadians(pitch);
-            double yawRad = Math.toRadians(totalYaw);
-
-            double dx = -Math.sin(yawRad) * Math.cos(pitchRad);
-            double dy = -Math.sin(pitchRad);
-            double dz = Math.cos(yawRad) * Math.cos(pitchRad);
-
-            shootArrowInDirection(boss, dx, dy, dz, 0.35F, 2.5D);
-        }
+        // 💡 [수정] 3차원 회전을 삭제하고, 상승/하강하는 동안 매 틱마다 보스 수평 사방(12방향 원형)으로 화살 방출 [1]
+        // 보스가 움직이며 고리형 탄막을 스폰하므로 하늘 방향으로 거대한 원기둥형 화살 장벽이 연출됩니다.
+        spawnContinuousArrowRing(boss, 12);
 
         if (currentTick >= 40) {
             boss.setActiveAttack(0);
@@ -79,35 +90,30 @@ public class ZombieBossAttackHelper {
     }
 
     // ==========================================
-    // 🌪️ 패턴 5: 🆕 제자리 360도 진공 화살 난사 (신설)
+    // 🌪️ 패턴 5: 제자리 360도 진공 화살 난사
     // ==========================================
     private static void handleAttack5(ZombieBossEntity boss) {
         boss.setAttackTick(boss.getAttackTick() + 1);
         int currentTick = boss.getAttackTick();
 
-        // 💡 제자리에서 발사하므로 X, Z 이동 성분만 차단하고 중력 보정은 기존처럼 유지합니다.
         boss.setDeltaMovement(0, boss.getDeltaMovement().y, 0);
 
-        // 40틱(2초) 동안 작동하며 1틱당 18도씩 회전 (촘촘하게 총 2바퀴 회전)
         double yaw = boss.getYRot() + (currentTick * 18.0D);
 
-        // 시각적으로 무거운 진공 장벽 효과를 주기 위해 수평 3방향 부채꼴 방향 설계
         double[] yawOffsets = {-15.0D, 0.0D, 15.0D};
         for (double offset : yawOffsets) {
             double totalYaw = yaw + offset;
-            double pitchRad = Math.toRadians(5.0D); // 살짝 아래(5도)를 조준하도록 고정
+            double pitchRad = Math.toRadians(5.0D);
             double yawRad = Math.toRadians(totalYaw);
 
             double dx = -Math.sin(yawRad) * Math.cos(pitchRad);
             double dy = -Math.sin(pitchRad);
             double dz = Math.cos(yawRad) * Math.cos(pitchRad);
 
-            // 💡 탄속을 0.2F로 매우 느리게 설정하여 '무겁게 머무는 진공 탄막 장벽'을 연출합니다.
             shootArrowInDirection(boss, dx, dy, dz, 0.2F, 2.0D);
         }
 
         if (currentTick >= 40) {
-            // 패턴 종료 시 보너스로 사방 넓게 고속 링 방출
             spawnArrowRing(boss, 35);
             boss.setActiveAttack(0);
             boss.setAttackTick(0);
@@ -117,6 +123,18 @@ public class ZombieBossAttackHelper {
     // ==========================================
     // 🛠️ 공통 발사 유틸리티 메서드
     // ==========================================
+
+    // 💡 [추가] 수직 이동 중에 완전히 평평한 수평 원형 탄막을 쏘기 위한 전용 링 사격 보조 메서드 [1]
+    private static void spawnContinuousArrowRing(ZombieBossEntity boss, int arrowCount) {
+        for (int i = 0; i < arrowCount; i++) {
+            double angle = i * (2 * Math.PI / arrowCount);
+            double dx = Math.cos(angle);
+            double dz = Math.sin(angle);
+
+            // dy 성분을 0.0D로 강제 고정하여 기울기 없이 수평으로만 퍼지게 발사합니다.
+            shootArrowInDirection(boss, dx, 0.0D, dz, 0.35F, 2.5D);
+        }
+    }
 
     private static void shootArrowInDirection(ZombieBossEntity boss, double dx, double dy, double dz, float speed, double damage) {
         ZombieBossArrow arrow = new ZombieBossArrow(boss.level, boss);
