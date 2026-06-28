@@ -1,6 +1,6 @@
 package changmin.myMod.feature.turret.villager_turret;
 
-import changmin.myMod.feature.turret.ModItems;
+import changmin.myMod.registry.ModItems;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;

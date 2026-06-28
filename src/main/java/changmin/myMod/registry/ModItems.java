@@ -1,4 +1,4 @@
-package changmin.myMod.feature.turret;
+package changmin.myMod.registry;
 
 import changmin.myMod.MyMod;
 import net.minecraft.world.item.CreativeModeTab;
@@ -17,6 +17,13 @@ public class ModItems {
     public static final RegistryObject<Item> VILLAGER_TURRET_SPAWN_EGG =
             ITEMS.register("villager_turret_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntityTypes.VILLAGER_TURRET, 0x563C33, 0xBD8B72,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    // 🆕 좀비 보스 스폰알 (zombie1_spawn_egg)
+    // 앞부분 색상(0x1E3B20)은 달걀 기본색, 뒷부분 색상(0x8A1212)은 달걀 무늬색입니다. 마음에 드는 색상 코드로 자유롭게 변경 가능합니다.
+    public static final RegistryObject<Item> ZOMBIE1_SPAWN_EGG =
+            ITEMS.register("zombie1_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.ZOMBIE_BOSS, 0x1E3B20, 0x8A1212,
                             new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
     // 🆕 1. 터렛 포인트 토큰 (레벨업 보상)

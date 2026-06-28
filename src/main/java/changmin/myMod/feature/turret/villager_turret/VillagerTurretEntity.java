@@ -1,7 +1,7 @@
 package changmin.myMod.feature.turret.villager_turret;
 
 import changmin.myMod.ally.IAlly;
-import changmin.myMod.feature.turret.ModItems;
+import changmin.myMod.registry.ModItems;
 import changmin.myMod.zombieTribe.IZombieTribe; // 신규 추가된 임포트 구문
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;

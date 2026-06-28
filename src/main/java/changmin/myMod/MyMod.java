@@ -1,7 +1,7 @@
 package changmin.myMod;
 
-import changmin.myMod.feature.turret.ModEntityTypes;
-import changmin.myMod.feature.turret.ModItems;
+import changmin.myMod.registry.ModEntityTypes;
+import changmin.myMod.registry.ModItems;
 import changmin.myMod.feature.turret.villager_turret.VillagerTurretEntity;
 import changmin.myMod.feature.turret.villager_turret.VillagerTurretRenderer;
 import com.mojang.logging.LogUtils;
@@ -15,6 +15,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
+import software.bernie.geckolib3.GeckoLib;
 
 @Mod(MyMod.MODID)
 public class MyMod {
@@ -22,6 +23,7 @@ public class MyMod {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public MyMod() {
+        GeckoLib.initialize(); // 생성자 가장 위에 추가
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ModEntityTypes.register(modEventBus);

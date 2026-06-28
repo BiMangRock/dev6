@@ -120,5 +120,6 @@
   "item.mymod.recharge_upgrade": "Turret Upgrade: Recharge Speed",
   "item.mymod.burst_upgrade": "Turret Tech: Linear Burst",
   "item.mymod.fan_upgrade": "Turret Tech: Fan-Spread",
-  "item.mymod.poison_arrow_upgrade": "Turret Alchemy: Poison Arrow"
+  "item.mymod.poison_arrow_upgrade": "Turret Alchemy: Poison Arrow",
+  "item.mymod.zombie1_spawn_egg": "Zombie Boss Spawn Egg"
 }
