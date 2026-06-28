@@ -27,7 +27,7 @@ import software.bernie.geckolib3.core.manager.AnimationFactory;
 import software.bernie.geckolib3.util.GeckoLibUtil;
 
 public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTribe {
-    private int activeAttack = 0;
+    private int activeAttack = 0;       // 0: 평소, 2: 정밀화살, 3: 구형나선, 5: 제자리360도
     private int attackTick = 0;
 
     private int bossLevel = 1;
@@ -49,10 +49,7 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
 
     @Override
     protected void registerGoals() {
-        // [타겟 탐색 시스템] 플레이어와 아군(IAlly) 모두 탐색 대상에 등록합니다 [1].
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
-
-        // 제네릭 및 메서드 참조를 사용하여 타입 안전성을 높였습니다.
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<LivingEntity>(
                 this,
                 LivingEntity.class,
@@ -62,13 +59,10 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
                 IAlly.class::isInstance
         ));
 
-        // [우선순위 1] 타겟이 존재할 때의 원거리 시전 모드
         this.goalSelector.addGoal(1, new BossPatternGoal(this));
-
-        // 💡 [수정 완료] 아군 구경용 LookAtGoal 라인을 지우고 표준 생성자 규칙을 준수하도록 정돈했습니다.
-        this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D)); // 주변 돌아다니기
-        this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F)); // 플레이어 구경하기
-        this.goalSelector.addGoal(4, new RandomLookAroundGoal(this)); // 주위 두리번거리기
+        this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
     }
 
     @Override
@@ -134,9 +128,10 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
         }
     }
 
-    public void triggerAttack4() {
+    // 🆕 공격 5 트리거 선언
+    public void triggerAttack5() {
         if (this.activeAttack == 0) {
-            this.activeAttack = 4;
+            this.activeAttack = 5;
             this.attackTick = 0;
         }
     }
@@ -155,8 +150,9 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
         } else if (this.activeAttack == 3) {
             event.getController().setAnimation(new AnimationBuilder().playOnce("attack3"));
             return PlayState.CONTINUE;
-        } else if (this.activeAttack == 4) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("attack4"));
+        } else if (this.activeAttack == 5) {
+            // 🆕 공격 5 전용 애니메이션 작동
+            event.getController().setAnimation(new AnimationBuilder().playOnce("attack5"));
             return PlayState.CONTINUE;
         }
 

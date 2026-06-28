@@ -17,7 +17,6 @@ public class BossPatternGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        // 💡 [추가] 아군(IAlly)을 상대로 대기 중이더라도 플레이어가 사정거리(20블록) 내로 들어오면 즉시 타겟을 가로챕니다 [1].
         Player nearestPlayer = getNearestPlayerInRange(20.0D);
         if (nearestPlayer != null) {
             this.boss.setTarget(nearestPlayer);
@@ -29,7 +28,6 @@ public class BossPatternGoal extends Goal {
 
     @Override
     public void tick() {
-        // 💡 [추가] 아군과 이미 난타전을 벌이는 도중일지라도, 매 틱마다 플레이어가 난입했는지 실시간 검사해 타겟을 강제 변경합니다.
         Player nearestPlayer = getNearestPlayerInRange(20.0D);
         if (nearestPlayer != null && this.boss.getTarget() != nearestPlayer) {
             this.boss.setTarget(nearestPlayer);
@@ -44,23 +42,23 @@ public class BossPatternGoal extends Goal {
                 this.patternCooldown--;
             }
 
-            // 원거리 사격 시 행동 방랑을 멈추기 위해 정지 명령을 내립니다.
+            // 조준 사격을 위해 걷기를 완전히 정지시킵니다.
             this.boss.getNavigation().stop();
 
-            // 쿨타임이 끝났고 사정거리 내에 플레이어 혹은 아군이 있다면 2, 3, 4 중 무작위 원거리 공격 실행
+            // 쿨타임이 끝났고 사정거리(20블록) 내에 타겟이 있다면 2, 3, 5 중 랜덤 실행
             if (this.boss.getActiveAttack() == 0 && this.patternCooldown <= 0) {
-                if (distanceSq < 400.0D) { // 20블록 이내
-                    int randomChoice = this.boss.getRandom().nextInt(3);
+                if (distanceSq < 400.0D) {
+                    int randomChoice = this.boss.getRandom().nextInt(3); // 0, 1, 2
 
                     if (randomChoice == 0) {
-                        this.boss.triggerAttack2();
-                        this.patternCooldown = 80;
+                        this.boss.triggerAttack2(); // 기존 정밀 조준 사격
+                        this.patternCooldown = 80;  // 4초 대기
                     } else if (randomChoice == 1) {
-                        this.boss.triggerAttack3();
-                        this.patternCooldown = 120;
+                        this.boss.triggerAttack3(); // 3D 구형 부채꼴 나선 사격 (강화됨)
+                        this.patternCooldown = 120; // 6초 대기
                     } else {
-                        this.boss.triggerAttack4();
-                        this.patternCooldown = 140;
+                        this.boss.triggerAttack5(); // 🆕 제자리 360도 진공 난사 (신설)
+                        this.patternCooldown = 130; // 6.5초 대기
                     }
                 }
             }
@@ -72,13 +70,9 @@ public class BossPatternGoal extends Goal {
         this.boss.getNavigation().stop();
     }
 
-    /**
-     * 💡 [추가] 마인크래프트 버전에 따른 맵핑 충돌을 방지하기 위해
-     * 월드 내 모든 플레이어를 추적하여 생존 상태이고 크리에이티브/관전자가 아닌 "가장 가까운 플레이어"를 수동 탐색합니다.
-     */
     private Player getNearestPlayerInRange(double range) {
         Player nearestPlayer = null;
-        double nearestDistanceSq = range * range; // 효율적인 비교를 위해 제곱 거리 사용
+        double nearestDistanceSq = range * range;
 
         for (Player player : this.boss.level.players()) {
             if (player.isAlive() && !player.isCreative() && !player.isSpectator()) {
