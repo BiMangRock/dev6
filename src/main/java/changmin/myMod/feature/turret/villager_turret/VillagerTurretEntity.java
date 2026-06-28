@@ -2,6 +2,7 @@ package changmin.myMod.feature.turret.villager_turret;
 
 import changmin.myMod.ally.IAlly;
 import changmin.myMod.feature.turret.ModItems;
+import changmin.myMod.zombieTribe.IZombieTribe; // 신규 추가된 임포트 구문
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -20,7 +21,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
-import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.Merchant;
@@ -85,7 +85,9 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.targetSelector.addGoal(1, new TurretTargetGoal<>(this, Zombie.class));
+
+        // [종족 필터 통합] 특정 좀비 클래스가 아닌 모든 생명체를 후보로 잡고, TurretTargetGoal 내부 필터로 좀비 진형을 골라냅니다.
+        this.targetSelector.addGoal(1, new TurretTargetGoal<>(this, LivingEntity.class));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -181,7 +183,10 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
     @Override
     public void killed(ServerLevel level, LivingEntity killedEntity) {
         super.killed(level, killedEntity);
-        if (killedEntity instanceof Zombie) this.addXp(1);
+        // [수정] 바닐라 좀비뿐만 아니라 IZombieTribe 구현 종족을 사살했을 때도 경험치를 정상 부여하도록 확장
+        if (IZombieTribe.isZombieTribe(killedEntity)) {
+            this.addXp(1);
+        }
     }
 
     public void addXp(int amount) {
