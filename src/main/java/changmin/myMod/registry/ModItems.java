@@ -1,6 +1,7 @@
 package changmin.myMod.registry;
 
 import changmin.myMod.MyMod;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeSpawnEggItem;
@@ -19,39 +20,56 @@ public class ModItems {
                     () -> new ForgeSpawnEggItem(ModEntityTypes.VILLAGER_TURRET, 0x563C33, 0xBD8B72,
                             new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
-    // 🆕 좀비 보스 스폰알 (zombie1_spawn_egg)
-    // 앞부분 색상(0x1E3B20)은 달걀 기본색, 뒷부분 색상(0x8A1212)은 달걀 무늬색입니다. 마음에 드는 색상 코드로 자유롭게 변경 가능합니다.
+    // 좀비 보스 스폰알
     public static final RegistryObject<Item> ZOMBIE1_SPAWN_EGG =
             ITEMS.register("zombie1_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntityTypes.ZOMBIE_BOSS, 0x1E3B20, 0x8A1212,
                             new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
-    // 🆕 1. 터렛 포인트 토큰 (레벨업 보상)
-    public static final RegistryObject<Item> TURRET_POINT_TOKEN =
-            ITEMS.register("turret_point_token",
+    // 등급별 터렛 포인트 토큰 3종 등록
+    public static final RegistryObject<Item> TURRET_POINT_TOKEN_LOW =
+            ITEMS.register("turret_point_token_low",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
-    // 🆕 2. 화살 비행 속도 업그레이드서
+    public static final RegistryObject<Item> TURRET_POINT_TOKEN_MID =
+            ITEMS.register("turret_point_token_mid",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> TURRET_POINT_TOKEN_HIGH =
+            ITEMS.register("turret_point_token_high",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    // 🆕 응축된 에메랄드 아이템 등록
+    public static final RegistryObject<Item> CONDENSED_EMERALD =
+            ITEMS.register("condensed_emerald",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    // 🆕 터렛 부품 거래소(자판기) 블록 아이템 등록
+    public static final RegistryObject<Item> TURRET_STORE_BLOCK_ITEM =
+            ITEMS.register("turret_store",
+                    () -> new BlockItem(ModBlocks.TURRET_STORE.get(), new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    // 화살 비행 속도 업그레이드서
     public static final RegistryObject<Item> SPEED_UPGRADE =
             ITEMS.register("speed_upgrade",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
-    // 🆕 3. 재장전 속도 업그레이드서
+    // 재장전 속도 업그레이드서
     public static final RegistryObject<Item> RECHARGE_UPGRADE =
             ITEMS.register("recharge_upgrade",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
-    // 🆕 4. 일직선 점사 패턴 업그레이드서
+    // 일직선 점사 패턴 업그레이드서
     public static final RegistryObject<Item> BURST_UPGRADE =
             ITEMS.register("burst_upgrade",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
-    // 🆕 5. 부채꼴 발사 패턴 업그레이드서
+    // 부채꼴 발사 패턴 업그레이드서
     public static final RegistryObject<Item> FAN_UPGRADE =
             ITEMS.register("fan_upgrade",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
-    // 🆕 6. 치명적인 독 화살 업그레이드서
+    // 치명적인 독 화살 업그레이드서
     public static final RegistryObject<Item> POISON_ARROW_UPGRADE =
             ITEMS.register("poison_arrow_upgrade",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));

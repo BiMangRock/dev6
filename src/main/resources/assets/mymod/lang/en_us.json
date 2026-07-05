@@ -114,12 +114,15 @@
   "mymod.upgrade.slowness.desc2": "Effect: Inflicts Slowness, heavily restricting enemy movement.",
   "mymod.upgrade.slowness.info": "Equipped: %s ➔ Slowness Arrows (Requires 2 Tokens)",
   "mymod.upgrade.slowness.success": "Weapon loaded with Slowness Arrows.",
-  "item.mymod.turret_point_token": "Turret Point Token",
+
   "item.mymod.villager_turret_spawn_egg": "Villager Turret Spawn Egg",
   "item.mymod.speed_upgrade": "Turret Upgrade: Arrow Speed",
   "item.mymod.recharge_upgrade": "Turret Upgrade: Recharge Speed",
   "item.mymod.burst_upgrade": "Turret Tech: Linear Burst",
   "item.mymod.fan_upgrade": "Turret Tech: Fan-Spread",
   "item.mymod.poison_arrow_upgrade": "Turret Alchemy: Poison Arrow",
-  "item.mymod.zombie1_spawn_egg": "Zombie Boss Spawn Egg"
+  "item.mymod.zombie1_spawn_egg": "Zombie Boss Spawn Egg",
+  "item.mymod.turret_point_token_low": "Low-grade Turret Point Token",
+  "item.mymod.turret_point_token_mid": "Mid-grade Turret Point Token",
+  "item.mymod.turret_point_token_high": "High-grade Turret Point Token"
 }

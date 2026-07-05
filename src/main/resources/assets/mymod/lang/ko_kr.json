@@ -114,7 +114,7 @@
   "mymod.upgrade.slowness.desc2": "효과: 타격한 몹의 이동 속도를 크게 둔화시켜 저격 타임을 확보합니다.",
   "mymod.upgrade.slowness.info": "현재 장착: %s ➔ 감속 화살 (필요 토큰: 2개)",
   "mymod.upgrade.slowness.success": "화살 특성 변경 완료: 감속의 제동 화살 탑재",
-  "item.mymod.turret_point_token": "터렛 포인트 토큰",
+
   "item.mymod.villager_turret_spawn_egg": "주민 터렛 스폰알",
   "item.mymod.speed_upgrade": "터렛 강화 인증서: 화살 비행 속도",
   "item.mymod.recharge_upgrade": "터렛 강화 인증서: 재장전 속도",
@@ -122,5 +122,12 @@
   "item.mymod.fan_upgrade": "터렛 기술 인증서: 부채꼴 확산",
   "item.mymod.poison_arrow_upgrade": "터렛 연금 인증서: 치명적인 독 화살",
 
-  "item.mymod.zombie1_spawn_egg": "좀비1 보스 스폰알"
+  "item.mymod.zombie1_spawn_egg": "좀비1 보스 스폰알",
+
+  "item.mymod.turret_point_token_low": "하급 터렛 포인트 토큰",
+  "item.mymod.turret_point_token_mid": "중급 터렛 포인트 토큰",
+  "item.mymod.turret_point_token_high": "상급 터렛 포인트 토큰",
+  "block.mymod.turret_store": "터렛 부품 거래소",
+  "container.turret_store": "터렛 부품 거래소",
+  "item.mymod.condensed_emerald": "응축된 에메랄드"
 }

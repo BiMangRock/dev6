@@ -1,5 +1,6 @@
 package changmin.myMod;
 
+import changmin.myMod.registry.ModBlocks;        // 🆕 신규 추가된 블록 레지스트리 임포트
 import changmin.myMod.registry.ModEntityTypes;
 import changmin.myMod.registry.ModItems;
 import changmin.myMod.feature.turret.villager_turret.VillagerTurretEntity;
@@ -27,6 +28,7 @@ public class MyMod {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ModEntityTypes.register(modEventBus);
+        ModBlocks.register(modEventBus); // 🆕 신규 추가: 블록 등록 버스를 아이템보다 먼저 실행합니다.
         ModItems.register(modEventBus);
 
         modEventBus.addListener(this::setup);

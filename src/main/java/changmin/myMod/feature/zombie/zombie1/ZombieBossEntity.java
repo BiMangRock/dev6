@@ -18,9 +18,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.network.syncher.EntityDataAccessor;            // [추가] 동기화 변수 관리 클래스
-import net.minecraft.network.syncher.EntityDataSerializers;        // [추가] 동기화 변수 직렬화 클래스
-import net.minecraft.network.syncher.SynchedEntityData;            // [추가] 데이터 와처 클래스
+import net.minecraft.network.syncher.EntityDataAccessor;            // 동기화 변수 관리 클래스
+import net.minecraft.network.syncher.EntityDataSerializers;        // 동기화 변수 직렬화 클래스
+import net.minecraft.network.syncher.SynchedEntityData;            // 데이터 와처 클래스
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.builder.AnimationBuilder;
@@ -31,7 +31,7 @@ import software.bernie.geckolib3.core.manager.AnimationFactory;
 import software.bernie.geckolib3.util.GeckoLibUtil;
 
 public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTribe {
-    // 💡 [수정] 렌더러와 서버 연산을 실시간으로 강제 동기화하는 데이터 감시자 변수(EntityDataAccessor) 선언 [1]
+    // 렌더러와 서버 연산을 실시간으로 강제 동기화하는 데이터 감시자 변수(EntityDataAccessor) 선언 [1]
     private static final EntityDataAccessor<Integer> DATA_BOSS_LEVEL = SynchedEntityData.defineId(ZombieBossEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_CURRENT_XP = SynchedEntityData.defineId(ZombieBossEntity.class, EntityDataSerializers.INT);
 
@@ -53,7 +53,7 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.6D);
     }
 
-    // 💡 [수정] 자바 기본 메모리에만 상주하던 동기화용 메모리를 마인크래프트 데이터 와처 시스템에 등재합니다 [1].
+    // 자바 기본 메모리에만 상주하던 동기화용 메모리를 마인크래프트 데이터 와처 시스템에 등재합니다 [1].
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
@@ -96,7 +96,7 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
         return this.getBossLevel() * 5; // 동기화 게터 활용
     }
 
-    // 💡 [수정] 경험치 누적 및 연산을 동기화 변수(EntityData) 기반으로 가동합니다 [1].
+    // 경험치 누적 및 연산을 동기화 변수(EntityData) 기반으로 가동합니다 [1].
     public void recordKill() {
         int nextXp = this.getCurrentXp() + 1;
         this.setCurrentXp(nextXp);
@@ -105,7 +105,7 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
         }
     }
 
-    // 💡 [수정] 레벨업 시 내부 데이터 동기화와 속성 수치를 정확하게 갱신합니다 [1].
+    // 레벨업 시 내부 데이터 동기화와 속성 수치를 정확하게 갱신합니다 [1].
     private void levelUp() {
         this.setCurrentXp(0);
         int nextLevel = this.getBossLevel() + 1;
@@ -133,7 +133,8 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
             finalTokens += 1;
         }
 
-        this.spawnAtLocation(new ItemStack(ModItems.TURRET_POINT_TOKEN.get(), finalTokens));
+        // 🆕 [수정] TURRET_POINT_TOKEN 대신 TURRET_POINT_TOKEN_MID (중급 토큰)을 드롭하도록 변경
+        this.spawnAtLocation(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), finalTokens));
     }
 
     public void triggerAttack2() {
@@ -157,7 +158,7 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
         }
     }
 
-    // 💡 [수정] 렌더러가 접근하는 Getter와 Setter를 와처(EntityData) 기반으로 고쳐 실시간 반영을 이끌어냅니다.
+    // 렌더러가 접근하는 Getter와 Setter를 와처(EntityData) 기반으로 고쳐 실시간 반영을 이끌어냅니다.
     public int getBossLevel() { return this.entityData.get(DATA_BOSS_LEVEL); }
     public void setBossLevel(int level) { this.entityData.set(DATA_BOSS_LEVEL, level); }
     public int getCurrentXp() { return this.entityData.get(DATA_CURRENT_XP); }
