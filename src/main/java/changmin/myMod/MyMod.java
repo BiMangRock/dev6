@@ -1,10 +1,12 @@
 package changmin.myMod;
 
-import changmin.myMod.registry.ModBlocks;        // 🆕 신규 추가된 블록 레지스트리 임포트
+import changmin.myMod.registry.ModBlocks;
 import changmin.myMod.registry.ModEntityTypes;
 import changmin.myMod.registry.ModItems;
 import changmin.myMod.feature.turret.villager_turret.VillagerTurretEntity;
 import changmin.myMod.feature.turret.villager_turret.VillagerTurretRenderer;
+import changmin.myMod.feature.turret.resource_villager1.ResourceVillagerEntity;   // 🆕 신규 임포트 추가
+import changmin.myMod.feature.turret.resource_villager1.ResourceVillagerRenderer; // 🆕 신규 임포트 추가
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraftforge.common.MinecraftForge;
@@ -43,6 +45,8 @@ public class MyMod {
 
     private void clientSetup(final FMLClientSetupEvent event) {
         EntityRenderers.register(ModEntityTypes.VILLAGER_TURRET.get(), VillagerTurretRenderer::new);
+        // 🆕 자원 수확 주민 렌더러 등록 추가
+        EntityRenderers.register(ModEntityTypes.RESOURCE_VILLAGER.get(), ResourceVillagerRenderer::new);
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -51,6 +55,8 @@ public class MyMod {
         @SubscribeEvent
         public static void onAttributeCreate(EntityAttributeCreationEvent event) {
             event.put(ModEntityTypes.VILLAGER_TURRET.get(), VillagerTurretEntity.createAttributes().build());
+            // 🆕 자원 수확 주민 기초 속성 등록 추가
+            event.put(ModEntityTypes.RESOURCE_VILLAGER.get(), ResourceVillagerEntity.createAttributes().build());
         }
     }
 }

@@ -124,5 +124,11 @@
   "item.mymod.zombie1_spawn_egg": "Zombie Boss Spawn Egg",
   "item.mymod.turret_point_token_low": "Low-grade Turret Point Token",
   "item.mymod.turret_point_token_mid": "Mid-grade Turret Point Token",
-  "item.mymod.turret_point_token_high": "High-grade Turret Point Token"
+  "item.mymod.turret_point_token_high": "High-grade Turret Point Token",
+  "block.mymod.turret_store": "Turret Parts Exchange",
+  "container.turret_store": "Turret Parts Exchange",
+  "item.mymod.condensed_emerald": "Condensed Emerald",
+
+  "entity.mymod.resource_villager": "Resource Villager Turret",
+  "item.mymod.resource_villager_spawn_egg": "Resource Villager Turret Spawn Egg"
 }

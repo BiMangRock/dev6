@@ -26,6 +26,12 @@ public class ModItems {
                     () -> new ForgeSpawnEggItem(ModEntityTypes.ZOMBIE_BOSS, 0x1E3B20, 0x8A1212,
                             new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    // 🆕 자원 수확 주민 터렛 스폰알 등록 (초록색 테마)
+    public static final RegistryObject<Item> RESOURCE_VILLAGER_SPAWN_EGG =
+            ITEMS.register("resource_villager_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.RESOURCE_VILLAGER, 0x1F5C1F, 0x5C9C5C,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
     // 등급별 터렛 포인트 토큰 3종 등록
     public static final RegistryObject<Item> TURRET_POINT_TOKEN_LOW =
             ITEMS.register("turret_point_token_low",
@@ -39,12 +45,12 @@ public class ModItems {
             ITEMS.register("turret_point_token_high",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
-    // 🆕 응축된 에메랄드 아이템 등록
+    // 응축된 에메랄드 아이템 등록
     public static final RegistryObject<Item> CONDENSED_EMERALD =
             ITEMS.register("condensed_emerald",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
-    // 🆕 터렛 부품 거래소(자판기) 블록 아이템 등록
+    // 터렛 부품 거래소(자판기) 블록 아이템 등록
     public static final RegistryObject<Item> TURRET_STORE_BLOCK_ITEM =
             ITEMS.register("turret_store",
                     () -> new BlockItem(ModBlocks.TURRET_STORE.get(), new Item.Properties().tab(CreativeModeTab.TAB_MISC)));

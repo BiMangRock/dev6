@@ -129,5 +129,7 @@
   "item.mymod.turret_point_token_high": "상급 터렛 포인트 토큰",
   "block.mymod.turret_store": "터렛 부품 거래소",
   "container.turret_store": "터렛 부품 거래소",
-  "item.mymod.condensed_emerald": "응축된 에메랄드"
+  "item.mymod.condensed_emerald": "응축된 에메랄드",
+  "entity.mymod.resource_villager": "자원 수확 주민 터렛",
+  "item.mymod.resource_villager_spawn_egg": "자원 수확 주민 터렛 스폰알"
 }
