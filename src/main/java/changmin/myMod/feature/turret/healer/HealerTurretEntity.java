@@ -2,6 +2,7 @@ package changmin.myMod.feature.turret.healer;
 
 import changmin.myMod.ally.IAlly;
 import changmin.myMod.registry.ModItems;
+import changmin.myMod.zombieTribe.IZombieTribe; // 좀비 진형 체크를 위한 임포트
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -17,6 +18,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType; // 바닐라 언데드 타입을 감지하기 위한 임포트
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -57,10 +59,10 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
         super.defineSynchedData();
         this.entityData.define(TURRET_LEVEL, 1);
         this.entityData.define(XP, 0);
-        this.entityData.define(HEAL_AMOUNT, 6.0F); // 기본 치유량: 하트 3개 (6 HP)
-        this.entityData.define(COOLDOWN_LEVEL, 0);  // 쿨타임 레벨 (0부터 시작)
-        this.entityData.define(RANGE_LEVEL, 0);     // 사거리 레벨 (0부터 시작)
-        this.entityData.define(NEEDED_XP, 20);      // 1레벨업에 필요한 치유량: 하트 10개 (20 HP)
+        this.entityData.define(HEAL_AMOUNT, 6.0F); // 기본 단일 치유량: 하트 3개 (6 HP)
+        this.entityData.define(COOLDOWN_LEVEL, 0);
+        this.entityData.define(RANGE_LEVEL, 0);
+        this.entityData.define(NEEDED_XP, 20);
         this.entityData.define(AOE_HEAL_ENABLED, 0);
         this.entityData.define(CLEANSE_ENABLED, 0);
     }
@@ -72,14 +74,13 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
 
     public static AttributeSupplier.Builder createAttributes() {
         return PathfinderMob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 10.0D) // 기본 터렛 체력과 동일하게 설정
-                .add(Attributes.MOVEMENT_SPEED, 0.0D) // 설치형이므로 이동 속도 0
+                .add(Attributes.MAX_HEALTH, 10.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1.0D);
     }
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        // 자가 면역 등의 추가 방어 로직이 필요하다면 여기에 작성 가능합니다.
         return super.hurt(source, amount);
     }
 
@@ -91,15 +92,14 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
                 this.healCooldown--;
             }
 
-            // 1. 타겟팅 로직 (최적화된 AABB 방식)
+            // 1. 치유 타겟 물색 (자기 자신은 탐색 단계에서 원천 제외)
             findHealingTarget();
 
-            // 2. 머리 회전 제어
             if (this.healingTarget != null) {
                 this.getLookControl().setLookAt(this.healingTarget, 30.0F, 30.0F);
             }
 
-            // 3. 치유 실행 판단
+            // 2. 치유 발동 조건 계산
             if (this.healCooldown <= 0) {
                 if (this.getAoeHealEnabled() == 1) {
                     performAoeHeal();
@@ -118,7 +118,7 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
         LivingEntity bestTarget = null;
         double closestDist = Double.MAX_VALUE;
 
-        // 1순위: 플레이어 우선 감지 (부상당한 플레이어만)
+        // 1순위: 범위 내 부상당한 플레이어 우선 탐색
         for (LivingEntity entity : entities) {
             if (entity instanceof Player && entity.isAlive() && entity.getHealth() < entity.getMaxHealth()) {
                 double dist = this.distanceToSqr(entity);
@@ -129,7 +129,7 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
             }
         }
 
-        // 2순위: 범위 내 가장 가까운 부상당한 아군(IAlly) 감지
+        // 2순위: 부상당한 아군 엔티티 탐색 (자기 자신은 제외: entity != this)
         if (bestTarget == null) {
             closestDist = Double.MAX_VALUE;
             for (LivingEntity entity : entities) {
@@ -146,15 +146,23 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
         this.healingTarget = bestTarget;
     }
 
+    // [단일 치유 수행]
     private void performSingleHeal(LivingEntity target) {
-        float restored = healEntity(target);
+        float restored = healEntity(target, false); // 단일 치유 (패널티 없음)
         if (restored > 0) {
             this.addXp((int) restored);
-            spawnHealEffects(target);
+
+            // 1. 단일 마법 선형 줄기 연출 발동
+            spawnSingleHealLineEffects(target);
+
+            // 2. 주변 좀비 정화 타격 및 반격 어그로 끌기
+            damageUndeadInRange();
+
             this.healCooldown = getCalculatedCooldown();
         }
     }
 
+    // [광역 치유 수행]
     private void performAoeHeal() {
         double range = 8.0D + (this.getRangeLevel() * 1.0D);
         AABB box = this.getBoundingBox().inflate(range);
@@ -164,12 +172,18 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
         boolean healedAtLeastOne = false;
 
         for (LivingEntity entity : entities) {
-            if (entity.isAlive() && (entity instanceof Player || this.isAllyWith(entity))) {
+            // 광역 치유 대상에서도 자기 자신은 철저히 제외하여 밸런스 유지
+            if (entity != this && entity.isAlive() && (entity instanceof Player || this.isAllyWith(entity))) {
                 if (entity.getHealth() < entity.getMaxHealth()) {
-                    float restored = healEntity(entity);
+                    float restored = healEntity(entity, true); // 광역 치유 (치유량 50% 패널티 적용)
                     if (restored > 0) {
                         totalRestored += restored;
-                        spawnHealEffects(entity);
+
+                        // 아군 치유 피격 연출 (하트 + 초록 반짝이)
+                        if (this.level instanceof ServerLevel serverLevel) {
+                            serverLevel.sendParticles(ParticleTypes.HEART, entity.getX(), entity.getY(0.5D), entity.getZ(), 3, 0.2D, 0.2D, 0.2D, 0.01D);
+                            serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, entity.getX(), entity.getY(0.5D), entity.getZ(), 5, 0.3D, 0.3D, 0.3D, 0.01D);
+                        }
                         healedAtLeastOne = true;
                     }
                 }
@@ -178,20 +192,33 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
 
         if (healedAtLeastOne) {
             this.addXp((int) totalRestored);
+
+            // 1. 발밑에서 구형으로 퍼져나가는 파동 원형 고리 연출 발동
+            spawnAoeRingEffects();
+
+            // 2. 주변 좀비 정화 타격 및 반격 어그로 끌기
+            damageUndeadInRange();
+
             this.healCooldown = getCalculatedCooldown();
         }
     }
 
-    private float healEntity(LivingEntity entity) {
+    // [공통 치유 수치 계산]
+    private float healEntity(LivingEntity entity, boolean isAoe) {
         float currentHealth = entity.getHealth();
         float maxHealth = entity.getMaxHealth();
+
         float healAmount = this.getHealAmount();
+        // 밸런스 조정: 광역 치유 모드 시에는 개별 치유량을 50% 감소시킵니다.
+        if (isAoe) {
+            healAmount *= 0.5F;
+        }
+
         float actualHealed = Math.min(healAmount, maxHealth - currentHealth);
 
         if (actualHealed > 0) {
             entity.heal(actualHealed);
 
-            // 디버프 정화 특성이 켜져있을 경우 해로운 효과 제거
             if (this.getCleanseEnabled() == 1) {
                 entity.removeEffect(MobEffects.POISON);
                 entity.removeEffect(MobEffects.WITHER);
@@ -202,18 +229,113 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
         return actualHealed;
     }
 
-    private void spawnHealEffects(LivingEntity entity) {
+    // [성스러운 빛 광역 좀비 정화 타격 - 좀비 반격 유도]
+    private void damageUndeadInRange() {
+        double range = 8.0D + (this.getRangeLevel() * 1.0D);
+        AABB box = this.getBoundingBox().inflate(range);
+        List<LivingEntity> targets = this.level.getEntitiesOfClass(LivingEntity.class, box);
+
+        for (LivingEntity entity : targets) {
+            // 아군이 아닌 언데드 판정 몹(좀비 진형 포함)을 감지합니다.
+            if (entity.isAlive() && (entity.getMobType() == MobType.UNDEAD || IZombieTribe.isZombieTribe(entity))) {
+                // 공격의 주체(Source)를 이 토템(this)으로 등록해 1.0F(하트 반 개)의 피해를 줍니다.
+                // 좀비는 공격의 주체를 인식하고 복수(반격 AI)하기 위해 무조건 토템을 향해 진격하게 됩니다!
+                entity.hurt(DamageSource.mobAttack(this), 1.0F);
+
+                // 좀비 피격 시 오염 정화 연출 발동 (검은 연기와 작은 불꽃)
+                spawnUndeadDamageEffects(entity);
+            }
+        }
+    }
+
+    // 1. [단일 치유 시 줄기 연출]
+    private void spawnSingleHealLineEffects(LivingEntity target) {
         if (this.level instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ParticleTypes.HEART, entity.getX(), entity.getY(0.5D), entity.getZ(), 5, 0.3D, 0.3D, 0.3D, 0.02D);
-            serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, entity.getX(), entity.getY(0.5D), entity.getZ(), 8, 0.4D, 0.4D, 0.4D, 0.02D);
+            double startX = this.getX();
+            double startY = this.getY(1.2D); // 토템 중심 높이
+            double startZ = this.getZ();
+
+            double endX = target.getX();
+            double endY = target.getY(0.5D); // 대상 중심 높이
+            double endZ = target.getZ();
+
+            double dx = endX - startX;
+            double dy = endY - startY;
+            double dz = endZ - startZ;
+            double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+            int particleCount = (int) (distance * 4); // 블록당 4개씩 파티클 촘촘하게 배치
+            for (int i = 0; i <= particleCount; i++) {
+                double ratio = (double) i / particleCount;
+                double px = startX + dx * ratio;
+                double py = startY + dy * ratio;
+                double pz = startZ + dz * ratio;
+
+                // 초록색 주민 효과 파티클로 완벽한 마법 선형 줄기 구현
+                serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, px, py, pz, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+            }
+
+            // 최종 도달 시 대형 하트 연출
+            serverLevel.sendParticles(ParticleTypes.HEART, endX, endY + 0.5D, endZ, 5, 0.3D, 0.3D, 0.3D, 0.02D);
         }
         this.playSound(SoundEvents.VILLAGER_WORK_CLERIC, 1.0F, 1.2F + this.random.nextFloat() * 0.3F);
     }
 
+    // 2. [광역 치유 시 파동 연출]
+    private void spawnAoeRingEffects() {
+        if (this.level instanceof ServerLevel serverLevel) {
+            double centerX = this.getX();
+            double centerY = this.getY(); // 발밑 높이 기준
+            double centerZ = this.getZ();
+
+            double maxRange = 8.0D + (this.getRangeLevel() * 1.0D);
+
+            // 3단 동심원 고리 파동 표현 (반지름: 2블록, 중간값블록, 최대 사거리 블록)
+            double[] radii = { 2.0D, maxRange / 2.0D, maxRange };
+
+            for (double r : radii) {
+                int points = (int) (r * 8); // 원 둘레에 비례하게 파티클 포인트 개수 분배
+                for (int i = 0; i < points; i++) {
+                    double angle = (2 * Math.PI / points) * i;
+                    double px = centerX + Math.cos(angle) * r;
+                    double pz = centerZ + Math.sin(angle) * r;
+
+                    // 토템 파티클로 사방으로 퍼져나가는 황금빛 고리 파동 연출
+                    serverLevel.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, px, centerY + 0.1D, pz, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+                }
+            }
+        }
+        this.playSound(SoundEvents.VILLAGER_WORK_CLERIC, 1.0F, 1.0F + this.random.nextFloat() * 0.2F);
+    }
+
+    // 3. [좀비 피격 시 오염 정화 연출]
+    private void spawnUndeadDamageEffects(LivingEntity entity) {
+        if (this.level instanceof ServerLevel serverLevel) {
+            // 정화되어 타들어가는 불꽃과 검은 기포 연기 방출
+            serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE, entity.getX(), entity.getY(0.5D), entity.getZ(), 4, 0.2D, 0.2D, 0.2D, 0.01D);
+            serverLevel.sendParticles(ParticleTypes.SMALL_FLAME, entity.getX(), entity.getY(0.5D), entity.getZ(), 3, 0.2D, 0.2D, 0.2D, 0.01D);
+        }
+    }
+
+    // [성능 조절: 광역 치유 모드 시 쿨타임 50% 패널티 동적 가산 적용]
     public int getCalculatedCooldown() {
         int baseCooldown = 200; // 기본 10초 (200틱)
         int reduction = this.getCooldownLevel() * 10; // 레벨당 0.5초(10틱) 감소
-        return Math.max(20, baseCooldown - reduction); // 최소 1초(20틱) 보장
+        int finalCd = Math.max(20, baseCooldown - reduction); // 최소 1초(20틱) 보장
+
+        // 광역 치유 업그레이드가 활성화된 경우 쿨타임 50% 추가 패널티 적용
+        if (this.getAoeHealEnabled() == 1) {
+            finalCd = (int) (finalCd * 1.5F);
+        }
+        return finalCd;
+    }
+
+    @Override
+    public void killed(ServerLevel level, LivingEntity killedEntity) {
+        super.killed(level, killedEntity);
+        if (IZombieTribe.isZombieTribe(killedEntity)) {
+            this.addXp(1);
+        }
     }
 
     public void addXp(int amount) {
@@ -227,8 +349,6 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
             this.setTurretLevel(currentLvl);
             this.entityData.set(XP, currentXp);
 
-            // 레벨업 난이도 곡선 공식 설계 (하트 요구치: 10 -> 15 -> 20 -> 25 ...)
-            // HP 경험치 환산: 20 -> 30 -> 40 -> 50 ...
             int nextNeededHearts = 10 + (currentLvl - 1) * 5;
             this.setNeededXp(nextNeededHearts * 2);
 
@@ -239,15 +359,13 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
     }
 
     private void onLevelUp(int newLevel) {
-        // 레벨업당 최대 체력 5씩 상승
         double newMaxHealth = 10.0D + (newLevel - 1) * 5.0D;
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMaxHealth);
-        this.setHealth((float) newMaxHealth); // 레벨업 시 완치 보너스
+        this.setHealth((float) newMaxHealth);
 
         this.playSound(SoundEvents.PLAYER_LEVELUP, 1.0F, 0.8F);
 
         if (!this.level.isClientSide) {
-            // 본인 엔티티 형식의 ID가 박힌 공유 토큰 드랍 (동일 종류 치유 토템 상호 교환 가능)
             this.spawnAtLocation(HealerTradeManager.getBoundToken(this, 1), 0.5F);
         }
     }
@@ -258,7 +376,6 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
         if (!heldItem.isEmpty()) {
             String upgradeType = null;
             if (heldItem.hasTag() && heldItem.getTag().contains("UpgradeType")) {
-                // 토큰에 바인딩된 터렛 종류가 일치해야 상호작용 가능
                 String allowedType = heldItem.getTag().getString("TurretType");
                 if (allowedType.equals(this.getType().getRegistryName().toString())) {
                     upgradeType = heldItem.getTag().getString("UpgradeType");
@@ -312,7 +429,6 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
         }
     }
 
-    // --- 동적 동기화 게터 및 세터들 ---
     public int getTurretLevel() { return this.entityData.get(TURRET_LEVEL); }
     public void setTurretLevel(int level) { this.entityData.set(TURRET_LEVEL, level); }
     public int getXp() { return this.entityData.get(XP); }
