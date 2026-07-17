@@ -130,5 +130,8 @@
   "item.mymod.condensed_emerald": "Condensed Emerald",
 
   "entity.mymod.resource_villager": "Resource Villager Turret",
-  "item.mymod.resource_villager_spawn_egg": "Resource Villager Turret Spawn Egg"
+  "item.mymod.resource_villager_spawn_egg": "Resource Villager Turret Spawn Egg",
+
+  "entity.mymod.healer_turret": "Healer Totem Turret",
+  "item.mymod.healer_turret_spawn_egg": "Healer Totem Turret Spawn Egg"
 }

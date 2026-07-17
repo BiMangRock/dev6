@@ -65,6 +65,12 @@ public class TurretStoreBlock extends Block {
             ));
 
 
+            // 🆕 [추가] 거래 5: 금 블록 1개 ➔ 치유 토템 터렛 스폰알 1개 (구매)
+            offers.add(new MerchantOffer(
+                    new ItemStack(Items.GOLD_BLOCK, 1),
+                    new ItemStack(ModItems.HEALER_TURRET_SPAWN_EGG.get(), 1),
+                    999, 2, 0.05F
+            ));
 
             // 거래 5: 하급 토큰 9개 ➔ 중급 토큰 1개 (환전)
             offers.add(new MerchantOffer(

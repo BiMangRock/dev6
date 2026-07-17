@@ -1,6 +1,7 @@
 package changmin.myMod.registry;
 
 import changmin.myMod.MyMod;
+import changmin.myMod.feature.turret.healer.HealerTurretEntity;
 import changmin.myMod.feature.turret.villager_turret.VillagerTurretEntity;
 import changmin.myMod.feature.turret.resource_villager1.ResourceVillagerEntity; // 🆕 신규 임포트 추가
 import changmin.myMod.feature.zombie.zombie1.ZombieBossEntity;
@@ -40,4 +41,10 @@ public class ModEntityTypes {
     public static void register(IEventBus eventBus) {
         ENTITY_TYPES.register(eventBus);
     }
+
+    public static final RegistryObject<EntityType<HealerTurretEntity>> HEALER_TURRET =
+            ENTITY_TYPES.register("healer_turret",
+                    () -> EntityType.Builder.of(HealerTurretEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 1.95F) // 주민 크기와 동일
+                            .build("healer_turret"));
 }

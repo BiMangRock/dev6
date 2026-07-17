@@ -83,4 +83,12 @@ public class ModItems {
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }
+
+    public static final RegistryObject<Item> HEALER_TURRET_SPAWN_EGG = ITEMS.register("healer_turret_spawn_egg",
+            () -> new ForgeSpawnEggItem(
+                    ModEntityTypes.HEALER_TURRET, // 스폰할 엔티티 지정
+                    0xFF5555,                    // 알의 바탕색 (예: 연성직자 붉은색 테마)
+                    0x55FF55,                    // 알의 점박이 색 (예: 치유 초록색 테마)
+                    new Item.Properties().tab(CreativeModeTab.TAB_MISC) // 크리에이티브 기타 탭에 등록
+            ));
 }
