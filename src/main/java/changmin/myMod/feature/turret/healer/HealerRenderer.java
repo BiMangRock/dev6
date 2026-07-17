@@ -24,7 +24,6 @@ public class HealerRenderer extends MobRenderer<HealerTurretEntity, VillagerMode
     public HealerRenderer(EntityRendererProvider.Context context) {
         super(context, new VillagerModel<>(context.bakeLayer(ModelLayers.VILLAGER)), 0.5F);
 
-        // 🆕 기본 주민 몸체 위에 성직자 옷을 덧칠해서 렌더링하는 레이어 추가
         this.addLayer(new net.minecraft.client.renderer.entity.layers.RenderLayer<HealerTurretEntity, VillagerModel<HealerTurretEntity>>(this) {
             @Override
             public void render(PoseStack poseStack, MultiBufferSource buffer, int packedLight, HealerTurretEntity entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
@@ -35,7 +34,6 @@ public class HealerRenderer extends MobRenderer<HealerTurretEntity, VillagerMode
 
     @Override
     public ResourceLocation getTextureLocation(HealerTurretEntity entity) {
-        // 🆕 기본 반환 텍스처는 투명하지 않은 주민 본체 몸뚱아리로 변경합니다.
         return BASE_VILLAGER_LOCATION;
     }
 
@@ -62,7 +60,7 @@ public class HealerRenderer extends MobRenderer<HealerTurretEntity, VillagerMode
             Component textComponent = new TextComponent(infoText);
             float textWidth = (float)font.width(textComponent);
             float textX = -textWidth / 2.0F;
-            float hpTextY = -22.0F;
+            float hpTextY = -27.0F;
 
             font.drawInBatch(textComponent, textX, hpTextY, -1, false, matrix4f, buffer, false, 0, packedLight);
 
@@ -71,24 +69,33 @@ public class HealerRenderer extends MobRenderer<HealerTurretEntity, VillagerMode
             Component xpComponent = new TextComponent(xpText);
             float xpTextWidth = (float)font.width(xpComponent);
             float xpTextX = -xpTextWidth / 2.0F;
-            float xpTextY = -12.0F;
+            float xpTextY = -17.0F;
 
             font.drawInBatch(xpComponent, xpTextX, xpTextY, -1, false, matrix4f, buffer, false, 0, packedLight);
 
-            // 그래픽 바 디자인 가로길이 고정값 선언
+            // 🆕 3. 실시간 쿨타임 남은 시간 초 단위 텍스트 렌더링
+            float currentCd = entity.getCurrentCooldown();
+            String cdText = currentCd > 0 ? String.format("Cooldown: %.1fs", currentCd / 20.0F) : "Heal Ready!";
+            Component cdComponent = new TextComponent(cdText);
+            float cdTextWidth = (float)font.width(cdComponent);
+            float cdTextX = -cdTextWidth / 2.0F;
+            float cdTextY = -7.0F;
+
+            font.drawInBatch(cdComponent, cdTextX, cdTextY, -1, false, matrix4f, buffer, false, 0, packedLight);
+
+            // 가로 50px 고정형 그래픽 바 위치 및 크기 선언
             float barWidth = 50.0F;
-            float barHeight = 3.0F;
+            float barHeight = 2.0F;
             float barX = -barWidth / 2.0F;
 
-            // 3. 체력 게이지 바 렌더링 (Y축 2.0F)
-            float hpBarY = 2.0F;
+            // 4. 체력 게이지 바 렌더링 (Y축 5.0F)
+            float hpBarY = 5.0F;
             float hpRatio = (float)entity.getHealth() / (float)entity.getMaxHealth();
             if (hpRatio > 1.0F) hpRatio = 1.0F;
             float currentHpWidth = barWidth * hpRatio;
 
             drawSolidQuad(matrix4f, buffer, barX, hpBarY, barX + barWidth, hpBarY + barHeight, 0x80505050);
 
-            // 체력 비율에 따른 직관적 컬러 디스플레이
             int healthColor = 0xFF00FF00;
             if (hpRatio < 0.25F) {
                 healthColor = 0xFFFF0000;
@@ -97,17 +104,30 @@ public class HealerRenderer extends MobRenderer<HealerTurretEntity, VillagerMode
             }
             drawSolidQuad(matrix4f, buffer, barX, hpBarY, barX + currentHpWidth, hpBarY + barHeight, healthColor);
 
-            // 4. 경험치(치유한 체력 누적치) 바 렌더링 (Y축 7.0F)
-            float xpBarY = 7.0F;
+            // 5. 경험치 바 렌더링 (Y축 10.0F)
+            float xpBarY = 10.0F;
             float xpRatio = (float)entity.getXp() / (float)entity.getNeededXp();
             if (xpRatio > 1.0F) xpRatio = 1.0F;
             float currentXpWidth = barWidth * xpRatio;
 
             drawSolidQuad(matrix4f, buffer, barX, xpBarY, barX + barWidth, xpBarY + barHeight, 0x80505050);
 
-            // 성직자 테마에 어울리는 신성한 에메랄드 그린 컬러로 경험치 바를 그립니다.
             int xpColor = 0xFF55FF55;
             drawSolidQuad(matrix4f, buffer, barX, xpBarY, barX + currentXpWidth, xpBarY + barHeight, xpColor);
+
+            // 🆕 6. 실시간 쿨타임 충전바 렌더링 (Y축 15.0F)
+            float cdBarY = 15.0F;
+            float maxCd = entity.getCalculatedCooldown();
+
+            // 쿨다운이 돌 때 게이지바가 충전되는(Ready를 향해 차오르는) 비율 계산
+            float cdRatio = maxCd > 0 ? (float)(maxCd - currentCd) / maxCd : 1.0F;
+            if (cdRatio > 1.0F) cdRatio = 1.0F;
+            float currentCdWidth = barWidth * cdRatio;
+
+            drawSolidQuad(matrix4f, buffer, barX, cdBarY, barX + barWidth, cdBarY + barHeight, 0x80505050);
+
+            int cdColor = 0xFFFF9933; // 따뜻한 오렌지/옐로우 빛의 충전바 색상
+            drawSolidQuad(matrix4f, buffer, barX, cdBarY, barX + currentCdWidth, cdBarY + barHeight, cdColor);
 
             poseStack.popPose();
         }
