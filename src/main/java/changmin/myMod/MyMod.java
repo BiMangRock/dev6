@@ -9,9 +9,11 @@ import changmin.myMod.feature.turret.resource_villager1.ResourceVillagerEntity;
 import changmin.myMod.feature.turret.resource_villager1.ResourceVillagerRenderer;
 import changmin.myMod.feature.turret.healer.HealerTurretEntity;
 import changmin.myMod.feature.turret.healer.HealerRenderer;
-// 🆕 삼지창 주민 터렛 관련 클래스 임포트 추가
 import changmin.myMod.feature.turret.trident_turret.TridentTurretEntity;
 import changmin.myMod.feature.turret.trident_turret.TridentTurretRenderer;
+// 🆕 탱커 주민 터렛 관련 클래스 임포트 추가
+import changmin.myMod.feature.turret.tanker.TankerTurretEntity;
+import changmin.myMod.feature.turret.tanker.TankerTurretRenderer;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.renderer.entity.EntityRenderers;
@@ -53,9 +55,10 @@ public class MyMod {
         EntityRenderers.register(ModEntityTypes.VILLAGER_TURRET.get(), VillagerTurretRenderer::new);
         EntityRenderers.register(ModEntityTypes.RESOURCE_VILLAGER.get(), ResourceVillagerRenderer::new);
         EntityRenderers.register(ModEntityTypes.HEALER_TURRET.get(), HealerRenderer::new);
-
-        // 🆕 삼지창 주민 터렛 렌더러 등록 추가
         EntityRenderers.register(ModEntityTypes.TRIDENT_TURRET.get(), TridentTurretRenderer::new);
+
+        // 🆕 탱커 주민 터렛 렌더러 등록 추가
+        EntityRenderers.register(ModEntityTypes.TANKER_TURRET.get(), TankerTurretRenderer::new);
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -66,9 +69,10 @@ public class MyMod {
             event.put(ModEntityTypes.VILLAGER_TURRET.get(), VillagerTurretEntity.createAttributes().build());
             event.put(ModEntityTypes.RESOURCE_VILLAGER.get(), ResourceVillagerEntity.createAttributes().build());
             event.put(ModEntityTypes.HEALER_TURRET.get(), HealerTurretEntity.createAttributes().build());
-
-            // 🆕 삼지창 주민 터렛 기초 속성 등록 추가
             event.put(ModEntityTypes.TRIDENT_TURRET.get(), TridentTurretEntity.createAttributes().build());
+
+            // 🆕 탱커 주민 터렛 기초 속성 등록 추가
+            event.put(ModEntityTypes.TANKER_TURRET.get(), TankerTurretEntity.createAttributes().build());
         }
     }
 }

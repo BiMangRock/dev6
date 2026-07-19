@@ -116,7 +116,25 @@ public class ModItems {
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
 
+    // 🆕 탱커 주민 터렛 스폰알 등록 (단단한 무쇠 회색 0x4C515B와 주황색 불꽃 0xFF8822 테마)
+    public static final RegistryObject<Item> TANKER_TURRET_SPAWN_EGG =
+            ITEMS.register("tanker_turret_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.TANKER_TURRET, 0x4C515B, 0xFF8822,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+
+    // 🆕 탱커 전용 터렛 포인트 토큰 3종 등록
+    public static final RegistryObject<Item> TANKER_POINT_TOKEN_LOW =
+            ITEMS.register("tanker_point_token_low",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> TANKER_POINT_TOKEN_MID =
+            ITEMS.register("tanker_point_token_mid",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> TANKER_POINT_TOKEN_HIGH =
+            ITEMS.register("tanker_point_token_high",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);

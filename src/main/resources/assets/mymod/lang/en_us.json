@@ -142,5 +142,8 @@
   "item.mymod.trident_turret_spawn_egg": "Trident Villager Turret Spawn Egg",
   "item.mymod.trident_point_token_low": "Trident Turret Point Token (Low)",
   "item.mymod.trident_point_token_mid": "Trident Turret Point Token (Mid)",
-  "item.mymod.trident_point_token_high": "Trident Turret Point Token (High)"
+  "item.mymod.trident_point_token_high": "Trident Turret Point Token (High)",
+
+  "entity.mymod.tanker_turret": "Tanker Villager Turret",
+  "item.mymod.tanker_turret_spawn_egg": "Tanker Villager Turret Spawn Egg"
 }

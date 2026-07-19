@@ -146,5 +146,12 @@
   "item.mymod.trident_turret_spawn_egg": "삼지창 주민 터렛 스폰알",
   "item.mymod.trident_point_token_low": "삼지창 터렛 포인트 토큰 (하급)",
   "item.mymod.trident_point_token_mid": "삼지창 터렛 포인트 토큰 (중급)",
-  "item.mymod.trident_point_token_high": "삼지창 터렛 포인트 토큰 (상급)"
+  "item.mymod.trident_point_token_high": "삼지창 터렛 포인트 토큰 (상급)",
+
+  "entity.mymod.tanker_turret": "탱커 주민 터렛",
+  "item.mymod.tanker_turret_spawn_egg": "탱커 주민 터렛 스폰알",
+
+  "item.mymod.tanker_point_token_low": "탱커 터렛 포인트 토큰 (하급)",
+  "item.mymod.tanker_point_token_mid": "탱커 터렛 포인트 토큰 (중급)",
+  "item.mymod.tanker_point_token_high": "탱커 터렛 포인트 토큰 (상급)"
 }

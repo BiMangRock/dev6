@@ -103,7 +103,24 @@ public class TurretStoreBlock extends Block {
                     999, 2, 0.05F
             ));
 
+// 거래 11: 철 블록 1개 ➔ 탱커 주민 터렛 스폰알 1개 (구매)
+            offers.add(new MerchantOffer(
+                    new ItemStack(Items.IRON_BLOCK, 1),
+                    new ItemStack(ModItems.TANKER_TURRET_SPAWN_EGG.get(), 1),
+                    999, 2, 0.05F
+            ));
 
+            // 탱커 토큰 환전 거래 추가
+            offers.add(new MerchantOffer(
+                    new ItemStack(ModItems.TANKER_POINT_TOKEN_LOW.get(), 9),
+                    new ItemStack(ModItems.TANKER_POINT_TOKEN_MID.get(), 1),
+                    999, 2, 0.05F
+            ));
+            offers.add(new MerchantOffer(
+                    new ItemStack(ModItems.TANKER_POINT_TOKEN_MID.get(), 3),
+                    new ItemStack(ModItems.TANKER_POINT_TOKEN_HIGH.get(), 1),
+                    999, 2, 0.05F
+            ));
 
             merchant.overrideOffers(offers);
 

@@ -2,6 +2,7 @@ package changmin.myMod.registry;
 
 import changmin.myMod.MyMod;
 import changmin.myMod.feature.turret.healer.HealerTurretEntity;
+import changmin.myMod.feature.turret.tanker.TankerTurretEntity;
 import changmin.myMod.feature.turret.trident_turret.TridentTurretEntity;
 import changmin.myMod.feature.turret.villager_turret.VillagerTurretEntity;
 import changmin.myMod.feature.turret.resource_villager1.ResourceVillagerEntity; // 🆕 신규 임포트 추가
@@ -45,6 +46,13 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.of(ResourceVillagerEntity::new, MobCategory.MISC)
                             .sized(0.6F, 1.95F)
                             .build("resource_villager"));
+
+    // 탱커 주민 터렛 등록
+    public static final RegistryObject<EntityType<TankerTurretEntity>> TANKER_TURRET =
+            ENTITY_TYPES.register("tanker_turret",
+                    () -> EntityType.Builder.of(TankerTurretEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 1.95F)
+                            .build("tanker_turret"));
 
     public static void register(IEventBus eventBus) {
         ENTITY_TYPES.register(eventBus);
