@@ -80,6 +80,31 @@ public class TurretStoreBlock extends Block {
                     999, 2, 0.05F
             ));
 
+
+
+            // 거래 8: 다이아몬드 4개 ➔ 삼지창 주민 터렛 스폰알 1개 (구매)
+            offers.add(new MerchantOffer(
+                    new ItemStack(Items.DIAMOND, 4),
+                    new ItemStack(ModItems.TRIDENT_TURRET_SPAWN_EGG.get(), 1),
+                    999, 2, 0.05F
+            ));
+
+            // 거래 9: 삼지창 하급 토큰 9개 ➔ 삼지창 중급 토큰 1개 (환전)
+            offers.add(new MerchantOffer(
+                    new ItemStack(ModItems.TRIDENT_POINT_TOKEN_LOW.get(), 9),
+                    new ItemStack(ModItems.TRIDENT_POINT_TOKEN_MID.get(), 1),
+                    999, 2, 0.05F
+            ));
+
+            // 거래 10: 삼지창 중급 토큰 3개 ➔ 삼지창 상급 토큰 1개 (환전 비율 인하 적용)
+            offers.add(new MerchantOffer(
+                    new ItemStack(ModItems.TRIDENT_POINT_TOKEN_MID.get(), 3),
+                    new ItemStack(ModItems.TRIDENT_POINT_TOKEN_HIGH.get(), 1),
+                    999, 2, 0.05F
+            ));
+
+
+
             merchant.overrideOffers(offers);
 
             OptionalInt containerId = player.openMenu(new SimpleMenuProvider(

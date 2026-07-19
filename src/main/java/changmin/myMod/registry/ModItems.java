@@ -95,6 +95,29 @@ public class ModItems {
             ITEMS.register("healer_point_token_high",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+
+    // 🆕 삼지창 주민 터렛 스폰알 등록 (바다 청록색 테마)
+    public static final RegistryObject<Item> TRIDENT_TURRET_SPAWN_EGG =
+            ITEMS.register("trident_turret_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.TRIDENT_TURRET, 0x1A4D62, 0x56C2D6,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    // 🆕 삼지창 전용 터렛 포인트 토큰 3종 등록
+    public static final RegistryObject<Item> TRIDENT_POINT_TOKEN_LOW =
+            ITEMS.register("trident_point_token_low",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> TRIDENT_POINT_TOKEN_MID =
+            ITEMS.register("trident_point_token_mid",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> TRIDENT_POINT_TOKEN_HIGH =
+            ITEMS.register("trident_point_token_high",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+
+
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

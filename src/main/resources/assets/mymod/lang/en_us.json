@@ -136,5 +136,11 @@
   "item.mymod.healer_turret_spawn_egg": "Healer Totem Turret Spawn Egg",
   "item.mymod.healer_point_token_low": "Low Healer Token",
   "item.mymod.healer_point_token_mid": "Mid Healer Token",
-  "item.mymod.healer_point_token_high": "High Healer Token"
+  "item.mymod.healer_point_token_high": "High Healer Token",
+
+  "entity.mymod.trident_turret": "Trident Villager Turret",
+  "item.mymod.trident_turret_spawn_egg": "Trident Villager Turret Spawn Egg",
+  "item.mymod.trident_point_token_low": "Trident Turret Point Token (Low)",
+  "item.mymod.trident_point_token_mid": "Trident Turret Point Token (Mid)",
+  "item.mymod.trident_point_token_high": "Trident Turret Point Token (High)"
 }

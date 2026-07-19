@@ -138,5 +138,13 @@
 
   "item.mymod.healer_point_token_low": "하급 치유 토큰",
   "item.mymod.healer_point_token_mid": "중급 치유 토큰",
-  "item.mymod.healer_point_token_high": "상급 치유 토큰"
+  "item.mymod.healer_point_token_high": "상급 치유 토큰",
+
+
+
+  "entity.mymod.trident_turret": "삼지창 주민 터렛",
+  "item.mymod.trident_turret_spawn_egg": "삼지창 주민 터렛 스폰알",
+  "item.mymod.trident_point_token_low": "삼지창 터렛 포인트 토큰 (하급)",
+  "item.mymod.trident_point_token_mid": "삼지창 터렛 포인트 토큰 (중급)",
+  "item.mymod.trident_point_token_high": "삼지창 터렛 포인트 토큰 (상급)"
 }
