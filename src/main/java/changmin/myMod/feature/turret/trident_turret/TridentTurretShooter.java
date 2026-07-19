@@ -1,8 +1,12 @@
 package changmin.myMod.feature.turret.trident_turret;
 
 import changmin.myMod.MyMod;
+import changmin.myMod.ally.IAlly;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,65 +15,140 @@ import net.minecraft.world.entity.projectile.ThrownTrident;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.TickEvent;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.event.entity.EntityStruckByLightningEvent;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.WeakHashMap;
-
 @Mod.EventBusSubscriber(modid = MyMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class TridentTurretShooter {
 
-    // 🔒 메모리 누수(Memory Leak) 방지를 위한 가비지 컬렉션 연동 WeakHashMap 기반 동기화 Set
-    private static final Set<ThrownTrident> activeTridents = Collections.synchronizedSet(
-            Collections.newSetFromMap(new WeakHashMap<>())
-    );
-
-    // 🔒 ThrownTrident의 private boolean dealtDamage 필드에 접근하기 위한 리플렉션 객체
-    private static java.lang.reflect.Field dealtDamageField = null;
+    // 🔒 AbstractArrow의 private piercingIgnoreEntityIds(관통 충돌 제외 셋)를 제어하기 위한 리플렉션 객체
+    private static java.lang.reflect.Field piercingIgnoreField = null;
 
     static {
         try {
-            // 개발 환경(Mojang 매핑) 이름으로 시도
-            dealtDamageField = ThrownTrident.class.getDeclaredField("dealtDamage");
-            dealtDamageField.setAccessible(true);
+            // 개발 환경(Mojang 매핑) 이름으로 바인딩 시도
+            piercingIgnoreField = AbstractArrow.class.getDeclaredField("piercingIgnoreEntityIds");
+            piercingIgnoreField.setAccessible(true);
         } catch (NoSuchFieldException e) {
-            // 실 서버 실행(Obfuscated/SRG) 환경의 경우, ThrownTrident 안의 유일한 boolean 원시 타입 필드를 검색하여 바인딩
-            for (java.lang.reflect.Field field : ThrownTrident.class.getDeclaredFields()) {
-                if (field.getType() == boolean.class) {
-                    dealtDamageField = field;
-                    dealtDamageField.setAccessible(true);
+            // 실 서버 및 난독화 환경을 위한 다중 백업 감지 알고리즘 (타입 기반 검출 포함)
+            for (java.lang.reflect.Field field : AbstractArrow.class.getDeclaredFields()) {
+                if (field.getType().getName().contains("IntOpenHashSet") ||
+                        field.getName().equals("f_36710_") ||
+                        field.getName().equals("piercingIgnoreEntityIds")) {
+                    piercingIgnoreField = field;
+                    piercingIgnoreField.setAccessible(true);
                     break;
                 }
             }
         }
     }
 
-    private static void setDealtDamage(ThrownTrident trident, boolean val) {
-        if (dealtDamageField != null) {
+    // 삼지창의 충돌 제외 무시 목록 가져오기
+    public static IntOpenHashSet getIgnoredEntities(AbstractArrow arrow) {
+        if (piercingIgnoreField != null) {
             try {
-                dealtDamageField.setBoolean(trident, val);
+                return (IntOpenHashSet) piercingIgnoreField.get(arrow);
             } catch (IllegalAccessException e) {
-                // 예외 무시
+                // 무시
+            }
+        }
+        return null;
+    }
+
+    // 충돌 제외 목록에 대상 적 추가하기 (연사 중복 충돌 무한루프 방지)
+    public static void addIgnoredEntity(AbstractArrow arrow, net.minecraft.world.entity.Entity entity) {
+        if (piercingIgnoreField != null) {
+            try {
+                IntOpenHashSet set = (IntOpenHashSet) piercingIgnoreField.get(arrow);
+                if (set == null) {
+                    set = new IntOpenHashSet(5);
+                    piercingIgnoreField.set(arrow, set);
+                }
+                set.add(entity.getId());
+            } catch (IllegalAccessException e) {
+                // 무시
             }
         }
     }
 
-    // 🔄 매 틱마다 활성화된 삼지창의 dealtDamage 값을 false로 리셋하여, AbstractArrow 관통 물리 엔진이 작동하도록 강제 유도
+    // 🏹 [핵심] 삼지창 충돌 분석 및 이벤트 필터링 연산
     @SubscribeEvent
-    public static void onWorldTick(TickEvent.WorldTickEvent event) {
-        if (event.phase == TickEvent.Phase.END && event.side.isServer()) {
-            // 이미 제거되었거나 사라진 삼지창 엔티티는 정리
-            activeTridents.removeIf(trident -> !trident.isAlive() || trident.isRemoved());
+    public static void onProjectileImpact(ProjectileImpactEvent event) {
+        if (event.getProjectile() instanceof ThrownTrident trident && !trident.level.isClientSide) {
+            if (trident.getTags().contains("turret_trident")) {
+                HitResult hitResult = event.getRayTraceResult();
 
-            for (ThrownTrident trident : activeTridents) {
-                if (trident.level == event.world) {
-                    if (trident.getPierceLevel() > 0) {
-                        setDealtDamage(trident, false); // 관통 중이라면 강제 리셋
+                // 블록 충돌이 아닌 엔티티 충돌 상태일 때만 개입
+                if (hitResult instanceof EntityHitResult entityHitResult) {
+                    net.minecraft.world.entity.Entity target = entityHitResult.getEntity();
+
+                    // 1. 아군 사격 및 자신 사격 무시 판정
+                    net.minecraft.world.entity.Entity owner = trident.getOwner();
+                    if (target == owner || (owner instanceof IAlly && target instanceof IAlly)) {
+                        event.setCanceled(true);
+                        addIgnoredEntity(trident, target); // 무한루프 락 방지용 대상 목록 수동 등록
+                        return;
+                    }
+
+                    // 엔더맨 회피 통과 연산
+                    if (target.getType() == EntityType.ENDERMAN) {
+                        event.setCanceled(true);
+                        addIgnoredEntity(trident, target);
+                        return;
+                    }
+
+                    // 2. 이미 해당 틱이나 이전 연산에서 맞았던 적은 연산 생략 (충돌 판정 무한루프 락 크래시 방지 필수)
+                    IntOpenHashSet ignoredSet = getIgnoredEntities(trident);
+                    if (ignoredSet != null && ignoredSet.contains(target.getId())) {
+                        event.setCanceled(true);
+                        return;
+                    }
+
+                    int maxPierce = trident.getPierceLevel(); // 관통 가능 횟수 업그레이드 수치
+                    int currentHitCount = ignoredSet == null ? 0 : ignoredSet.size();
+
+                    // 3. 관통 허용 한계에 도달하지 않은 경우: 충돌 이벤트를 취소해 전진 물리 속도를 온전히 유지하며 관통 진행
+                    if (currentHitCount < maxPierce) {
+                        // 수동 물리 데미지 정밀 연산 및 피해 전달
+                        float baseDamage = (float) trident.getBaseDamage();
+                        DamageSource damageSource = DamageSource.trident(trident, owner == null ? trident : owner);
+
+                        if (target.hurt(damageSource, baseDamage)) {
+                            if (target instanceof LivingEntity livingTarget) {
+                                if (owner instanceof LivingEntity livingOwner) {
+                                    net.minecraft.world.item.enchantment.EnchantmentHelper.doPostHurtEffects(livingTarget, livingOwner);
+                                    net.minecraft.world.item.enchantment.EnchantmentHelper.doPostDamageEffects(livingOwner, livingTarget);
+                                }
+                            }
+
+                            // 삼지창 전설 효과: 집뢰(벼락) 무장 개조 시 번개 소환
+                            if (trident.getTags().contains("lightning_trident") && target instanceof LivingEntity) {
+                                Level level = target.level;
+                                if (level instanceof ServerLevel serverLevel) {
+                                    LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(serverLevel);
+                                    if (bolt != null) {
+                                        bolt.moveTo(target.position());
+                                        bolt.addTag("mymod_friendly_lightning");
+                                        serverLevel.addFreshEntity(bolt);
+                                    }
+                                }
+                            }
+
+                            trident.playSound(SoundEvents.TRIDENT_HIT, 1.0F, 1.0F);
+                        }
+
+                        // 이 관통 타깃을 무시 목록에 안전하게 추가한 후, 충돌 이벤트를 무효화하여 관통 비행 계속 진행
+                        addIgnoredEntity(trident, target);
+                        event.setCanceled(true);
+                    }
+                    // 4. 마지막 타격(관통 한도 도달): 취소하지 않고 삼지창 고유의 바닐라 충돌 코드로 이양하여 꽂히거나 낙하하도록 처리
+                    else {
+                        // event.setCanceled를 수행하지 않으므로 바닐라 로직이 알아서 데미지를 넣고 삼지창 전진 벡터를 지워버려 떨어뜨림.
                     }
                 }
             }
@@ -125,9 +204,7 @@ public class TridentTurretShooter {
 
         trident.shoot(d0, d1 + d3 * 0.15D, d2, throwSpeed, spreadOffset);
 
-        // 월드에 등록함과 동시에 월드 틱 추적 리스트에 삽입
         level.addFreshEntity(trident);
-        activeTridents.add(trident);
     }
 
     @SubscribeEvent

@@ -82,13 +82,13 @@ public class TridentTurretTradeManager {
         }
 
         // ==========================================
-        // 🔱 6. [신규 추가] 해류 관통 개조 (최대 5레벨 제한, 상급 토큰 소요)
+        // 🔱 6. [신규 추가] 해류 관통 개조 (최대 10레벨 제한, 상급 토큰 소요)
         // ==========================================
         int pierceLvl = turret.getPierceLevel();
-        if (pierceLvl < 5) {
+        if (pierceLvl < 10) {
             ItemStack pierceReceipt = createUpgradeReceipt(turret, "pierce", "삼지창 전설 기술: 해류 관통 개조",
                     "효과: 던진 삼지창이 적들을 관통하여 지나가며 일직선상의 모든 적을 일타이피로 타격합니다.",
-                    "현재 관통도: " + pierceLvl + "마리 관통 ➔ " + (pierceLvl + 1) + "마리 관통 (최대 5마리)");
+                    "현재 관통도: " + pierceLvl + "마리 관통 ➔ " + (pierceLvl + 1) + "마리 관통 (최대 10마리)");
 
             emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 32), pierceReceipt, 15, 2, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TRIDENT_POINT_TOKEN_HIGH.get(), 1), pierceReceipt, 15, 2, 0.05F));
@@ -159,8 +159,8 @@ public class TridentTurretTradeManager {
             String modeName = newMode == 0 ? "집중 사격 모드" : "부채꼴 사격 모드";
             if (player != null) player.displayClientMessage(new TextComponent("사격 패턴 변경 완료! (현재: " + modeName + ")"), true);
         } else if (type.equals("pierce")) {
-            // 🆕 관통 레벨 업그레이드 수령 처리 (최대 5마리 제한 적용)
-            if (turret.getPierceLevel() < 5) {
+            // 🆕 관통 레벨 업그레이드 수령 처리 (최대 10마리 제한 적용)
+            if (turret.getPierceLevel() < 10) {
                 turret.setPierceLevel(turret.getPierceLevel() + 1);
                 if (player != null) player.displayClientMessage(new TextComponent("삼지창 해류 관통 개조 완료! (관통수: " + turret.getPierceLevel() + "마리)"), true);
             }

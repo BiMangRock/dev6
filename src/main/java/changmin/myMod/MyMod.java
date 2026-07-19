@@ -1,6 +1,7 @@
 package changmin.myMod;
 
 import changmin.myMod.registry.ModBlocks;
+import changmin.myMod.registry.ModEffects;
 import changmin.myMod.registry.ModEntityTypes;
 import changmin.myMod.registry.ModItems;
 import changmin.myMod.feature.turret.villager_turret.VillagerTurretEntity;
@@ -43,6 +44,7 @@ public class MyMod {
 
         modEventBus.addListener(this::setup);
         modEventBus.addListener(this::clientSetup);
+        ModEffects.register(modEventBus);
 
         MinecraftForge.EVENT_BUS.register(this);
     }
