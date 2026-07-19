@@ -164,6 +164,15 @@ public class ModItems {
                     () -> new ForgeSpawnEggItem(ModEntityTypes.PLASMA_WIZARD, 0x00E1FF, 0x002B47,
                             new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    public static final RegistryObject<Item> PLASMA_POINT_TOKEN_LOW = ITEMS.register("plasma_point_token_low",
+            () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> PLASMA_POINT_TOKEN_MID = ITEMS.register("plasma_point_token_mid",
+            () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> PLASMA_POINT_TOKEN_HIGH = ITEMS.register("plasma_point_token_high",
+            () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
 
 
     public static void register(IEventBus eventBus) {

@@ -45,20 +45,34 @@ public class PlasmaWizardRenderer extends MobRenderer<PlasmaWizardEntity, Villag
 
             Font font = this.getFont();
 
-            String infoText = String.format("플라즈마 마법사 (%d/%d)", (int)entity.getHealth(), (int)entity.getMaxHealth());
+            // 1. 등급 및 HP 정보
+            String infoText = String.format("Lv. %d (HP: %d/%d)", entity.getTurretLevel(), (int)entity.getHealth(), (int)entity.getMaxHealth());
             Component textComponent = new TextComponent(infoText);
             float textWidth = (float)font.width(textComponent);
-            font.drawInBatch(textComponent, -textWidth / 2.0F, -12.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(textComponent, -textWidth / 2.0F, -27.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+
+            // 2. 공격 성공 누적치 기반 성장 경험치 정보
+            String xpText = String.format("Overload XP: %d/%d", entity.getXp(), entity.getNeededXp());
+            Component xpComponent = new TextComponent(xpText);
+            float xpTextWidth = (float)font.width(xpComponent);
+            font.drawInBatch(xpComponent, -xpTextWidth / 2.0F, -17.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+
+            // 3. 쿨타임 남은 시간 정보
+            float currentCd = entity.getCurrentCooldown();
+            String cdText = currentCd > 0 ? String.format("Overheating: %.1fs", currentCd / 20.0F) : "System Ready!";
+            Component cdComponent = new TextComponent(cdText);
+            float cdTextWidth = (float)font.width(cdComponent);
+            font.drawInBatch(cdComponent, -cdTextWidth / 2.0F, -7.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
 
             float barWidth = 50.0F;
-            float barHeight = 3.0F;
+            float barHeight = 2.0F;
             float barX = -barWidth / 2.0F;
 
-            float hpBarY = 2.0F;
+            // 4. HP바 그리기
+            float hpBarY = 5.0F;
             float hpRatio = (float)entity.getHealth() / (float)entity.getMaxHealth();
             if (hpRatio > 1.0F) hpRatio = 1.0F;
             float currentHpWidth = barWidth * hpRatio;
-
             drawSolidQuad(matrix4f, buffer, barX, hpBarY, barX + barWidth, hpBarY + barHeight, 0x80505050);
 
             int healthColor = 0xFF00FF00;
@@ -68,6 +82,23 @@ public class PlasmaWizardRenderer extends MobRenderer<PlasmaWizardEntity, Villag
                 healthColor = 0xFFFFFF00;
             }
             drawSolidQuad(matrix4f, buffer, barX, hpBarY, barX + currentHpWidth, hpBarY + barHeight, healthColor);
+
+            // 5. 경험치바 그리기
+            float xpBarY = 10.0F;
+            float xpRatio = (float)entity.getXp() / (float)entity.getNeededXp();
+            if (xpRatio > 1.0F) xpRatio = 1.0F;
+            float currentXpWidth = barWidth * xpRatio;
+            drawSolidQuad(matrix4f, buffer, barX, xpBarY, barX + barWidth, xpBarY + barHeight, 0x80505050);
+            drawSolidQuad(matrix4f, buffer, barX, xpBarY, barX + currentXpWidth, xpBarY + barHeight, 0xFF55FF55);
+
+            // 6. 충전 대기 시간바 그리기 (따뜻한 오렌지 계열)
+            float cdBarY = 15.0F;
+            float maxCd = entity.getCalculatedCooldown();
+            float cdRatio = maxCd > 0 ? (float)(maxCd - currentCd) / maxCd : 1.0F;
+            if (cdRatio > 1.0F) cdRatio = 1.0F;
+            float currentCdWidth = barWidth * cdRatio;
+            drawSolidQuad(matrix4f, buffer, barX, cdBarY, barX + barWidth, cdBarY + barHeight, 0x80505050);
+            drawSolidQuad(matrix4f, buffer, barX, cdBarY, barX + currentCdWidth, cdBarY + barHeight, 0xFFFF9933);
 
             poseStack.popPose();
         }

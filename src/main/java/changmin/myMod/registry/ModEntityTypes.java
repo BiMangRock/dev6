@@ -88,6 +88,8 @@ public class ModEntityTypes {
                             .sized(0.5F, 0.5F)
                             .build("plasma_orb"));
 
+
+
     public static void register(IEventBus eventBus) {
         ENTITY_TYPES.register(eventBus);
     }

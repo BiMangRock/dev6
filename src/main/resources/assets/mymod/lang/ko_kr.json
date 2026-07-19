@@ -163,5 +163,9 @@
 
   "item.mymod.plasma_wizard_spawn_egg": "플라즈마 마법사 주민 터렛 스폰알",
   "entity.mymod.plasma_wizard": "플라즈마 마법사 주민 터렛",
-  "entity.mymod.plasma_orb": "플라즈마 마법구"
+  "entity.mymod.plasma_orb": "플라즈마 마법구",
+
+  "item.mymod.plasma_point_token_low": "플라즈마 터렛 포인트 토큰 (하급)",
+  "item.mymod.plasma_point_token_mid": "플라즈마 터렛 포인트 토큰 (중급)",
+  "item.mymod.plasma_point_token_high": "플라즈마 터렛 포인트 토큰 (상급)"
 }
