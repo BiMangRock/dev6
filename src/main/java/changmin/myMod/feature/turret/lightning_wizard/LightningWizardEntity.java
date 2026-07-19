@@ -179,7 +179,7 @@ public class LightningWizardEntity extends PathfinderMob implements IAlly, Merch
                         }
 
                         // 2. 가짜 번개 타격 대상에게 코드로 정밀 번개 데미지 적용
-                        enemy.hurt(DamageSource.LIGHTNING_BOLT, (float) damage);
+                        enemy.hurt(DamageSource.mobAttack(this), (float) damage);
                     }
                 }
             }
