@@ -1,5 +1,6 @@
 package changmin.myMod.feature.turret.resource_villager1;
 
+import changmin.myMod.ally.IAlly; // IAlly 패키지 임포트
 import changmin.myMod.registry.ModItems;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
@@ -28,19 +29,22 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class ResourceVillagerEntity extends PathfinderMob implements VillagerDataHolder {
+public class ResourceVillagerEntity extends PathfinderMob implements VillagerDataHolder, IAlly {
     private static final EntityDataAccessor<Integer> DATA_WAVE_COUNT = SynchedEntityData.defineId(ResourceVillagerEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_LEVEL = SynchedEntityData.defineId(ResourceVillagerEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_CURRENT_XP = SynchedEntityData.defineId(ResourceVillagerEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_RESOURCE_TIMER = SynchedEntityData.defineId(ResourceVillagerEntity.class, EntityDataSerializers.INT);
 
-//    private static final int RESOURCE_COOLDOWN_MAX = 1200; // 60초
     private static final int RESOURCE_COOLDOWN_MAX = 200; // 10초 (10초 * 20틱)
     private static final int ZOMBIE_COOLDOWN_MAX = RESOURCE_COOLDOWN_MAX/2;    // 절반
 
     private int zombieTimer = ZOMBIE_COOLDOWN_MAX;
+
+    // 이 주민이 소환해서 살아있는 좀비 목록을 추적하기 위한 리스트
+    private final List<Zombie> spawnedZombies = new ArrayList<>();
 
     public ResourceVillagerEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -62,7 +66,6 @@ public class ResourceVillagerEntity extends PathfinderMob implements VillagerDat
         this.entityData.define(DATA_RESOURCE_TIMER, RESOURCE_COOLDOWN_MAX);
     }
 
-    // 주민 렌더러가 정글 바이옴 텍스처를 오버레이할 수 있도록 데이터 제공
     @Override
     public VillagerData getVillagerData() {
         return new VillagerData(VillagerType.JUNGLE, VillagerProfession.NONE, 1);
@@ -171,9 +174,21 @@ public class ResourceVillagerEntity extends PathfinderMob implements VillagerDat
     }
 
     private void spawnZombieWave() {
+        // 1. 이미 소환된 좀비들 중 죽었거나 월드에서 사라진 대상을 리스트에서 정리합니다.
+        this.spawnedZombies.removeIf(zombie -> zombie == null || !zombie.isAlive() || zombie.isRemoved());
+
+        // 2. 최대 제한 30마리 중 소환 가능한 남은 공간 계산
         int currentWave = this.getWaveCount();
+        int maxAllowable = 30 - this.spawnedZombies.size();
+
+        // 이미 30마리가 다 차 있다면 이번 웨이브는 스폰을 건너뜁니다.
+        if (maxAllowable <= 0) {
+            return;
+        }
+
+        // 원래 스폰하려던 양 계산 후, 남은 제한 공간(maxAllowable) 중 더 작은 값으로 제한합니다.
         int spawnCount = 1 + (currentWave - 1) / 3;
-        spawnCount = Math.min(spawnCount, 30);
+        spawnCount = Math.min(spawnCount, maxAllowable);
 
         for (int i = 0; i < spawnCount; i++) {
             double angle = this.random.nextDouble() * 2 * Math.PI;
@@ -188,6 +203,9 @@ public class ResourceVillagerEntity extends PathfinderMob implements VillagerDat
                 this.applyProgressionEquipment(zombie, currentWave);
                 this.level.addFreshEntity(zombie);
                 zombie.setTarget(this);
+
+                // 리스트에 추가하여 추적 관리
+                this.spawnedZombies.add(zombie);
             }
         }
         this.setWaveCount(currentWave + 1);
@@ -208,21 +226,18 @@ public class ResourceVillagerEntity extends PathfinderMob implements VillagerDat
             zombie.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
             zombie.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         } else if (wave >= 10 && wave < 15) {
-            // 풀 철 갑옷 세트 및 다이아몬드 검
             zombie.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
             zombie.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
             zombie.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
             zombie.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
             zombie.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.DIAMOND_SWORD));
         } else if (wave >= 15 && wave < 20) {
-            // 일반 다이아몬드 갑옷 세트 및 다이아몬드 검
             zombie.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.DIAMOND_HELMET));
             zombie.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
             zombie.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.DIAMOND_LEGGINGS));
             zombie.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.DIAMOND_BOOTS));
             zombie.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.DIAMOND_SWORD));
         } else if (wave >= 20) {
-            // 종결 스펙: 보호 IV 인챈트가 된 다이아몬드 갑옷 세트 + 날카로움 V 인챈트 다이아몬드 검
             ItemStack helmet = new ItemStack(Items.DIAMOND_HELMET);
             helmet.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 4);
             zombie.setItemSlot(EquipmentSlot.HEAD, helmet);

@@ -28,7 +28,7 @@ import net.minecraft.world.item.trading.Merchant;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
-import changmin.myMod.feature.turret.trident_turret.TridentTurretTargetGoal;
+
 import javax.annotation.Nullable;
 
 public class TridentTurretEntity extends PathfinderMob implements RangedAttackMob, IAlly, Merchant {
@@ -42,8 +42,9 @@ public class TridentTurretEntity extends PathfinderMob implements RangedAttackMo
     private static final EntityDataAccessor<Integer> RANGE_LEVEL = SynchedEntityData.defineId(TridentTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> RECHARGE_LEVEL = SynchedEntityData.defineId(TridentTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LIGHTNING_LEVEL = SynchedEntityData.defineId(TridentTurretEntity.class, EntityDataSerializers.INT);
-    // 🆕 사격 모드 데이터 키 추가 (0: 집중 사격, 1: 부채꼴 사격)
     private static final EntityDataAccessor<Integer> SHOOT_MODE = SynchedEntityData.defineId(TridentTurretEntity.class, EntityDataSerializers.INT);
+    // 🆕 관통 레벨 연동 데이터 키 추가 (기본 0마리 관통)
+    private static final EntityDataAccessor<Integer> PIERCE_LEVEL = SynchedEntityData.defineId(TridentTurretEntity.class, EntityDataSerializers.INT);
 
     private Player tradingPlayer;
     private MerchantOffers offers;
@@ -65,7 +66,8 @@ public class TridentTurretEntity extends PathfinderMob implements RangedAttackMo
         this.entityData.define(RANGE_LEVEL, 0);
         this.entityData.define(RECHARGE_LEVEL, 0);
         this.entityData.define(LIGHTNING_LEVEL, 0);
-        this.entityData.define(SHOOT_MODE, 0); // 기본 상태는 좁게 쏘는 집중 사격 모드
+        this.entityData.define(SHOOT_MODE, 0);
+        this.entityData.define(PIERCE_LEVEL, 0); // 관통 기본값 설정
     }
 
     @Override
@@ -188,10 +190,12 @@ public class TridentTurretEntity extends PathfinderMob implements RangedAttackMo
     public void setRechargeLevel(int level) { this.entityData.set(RECHARGE_LEVEL, level); }
     public int getLightningLevel() { return this.entityData.get(LIGHTNING_LEVEL); }
     public void setLightningLevel(int enabled) { this.entityData.set(LIGHTNING_LEVEL, enabled); }
-
-    // 🆕 사격 모드 게터 및 세터
     public int getShootMode() { return this.entityData.get(SHOOT_MODE); }
     public void setShootMode(int mode) { this.entityData.set(SHOOT_MODE, mode); }
+
+    // 🆕 관통 레벨 게터 및 세터 추가
+    public int getPierceLevel() { return this.entityData.get(PIERCE_LEVEL); }
+    public void setPierceLevel(int level) { this.entityData.set(PIERCE_LEVEL, level); }
 
     @Override public void setTradingPlayer(@Nullable Player player) { this.tradingPlayer = player; }
     @Override @Nullable public Player getTradingPlayer() { return this.tradingPlayer; }
@@ -232,7 +236,8 @@ public class TridentTurretEntity extends PathfinderMob implements RangedAttackMo
         tag.putInt("RangeLevel", this.getRangeLevel());
         tag.putInt("RechargeLevel", this.getRechargeLevel());
         tag.putInt("LightningLevel", this.getLightningLevel());
-        tag.putInt("ShootMode", this.getShootMode()); // NBT 저장
+        tag.putInt("ShootMode", this.getShootMode());
+        tag.putInt("PierceLevel", this.getPierceLevel()); // NBT 저장 연동
     }
 
     @Override
@@ -246,7 +251,8 @@ public class TridentTurretEntity extends PathfinderMob implements RangedAttackMo
         if (tag.contains("RangeLevel")) this.setRangeLevel(tag.getInt("RangeLevel"));
         if (tag.contains("RechargeLevel")) this.setRechargeLevel(tag.getInt("RechargeLevel"));
         if (tag.contains("LightningLevel")) this.setLightningLevel(tag.getInt("LightningLevel"));
-        if (tag.contains("ShootMode")) this.setShootMode(tag.getInt("ShootMode")); // NBT 로드
+        if (tag.contains("ShootMode")) this.setShootMode(tag.getInt("ShootMode"));
+        if (tag.contains("PierceLevel")) this.setPierceLevel(tag.getInt("PierceLevel")); // NBT 로드 연동
 
         double loadedMax = 15.0D + (this.getTurretLevel() - 1) * 5.0D;
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(loadedMax);
