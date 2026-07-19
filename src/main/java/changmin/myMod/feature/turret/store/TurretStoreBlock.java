@@ -145,6 +145,12 @@ public class TurretStoreBlock extends Block {
                     999, 2, 0.05F
             ));
 
+// 🆕 거래 17: 다이아몬드 4개 ➔ 플라즈마 마법사 주민 터렛 스폰알 1개 (구매)
+            offers.add(new MerchantOffer(
+                    new ItemStack(Items.DIAMOND, 4),
+                    new ItemStack(ModItems.PLASMA_WIZARD_SPAWN_EGG.get(), 1),
+                    999, 2, 0.05F
+            ));
 
 
             merchant.overrideOffers(offers);

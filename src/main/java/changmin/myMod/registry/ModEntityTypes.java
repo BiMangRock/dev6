@@ -17,6 +17,9 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import changmin.myMod.feature.turret.plasma_wizard.PlasmaWizardEntity;
+import changmin.myMod.feature.turret.plasma_wizard.*;
+
 public class ModEntityTypes {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
             DeferredRegister.create(ForgeRegistries.ENTITIES, MyMod.MODID);
@@ -70,6 +73,20 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.<LightningProjectileEntity>of(LightningProjectileEntity::new, MobCategory.MISC)
                             .sized(0.25F, 0.25F)
                             .build("lightning_projectile"));
+
+    // 🆕 플라즈마 마법사 터렛 등록
+    public static final RegistryObject<EntityType<changmin.myMod.feature.turret.plasma_wizard.PlasmaWizardEntity>> PLASMA_WIZARD =
+            ENTITY_TYPES.register("plasma_wizard",
+                    () -> EntityType.Builder.of(PlasmaWizardEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 1.95F)
+                            .build("plasma_wizard"));
+
+    // 🆕 플라즈마 전자기 마법구 투사체 등록
+    public static final RegistryObject<EntityType<changmin.myMod.feature.turret.plasma_wizard.PlasmaOrbEntity>> PLASMA_ORB =
+            ENTITY_TYPES.register("plasma_orb",
+                    () -> EntityType.Builder.<changmin.myMod.feature.turret.plasma_wizard.PlasmaOrbEntity>of(PlasmaOrbEntity::new, MobCategory.MISC)
+                            .sized(0.5F, 0.5F)
+                            .build("plasma_orb"));
 
     public static void register(IEventBus eventBus) {
         ENTITY_TYPES.register(eventBus);

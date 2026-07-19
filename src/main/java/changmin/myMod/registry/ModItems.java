@@ -158,6 +158,12 @@ public class ModItems {
             ITEMS.register("lightning_point_token_high",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    // 🆕 플라즈마 마법사 터렛 스폰알 등록
+    public static final RegistryObject<Item> PLASMA_WIZARD_SPAWN_EGG =
+            ITEMS.register("plasma_wizard_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.PLASMA_WIZARD, 0x00E1FF, 0x002B47,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
 
 
     public static void register(IEventBus eventBus) {

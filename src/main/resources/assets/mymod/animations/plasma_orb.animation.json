@@ -1,0 +1,33 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"fly": {
+			"loop": true,
+			"animation_length": 1.25,
+			"bones": {
+				"ring1": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, -2.5, 0]
+						},
+						"0.25": {
+							"vector": [0, -35, 0]
+						},
+						"0.5": {
+							"vector": [0, -75, 0]
+						},
+						"0.75": {
+							"vector": [0, -115, 0]
+						},
+						"1.0": {
+							"vector": [0, -195, 0]
+						},
+						"1.25": {
+							"vector": [0, -237.5, 0]
+						}
+					}
+				}
+			}
+		}
+	}
+}
