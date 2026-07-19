@@ -67,6 +67,8 @@ public class TankerTurretTradeManager {
         offers.addAll(emeraldOffers);
     }
 
+
+
     public static ItemStack getBoundToken(TankerTurretEntity turret, int count) {
         ItemStack token = new ItemStack(ModItems.TURRET_POINT_TOKEN_LOW.get(), count);
         CompoundTag tag = token.getOrCreateTag();

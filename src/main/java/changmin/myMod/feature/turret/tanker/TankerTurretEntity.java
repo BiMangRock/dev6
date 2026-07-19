@@ -106,7 +106,7 @@ public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant
                 this.playSound(SoundEvents.ANVIL_HIT, 0.6F, 1.4F);
             }
 
-// 🛡️ 3. [탱커 전용 성장 시스템] 피격 시 20% 확률로 경험치 1 획득 (좀비에게 피격되었을 때만 작동)
+            // 🛡️ 3. [탱커 전용 성장 시스템] 피격 시 20% 확률로 경험치 1 획득 (좀비에게 피격되었을 때만 작동)
             if (source.getEntity() instanceof LivingEntity livingAttacker) {
                 if (this.random.nextFloat() < 0.20F && IZombieTribe.isZombieTribe(livingAttacker)) {
                     this.addXp(1);
@@ -217,6 +217,29 @@ public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant
         if (!this.level.isClientSide) {
             this.spawnAtLocation(TankerTurretTradeManager.getBoundToken(this, 1), 0.5F);
         }
+    }
+
+    // 🆕 [추가된 부분] 플레이어가 엔티티를 우클릭했을 때 발생하는 상호작용 처리 메서드
+    @Override
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        ItemStack heldItem = player.getItemInHand(hand);
+
+        // 업그레이드 전용 종이를 들고 있을 때 바로 소모하여 업그레이드하는 기능
+        if (!heldItem.isEmpty() && heldItem.hasTag() && heldItem.getTag().contains("UpgradeType")) {
+            String upgradeType = heldItem.getTag().getString("UpgradeType");
+            if (!this.level.isClientSide) {
+                TankerTurretTradeManager.applyUpgradeDirectly(this, upgradeType);
+                if (!player.getAbilities().instabuild) heldItem.shrink(1);
+            }
+            return InteractionResult.sidedSuccess(this.level.isClientSide);
+        }
+
+        // 일반 손이나 일반 아이템 상태에서 우클릭 시 거래 화면을 표시
+        if (!this.level.isClientSide) {
+            this.setTradingPlayer(player);
+            this.openTradingScreen(player, this.getDisplayName(), 1);
+        }
+        return InteractionResult.sidedSuccess(this.level.isClientSide);
     }
 
     public int getTurretLevel() { return this.entityData.get(TURRET_LEVEL); }
