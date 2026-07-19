@@ -2,6 +2,7 @@ package changmin.myMod.feature.turret.healer;
 
 import changmin.myMod.ally.IAlly;
 import changmin.myMod.registry.ModItems;
+import net.minecraft.core.particles.ParticleTypes; // 🆕 에메랄드 파티클용 추가
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -14,6 +15,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ExperienceOrb; // 🆕 경험치 즉시 분출용 추가
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -38,8 +40,8 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
     private static final EntityDataAccessor<Integer> NEEDED_XP = SynchedEntityData.defineId(HealerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> AOE_HEAL_ENABLED = SynchedEntityData.defineId(HealerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> CLEANSE_ENABLED = SynchedEntityData.defineId(HealerTurretEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> SHIELD_LEVEL = SynchedEntityData.defineId(HealerTurretEntity.class, EntityDataSerializers.INT); // 🆕 보호막 업그레이드 여부
-    private static final EntityDataAccessor<Integer> CURRENT_COOLDOWN = SynchedEntityData.defineId(HealerTurretEntity.class, EntityDataSerializers.INT); // 🆕 클라이언트 동기화용 쿨타임
+    private static final EntityDataAccessor<Integer> SHIELD_LEVEL = SynchedEntityData.defineId(HealerTurretEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> CURRENT_COOLDOWN = SynchedEntityData.defineId(HealerTurretEntity.class, EntityDataSerializers.INT);
 
     private Player tradingPlayer;
     private MerchantOffers offers;
@@ -66,7 +68,6 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        // 🆕 치유 실행 AI 등록 (치유 동작 전체가 이 새로운 Goal 파일 내부에서 동작합니다)
         this.goalSelector.addGoal(1, new HealerHealGoal(this));
     }
 
@@ -81,21 +82,19 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
     public void aiStep() {
         super.aiStep();
         if (!this.level.isClientSide) {
-            // 🆕 서버 사이드에서 실시간으로 쿨타임을 차감하며 클라이언트에 실시간 동기화
             if (this.getCurrentCooldown() > 0) {
                 this.setCurrentCooldown(this.getCurrentCooldown() - 1);
             }
         }
     }
 
-    // 🆕 광역 치유 모드 시 쿨타임 50% 패널티 동적 적용 공식
     public int getCalculatedCooldown() {
         int baseCooldown = 200; // 기본 10초
         int reduction = this.getCooldownLevel() * 10;
         int finalCd = Math.max(20, baseCooldown - reduction);
 
         if (this.getAoeHealEnabled() == 1) {
-            finalCd = (int) (finalCd * 1.5F); // 쿨타임 50% 증가 패널티
+            finalCd = (int) (finalCd * 1.5F);
         }
         return finalCd;
     }
@@ -127,8 +126,44 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
         this.playSound(SoundEvents.PLAYER_LEVELUP, 1.0F, 0.8F);
 
         if (!this.level.isClientSide) {
-            // 🆕 세 번째 인수로 하급 티어를 뜻하는 '0'을 추가하여 3개의 인수를 전달합니다.
-            this.spawnAtLocation(HealerTradeManager.getBoundToken(this, 1, 0), 0.5F);
+            // 1. 하급 티켓 개수 연산 (*0.2 소수점 곱셈 연산 적용)
+            int baseTickets;
+            if (newLevel <= 4) {
+                baseTickets = 1;
+            } else if (newLevel <= 7) {
+                baseTickets = 2;
+            } else {
+                baseTickets = 4 + (int) ((newLevel - 8) * 0.2F);
+            }
+
+            // 2. 10% 확률 대박(Jackpot) 연산 적용
+            int finalTickets = baseTickets;
+            if (this.random.nextFloat() < 0.10F) {
+                if (newLevel <= 4) {
+                    finalTickets = 2;
+                } else if (newLevel <= 7) {
+                    finalTickets = this.random.nextBoolean() ? 3 : 4;
+                } else {
+                    finalTickets = (int) Math.ceil(baseTickets * 1.5F); // 상급 구간 대박 시 1.5배 증가 (소수점 올림)
+                }
+                // 대박 보상 시 경쾌한 팡파레 소리 추가
+                this.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 0.8F, 1.3F);
+            }
+
+            // 3. 단일화된 하급 티켓 드롭 (HealerTradeManager에는 수량 finalTickets와 하급 티어 코드 0 전달)
+            this.spawnAtLocation(HealerTradeManager.getBoundToken(this, finalTickets, 0), 0.5F);
+
+            // 4. 경험치병 아이템 대신 에메랄드빛 경험치 구슬 분수 연출 분출
+            if (this.level instanceof ServerLevel serverLevel) {
+                int xpAmount = newLevel * 50;
+
+                // 마인크래프트 공식 API를 이용해 경험치 구슬 즉시 소환
+                ExperienceOrb.award(serverLevel, this.position(), xpAmount);
+
+                // 초록색 에메랄드 파티클(HAPPY_VILLAGER)을 사방으로 화려하게 터트림
+                serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER,
+                        this.getX(), this.getY(1.0D), this.getZ(), 45, 0.5D, 0.5D, 0.5D, 0.15D);
+            }
         }
     }
 
