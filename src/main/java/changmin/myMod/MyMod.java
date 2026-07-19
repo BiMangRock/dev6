@@ -1,9 +1,6 @@
 package changmin.myMod;
 
-import changmin.myMod.registry.ModBlocks;
-import changmin.myMod.registry.ModEntityTypes;
-import changmin.myMod.registry.ModItems;
-import changmin.myMod.registry.ModEffects;
+import changmin.myMod.registry.*;
 import changmin.myMod.feature.turret.villager_turret.VillagerTurretEntity;
 import changmin.myMod.feature.turret.villager_turret.VillagerTurretRenderer;
 import changmin.myMod.feature.turret.resource_villager1.ResourceVillagerEntity;
@@ -19,10 +16,12 @@ import changmin.myMod.feature.turret.lightning_wizard.LightningWizardRenderer;
 import changmin.myMod.feature.turret.plasma_wizard.*;
 
 
+import changmin.myMod.util.BetterBrewingRecipe;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.brewing.BrewingRecipeRegistry;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -46,6 +45,7 @@ public class MyMod {
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         ModEffects.register(modEventBus);
+        ModPotions.register(modEventBus); // 💡 포션 레지스트리 버스 등록 추가
 
         modEventBus.addListener(this::setup);
         modEventBus.addListener(this::clientSetup);
@@ -54,6 +54,15 @@ public class MyMod {
     }
 
     private void setup(final FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
+            // 💡 [컴파일 에러 우회 해결]: 포지 공식 레지스트리에 헬퍼 객체를 등록하여 private 제한을 우회합니다.
+            // 조합 공식: 어색한 물약(AWKWARD) + 레드스톤 가루(REDSTONE) ➔ 우리가 등록한 분노 물약(RAGE_POTION)
+            BrewingRecipeRegistry.addRecipe(new BetterBrewingRecipe(
+                    net.minecraft.world.item.alchemy.Potions.AWKWARD,
+                    net.minecraft.world.item.Items.REDSTONE,
+                    ModPotions.RAGE_POTION.get()
+            ));
+        });
         LOGGER.info("MyMod Setup Complete");
     }
 

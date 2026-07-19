@@ -167,5 +167,12 @@
 
   "item.mymod.plasma_point_token_low": "플라즈마 터렛 포인트 토큰 (하급)",
   "item.mymod.plasma_point_token_mid": "플라즈마 터렛 포인트 토큰 (중급)",
-  "item.mymod.plasma_point_token_high": "플라즈마 터렛 포인트 토큰 (상급)"
+  "item.mymod.plasma_point_token_high": "플라즈마 터렛 포인트 토큰 (상급)",
+
+
+  "effect.mymod.rage": "분노",
+  "item.minecraft.potion.effect.rage": "분노의 물약",
+  "item.minecraft.splash_potion.effect.rage": "투척용 분노의 물약",
+  "item.minecraft.lingering_potion.effect.rage": "잔류형 분노의 물약",
+  "item.minecraft.tipped_arrow.effect.rage": "분노의 화살"
 }
