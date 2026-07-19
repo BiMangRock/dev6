@@ -80,6 +80,21 @@ public class ModItems {
             ITEMS.register("poison_arrow_upgrade",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+
+
+    // 🆕 치유 전용 터렛 포인트 토큰 3종 신규 등록
+    public static final RegistryObject<Item> HEALER_POINT_TOKEN_LOW =
+            ITEMS.register("healer_point_token_low",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> HEALER_POINT_TOKEN_MID =
+            ITEMS.register("healer_point_token_mid",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> HEALER_POINT_TOKEN_HIGH =
+            ITEMS.register("healer_point_token_high",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

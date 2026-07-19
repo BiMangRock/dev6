@@ -134,5 +134,9 @@
   "item.mymod.resource_villager_spawn_egg": "자원 수확 주민 터렛 스폰알",
 
   "entity.mymod.healer_turret": "치유 토템 터렛",
-  "item.mymod.healer_turret_spawn_egg": "치유 토템 터렛 스폰알"
+  "item.mymod.healer_turret_spawn_egg": "치유 토템 터렛 스폰알",
+
+  "item.mymod.healer_point_token_low": "하급 치유 토큰",
+  "item.mymod.healer_point_token_mid": "중급 치유 토큰",
+  "item.mymod.healer_point_token_high": "상급 치유 토큰"
 }
