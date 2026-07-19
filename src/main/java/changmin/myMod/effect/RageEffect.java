@@ -5,7 +5,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.monster.Monster; // 👈 Enemy 대신 Monster 임포트
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 
@@ -19,20 +19,18 @@ public class RageEffect extends MobEffect {
     @Override
     public void applyEffectTick(LivingEntity entity, int amplifier) {
         if (entity instanceof Mob mob && !mob.level.isClientSide) {
-            // 💡 [개선]: 까다로운 내장 탐색기를 우회하고, 범위 내의 적대적 몹들을 수동으로 확실하게 검출합니다.
             AABB area = mob.getBoundingBox().inflate(10.0D);
-            List<LivingEntity> hostiles = mob.level.getEntitiesOfClass(LivingEntity.class, area, target ->
-                    target instanceof Enemy
-                            && !(target instanceof Player)
-                            && !(target instanceof IAlly)
-                            && target != mob
-                            && target.isAlive()
+
+            List<Monster> hostiles = mob.level.getEntitiesOfClass(Monster.class, area, target ->
+                    !(target instanceof IAlly)        // 1. 플레이어 조건은 빼고, 아군 주민 터렛만 제외
+                            && target != mob                 // 2. 자기 자신 제외
+                            && target.isAlive()                  // 3. 살아있는 대상만
             );
 
             LivingEntity closestHostile = null;
             double closestDist = Double.MAX_VALUE;
 
-            for (LivingEntity target : hostiles) {
+            for (Monster target : hostiles) {
                 double dist = mob.distanceToSqr(target);
                 if (dist < closestDist) {
                     closestDist = dist;
@@ -48,6 +46,6 @@ public class RageEffect extends MobEffect {
 
     @Override
     public boolean isDurationEffectTick(int duration, int amplifier) {
-        return duration % 10 == 0; // 0.5초 주기로 작동
+        return duration % 10 == 0;
     }
 }
