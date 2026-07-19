@@ -122,12 +122,39 @@ public class TurretStoreBlock extends Block {
                     999, 2, 0.05F
             ));
 
+
+
+            // 🆕 거래 14: 자수정 블록 1개 ➔ 번개 마법사 주민 터렛 스폰알 1개 (구매)
+            offers.add(new MerchantOffer(
+                    new ItemStack(Items.AMETHYST_BLOCK, 1),
+                    new ItemStack(ModItems.LIGHTNING_WIZARD_SPAWN_EGG.get(), 1),
+                    999, 2, 0.05F
+            ));
+
+            // 🆕 거래 15: 번개 마법사 하급 토큰 9개 ➔ 번개 마법사 중급 토큰 1개 (환전)
+            offers.add(new MerchantOffer(
+                    new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_LOW.get(), 9),
+                    new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_MID.get(), 1),
+                    999, 2, 0.05F
+            ));
+
+            // 🆕 거래 16: 번개 마법사 중급 토큰 3개 ➔ 번개 마법사 상급 토큰 1개 (환전)
+            offers.add(new MerchantOffer(
+                    new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_MID.get(), 3),
+                    new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_HIGH.get(), 1),
+                    999, 2, 0.05F
+            ));
+
+
+
             merchant.overrideOffers(offers);
 
             OptionalInt containerId = player.openMenu(new SimpleMenuProvider(
                     (id, inv, p) -> new MerchantMenu(id, inv, merchant),
                     new TranslatableComponent("container.turret_store")
             ));
+
+
 
             if (containerId.isPresent()) {
                 player.sendMerchantOffers(

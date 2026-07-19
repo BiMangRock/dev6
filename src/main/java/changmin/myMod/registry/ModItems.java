@@ -136,6 +136,30 @@ public class ModItems {
             ITEMS.register("tanker_point_token_high",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+
+    // 🆕 번개 마법사 스폰알 등록 (전자기 하늘색 0x00E1FF과 마법 보라색 0x7E00FF 테마)
+    public static final RegistryObject<Item> LIGHTNING_WIZARD_SPAWN_EGG =
+            ITEMS.register("lightning_wizard_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.LIGHTNING_WIZARD, 0x00E1FF, 0x7E00FF,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+
+
+    // 🆕 번개 마법사 전용 터렛 포인트 토큰 3종 등록
+    public static final RegistryObject<Item> LIGHTNING_POINT_TOKEN_LOW =
+            ITEMS.register("lightning_point_token_low",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> LIGHTNING_POINT_TOKEN_MID =
+            ITEMS.register("lightning_point_token_mid",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> LIGHTNING_POINT_TOKEN_HIGH =
+            ITEMS.register("lightning_point_token_high",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

@@ -153,5 +153,11 @@
 
   "item.mymod.tanker_point_token_low": "탱커 터렛 포인트 토큰 (하급)",
   "item.mymod.tanker_point_token_mid": "탱커 터렛 포인트 토큰 (중급)",
-  "item.mymod.tanker_point_token_high": "탱커 터렛 포인트 토큰 (상급)"
+  "item.mymod.tanker_point_token_high": "탱커 터렛 포인트 토큰 (상급)",
+
+  "item.mymod.lightning_wizard_spawn_egg": "번개 마법사 주민 터렛 스폰알",
+  "item.mymod.lightning_point_token_low": "번개 마법사 터렛 포인트 토큰 (하급)",
+  "item.mymod.lightning_point_token_mid": "번개 마법사 터렛 포인트 토큰 (중급)",
+  "item.mymod.lightning_point_token_high": "번개 마법사 터렛 포인트 토큰 (상급)",
+  "effect.mymod.stun": "기절"
 }
