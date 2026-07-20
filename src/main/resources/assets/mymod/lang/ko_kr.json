@@ -174,5 +174,8 @@
   "item.minecraft.potion.effect.rage": "분노의 물약",
   "item.minecraft.splash_potion.effect.rage": "투척용 분노의 물약",
   "item.minecraft.lingering_potion.effect.rage": "잔류형 분노의 물약",
-  "item.minecraft.tipped_arrow.effect.rage": "분노의 화살"
+  "item.minecraft.tipped_arrow.effect.rage": "분노의 화살",
+
+  "entity.mymod.assassin2": "암살자 좀비 II",
+  "item.mymod.assassin2_spawn_egg": "암살자 좀비 II 스폰알"
 }

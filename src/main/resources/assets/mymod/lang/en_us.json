@@ -151,5 +151,8 @@
   "item.mymod.lightning_point_token_low": "Lightning Wizard Turret Token (Low)",
   "item.mymod.lightning_point_token_mid": "Lightning Wizard Turret Token (Mid)",
   "item.mymod.lightning_point_token_high": "Lightning Wizard Turret Token (High)",
-  "effect.mymod.stun": "Stunned"
+  "effect.mymod.stun": "Stunned",
+
+  "entity.mymod.assassin2": "Zombie Assassin II",
+  "item.mymod.assassin2_spawn_egg": "Zombie Assassin II Spawn Egg"
 }

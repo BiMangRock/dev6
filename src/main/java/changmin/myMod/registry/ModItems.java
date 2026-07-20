@@ -173,6 +173,10 @@ public class ModItems {
     public static final RegistryObject<Item> PLASMA_POINT_TOKEN_HIGH = ITEMS.register("plasma_point_token_high",
             () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    public static final RegistryObject<Item> ASSASSIN2_SPAWN_EGG = ITEMS.register("assassin2_spawn_egg", ()
+            -> new ForgeSpawnEggItem(ModEntityTypes.ASSASSIN2, 0x1D2D1B, 0xE2C055,
+            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
 
 
     public static void register(IEventBus eventBus) {

@@ -8,6 +8,7 @@ import changmin.myMod.feature.turret.villager_turret.VillagerTurretEntity;
 import changmin.myMod.feature.turret.resource_villager1.ResourceVillagerEntity;
 import changmin.myMod.feature.turret.lightning_wizard.LightningWizardEntity; // 🆕 추가
 import changmin.myMod.feature.turret.lightning_wizard.LightningProjectileEntity; // 🆕 추가
+import changmin.myMod.feature.zombie.assassin2.Assassin2Entity;
 import changmin.myMod.feature.zombie.zombie1.ZombieBossEntity;
 
 import net.minecraft.world.entity.EntityType;
@@ -87,6 +88,9 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.<changmin.myMod.feature.turret.plasma_wizard.PlasmaOrbEntity>of(PlasmaOrbEntity::new, MobCategory.MISC)
                             .sized(0.5F, 0.5F)
                             .build("plasma_orb"));
+
+    public static final RegistryObject<EntityType<Assassin2Entity>> ASSASSIN2 = ENTITY_TYPES.register("assassin2", () ->
+            EntityType.Builder.of(Assassin2Entity::new, MobCategory.MONSTER).sized(0.6F, 1.95F).build("assassin2"));
 
 
 

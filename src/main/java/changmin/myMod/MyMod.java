@@ -1,5 +1,6 @@
 package changmin.myMod;
 
+import changmin.myMod.feature.zombie.assassin2.Assassin2Entity;
 import changmin.myMod.registry.*;
 import changmin.myMod.feature.turret.villager_turret.VillagerTurretEntity;
 import changmin.myMod.feature.turret.villager_turret.VillagerTurretRenderer;
@@ -31,6 +32,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import software.bernie.geckolib3.GeckoLib;
+import changmin.myMod.feature.zombie.assassin2.Assassin2Renderer;
 
 @Mod(MyMod.MODID)
 public class MyMod {
@@ -78,6 +80,8 @@ public class MyMod {
         // 🆕 플라즈마 마법사 및 게코립 3D 투사체 렌더러 등록 추가
         EntityRenderers.register(ModEntityTypes.PLASMA_WIZARD.get(), PlasmaWizardRenderer::new);
         EntityRenderers.register(ModEntityTypes.PLASMA_ORB.get(), PlasmaOrbRenderer::new);
+
+        EntityRenderers.register(ModEntityTypes.ASSASSIN2.get(), Assassin2Renderer::new);
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -94,6 +98,8 @@ public class MyMod {
 
             // 🆕 플라즈마 마법사 기본 능력치 정식 매핑 등록
             event.put(ModEntityTypes.PLASMA_WIZARD.get(), PlasmaWizardEntity.createAttributes().build());
+
+            event.put(ModEntityTypes.ASSASSIN2.get(), Assassin2Entity.createAttributes().build());
         }
     }
 }
