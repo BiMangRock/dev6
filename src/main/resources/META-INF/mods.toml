@@ -64,7 +64,7 @@ side = "BOTH"
 
 # GeckoLib 의존성 설정 (추가된 부분)
 [[dependencies."${mod_id}"]]
-modId = "geckolib"
+modId = "geckolib3"
 mandatory = true
 versionRange = "[3.0.57,)" # Gradle에 설정한 최소 버전 이상으로 설정
 ordering = "NONE"
