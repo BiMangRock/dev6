@@ -176,6 +176,26 @@ public class TurretStoreBlock extends Block {
                     999, 2, 0.05F
             ));
 
+
+            // 🌟 [벌소환사 전용] 금 블록 1개 ➔ 주민 벌 소환사 터렛 스폰알 1개 (구매)
+            offers.add(new MerchantOffer(
+                    new ItemStack(Items.GOLD_BLOCK, 1),
+                    new ItemStack(ModItems.BEE_TURRET_SPAWN_EGG.get(), 1),
+                    999, 2, 0.05F
+            ));
+
+            // 🌟 [벌소환사 전용] 벌 소환사 토큰 환전 거래 등록
+            offers.add(new MerchantOffer(
+                    new ItemStack(ModItems.BEE_POINT_TOKEN_LOW.get(), 9),
+                    new ItemStack(ModItems.BEE_POINT_TOKEN_MID.get(), 1),
+                    999, 2, 0.05F
+            ));
+            offers.add(new MerchantOffer(
+                    new ItemStack(ModItems.BEE_POINT_TOKEN_MID.get(), 3),
+                    new ItemStack(ModItems.BEE_POINT_TOKEN_HIGH.get(), 1),
+                    999, 2, 0.05F
+            ));
+
             merchant.overrideOffers(offers);
 
             OptionalInt containerId = player.openMenu(new SimpleMenuProvider(

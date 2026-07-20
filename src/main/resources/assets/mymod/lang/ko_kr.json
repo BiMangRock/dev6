@@ -177,5 +177,15 @@
   "item.minecraft.tipped_arrow.effect.rage": "분노의 화살",
 
   "entity.mymod.assassin2": "암살자 좀비 II",
-  "item.mymod.assassin2_spawn_egg": "암살자 좀비 II 스폰알"
+  "item.mymod.assassin2_spawn_egg": "암살자 좀비 II 스폰알",
+
+
+
+
+  "entity.mymod.bee_summoner_turret": "주민 벌 소환사 터렛",
+  "entity.mymod.summoned_bee": "소환된 벌",
+  "item.mymod.bee_turret_spawn_egg": "주민 벌 소환사 터렛 스폰알",
+  "item.mymod.bee_point_token_low": "벌소환사 터렛 포인트 토큰 (하급)",
+  "item.mymod.bee_point_token_mid": "벌소환사 터렛 포인트 토큰 (중급)",
+  "item.mymod.bee_point_token_high": "벌소환사 터렛 포인트 토큰 (상급)"
 }

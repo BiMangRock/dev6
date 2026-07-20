@@ -177,6 +177,22 @@ public class ModItems {
             -> new ForgeSpawnEggItem(ModEntityTypes.ASSASSIN2, 0x1D2D1B, 0xE2C055,
             new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    public static final RegistryObject<Item> BEE_TURRET_SPAWN_EGG =
+            ITEMS.register("bee_turret_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.BEE_SUMMONER_TURRET, 0xEAF2B0, 0xF2CD5C,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> BEE_POINT_TOKEN_LOW =
+            ITEMS.register("bee_point_token_low",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> BEE_POINT_TOKEN_MID =
+            ITEMS.register("bee_point_token_mid",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> BEE_POINT_TOKEN_HIGH =
+            ITEMS.register("bee_point_token_high",
+                    () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
 
     public static void register(IEventBus eventBus) {

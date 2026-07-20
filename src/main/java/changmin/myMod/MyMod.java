@@ -16,6 +16,8 @@ import changmin.myMod.feature.turret.lightning_wizard.LightningWizardEntity;
 import changmin.myMod.feature.turret.lightning_wizard.LightningWizardRenderer;
 import changmin.myMod.feature.turret.plasma_wizard.*;
 
+// 🆕 벌 소환사 터렛 관련 패키지 일괄 임포트 추가
+import changmin.myMod.feature.turret.bee_summoner_turret.*;
 
 import changmin.myMod.util.BetterBrewingRecipe;
 import com.mojang.logging.LogUtils;
@@ -64,6 +66,9 @@ public class MyMod {
                     net.minecraft.world.item.Items.REDSTONE,
                     ModPotions.RAGE_POTION.get()
             ));
+
+            // 💡 벌 소환사 터렛 내부에서 소환할 벌의 EntityType이 null이 되지 않도록 연동합니다.
+            BeeSummonerTurretEntity.SUMMONED_BEE_TYPE = ModEntityTypes.SUMMONED_BEE.get();
         });
         LOGGER.info("MyMod Setup Complete");
     }
@@ -82,6 +87,10 @@ public class MyMod {
         EntityRenderers.register(ModEntityTypes.PLASMA_ORB.get(), PlasmaOrbRenderer::new);
 
         EntityRenderers.register(ModEntityTypes.ASSASSIN2.get(), Assassin2Renderer::new);
+
+        // 🆕 벌 소환사 터렛 및 소환되는 벌 클라이언트 렌더러 등록
+        EntityRenderers.register(ModEntityTypes.BEE_SUMMONER_TURRET.get(), BeeSummonerTurretRenderer::new);
+        EntityRenderers.register(ModEntityTypes.SUMMONED_BEE.get(), SummonedBeeRenderer::new);
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -100,6 +109,10 @@ public class MyMod {
             event.put(ModEntityTypes.PLASMA_WIZARD.get(), PlasmaWizardEntity.createAttributes().build());
 
             event.put(ModEntityTypes.ASSASSIN2.get(), Assassin2Entity.createAttributes().build());
+
+            // 🆕 벌 소환사 터렛 및 소환되는 벌의 기본 능력치 정보 등록
+            event.put(ModEntityTypes.BEE_SUMMONER_TURRET.get(), BeeSummonerTurretEntity.createAttributes().build());
+            event.put(ModEntityTypes.SUMMONED_BEE.get(), SummonedBeeEntity.createAttributes().build());
         }
     }
 }

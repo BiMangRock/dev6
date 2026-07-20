@@ -1,6 +1,8 @@
 package changmin.myMod.registry;
 
 import changmin.myMod.MyMod;
+import changmin.myMod.feature.turret.bee_summoner_turret.BeeSummonerTurretEntity;
+import changmin.myMod.feature.turret.bee_summoner_turret.SummonedBeeEntity;
 import changmin.myMod.feature.turret.healer.HealerTurretEntity;
 import changmin.myMod.feature.turret.tanker.TankerTurretEntity;
 import changmin.myMod.feature.turret.trident_turret.TridentTurretEntity;
@@ -88,6 +90,21 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.<changmin.myMod.feature.turret.plasma_wizard.PlasmaOrbEntity>of(PlasmaOrbEntity::new, MobCategory.MISC)
                             .sized(0.5F, 0.5F)
                             .build("plasma_orb"));
+
+    // 🆕 벌 소환사 주민 터렛 등록
+    public static final RegistryObject<EntityType<BeeSummonerTurretEntity>> BEE_SUMMONER_TURRET =
+            ENTITY_TYPES.register("bee_summoner_turret",
+                    () -> EntityType.Builder.of(BeeSummonerTurretEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 1.95F)
+                            .build("bee_summoner_turret"));
+
+    // 🆕 소환된 공중 벌 등록
+    public static final RegistryObject<EntityType<SummonedBeeEntity>> SUMMONED_BEE =
+            ENTITY_TYPES.register("summoned_bee",
+                    () -> EntityType.Builder.of(SummonedBeeEntity::new, MobCategory.MISC)
+                            .sized(0.7F, 0.7F)
+                            .build("summoned_bee"));
+
 
     public static final RegistryObject<EntityType<Assassin2Entity>> ASSASSIN2 = ENTITY_TYPES.register("assassin2", () ->
             EntityType.Builder.of(Assassin2Entity::new, MobCategory.MONSTER).sized(0.6F, 1.95F).build("assassin2"));
