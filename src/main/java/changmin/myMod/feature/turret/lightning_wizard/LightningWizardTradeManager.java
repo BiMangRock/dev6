@@ -19,31 +19,48 @@ public class LightningWizardTradeManager {
         offers.clear();
 
         MerchantOffers tokenOffers = new MerchantOffers();
-        MerchantOffers emeraldOffers = new MerchantOffers();
+        MerchantOffers materialOffers = new MerchantOffers(); // emeraldOffers 명칭을 materialOffers로 통합하여 등급 분류 처리
+
+        // ==========================================
+        // 🟢 하급 업그레이드 품목 (하급 토큰 및 철 주괴 1개 사용)
+        // ==========================================
 
         // ⚡ 1. 평타 스턴 지속시간 증대 (번개 전용 하급 토큰 소요)
         int stunLvl = turret.getStunDurationLevel();
         ItemStack stunReceipt = createUpgradeReceipt(turret, "stun", "마법사 특성: 전격 주파수 마비",
                 "효과: 평타 공격 명중 시 적의 기절 정지 시간이 0.5초 연장됩니다.",
                 "현재 강도: " + (2.0F + stunLvl * 0.5F) + "초 ➔ " + (2.5F + stunLvl * 0.5F) + "초");
-        emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 16), stunReceipt, 15, 2, 0.05F));
-        tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_LOW.get(), 1), stunReceipt, 15, 2, 0.05F)); // 👈 수정됨
+        // 🌟 하급에 맞추어 철 주괴 1개 요구로 변경
+        materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 1), stunReceipt, 15, 2, 0.05F));
+        tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_LOW.get(), 1), stunReceipt, 15, 2, 0.05F));
 
         // ⚡ 2. 평타 적중 시 쿨감 누적 가중치 가속화 (번개 전용 하급 토큰 소요)
         int reductionLvl = turret.getCooldownReductionLevel();
         ItemStack reductionReceipt = createUpgradeReceipt(turret, "reduction", "마법사 특성: 역류 정전기 축전",
                 "효과: 평타 명중 성공 시 단축되는 궁극기 쿨타임이 1초씩 더 늘어납니다.",
                 "현재 충전 효율: 타격당 -" + (3 + reductionLvl) + "초 ➔ -" + (4 + reductionLvl) + "초");
-        emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 12), reductionReceipt, 15, 2, 0.05F));
-        tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_LOW.get(), 1), reductionReceipt, 15, 2, 0.05F)); // 👈 수정됨
+        // 🌟 하급에 맞추어 철 주괴 1개 요구로 변경
+        materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 1), reductionReceipt, 15, 2, 0.05F));
+        tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_LOW.get(), 1), reductionReceipt, 15, 2, 0.05F));
+
+
+        // ==========================================
+        // 🟡 중급 업그레이드 품목 (중급 토큰 및 금 주괴 1개 사용)
+        // ==========================================
 
         // ⚡ 3. 궁극기 폭격 번개 고유 피해 증대 (번개 전용 중급 토큰 소요)
         int dmgLvl = turret.getUltDamageLevel();
         ItemStack dmgReceipt = createUpgradeReceipt(turret, "damage", "마법사 특성: 과전류 전자기 융해",
                 "효과: 영역 내에 떨어지는 번개 한 발당 타격 데미지가 비약적으로 상승합니다.",
                 "현재 전격 공격력: " + (5.0D + dmgLvl * 2.5D) + " ➔ " + (7.5D + dmgLvl * 2.5D));
-        emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 24), dmgReceipt, 10, 2, 0.05F));
-        tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_MID.get(), 1), dmgReceipt, 10, 2, 0.05F)); // 👈 수정됨
+        // 🌟 중급에 맞추어 금 주괴 1개 요구로 변경
+        materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), dmgReceipt, 10, 2, 0.05F));
+        tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_MID.get(), 1), dmgReceipt, 10, 2, 0.05F));
+
+
+        // ==========================================
+        // 🔴 상급 업그레이드 품목 (상급 토큰 및 에메랄드 1개 사용)
+        // ==========================================
 
         // ⚡ 4. 궁극기 뇌우 지속 폭격 시간 증폭 (최대 10단계 제한 / 번개 전용 상급 토큰 소요)
         int durationLvl = turret.getUltDurationLevel();
@@ -52,15 +69,16 @@ public class LightningWizardTradeManager {
                     "효과: 시전된 궁극기 범위 내의 벼락 폭격 지속 시간이 1초 늘어납니다.",
                     "현재 지속시간: " + (3 + durationLvl) + "초 ➔ " + (4 + durationLvl) + "초 (최대 10초)");
 
-            emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 32), durationReceipt, 15, 2, 0.05F));
-            tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_HIGH.get(), 1), durationReceipt, 15, 2, 0.05F)); // 👈 수정됨
+            // 🌟 상급에 맞추어 에메랄드 1개 요구로 변경
+            materialOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 1), durationReceipt, 15, 2, 0.05F));
+            tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_HIGH.get(), 1), durationReceipt, 15, 2, 0.05F));
         } else {
             ItemStack maxReceipt = createUpgradeReceipt(turret, "duration", "[최대한계] 뇌우 구름 장막 유지",
                     "효과: 밸런스 상한선인 10초 폭격 지속시간에 도달했습니다.",
                     "더 이상 강화할 수 없습니다.");
-            MerchantOffer maxOffer = new MerchantOffer(new ItemStack(Items.EMERALD, 64), maxReceipt, 15, 2, 0.05F);
+            MerchantOffer maxOffer = new MerchantOffer(new ItemStack(Items.EMERALD, 1), maxReceipt, 15, 2, 0.05F);
             maxOffer.setToOutOfStock();
-            emeraldOffers.add(maxOffer);
+            materialOffers.add(maxOffer);
         }
 
         // ⚡ 5. 궁극기 벼락 범위 확장 (최대 10x10 제한 / 번개 전용 상급 토큰 소요)
@@ -70,17 +88,17 @@ public class LightningWizardTradeManager {
                     "효과: 궁극기가 타격하는 벼락 장판의 폭격 원형 범위가 확장됩니다.",
                     "현재 반경 범위: " + (4.0D + rangeLvl) + "m ➔ " + (5.0D + rangeLvl) + "m (최대 반경 10m)");
 
-            emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 32), rangeReceipt, 15, 2, 0.05F));
-            tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_HIGH.get(), 1), rangeReceipt, 15, 2, 0.05F)); // 👈 수정됨
+            // 🌟 상급에 맞추어 에메랄드 1개 요구로 변경
+            materialOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 1), rangeReceipt, 15, 2, 0.05F));
+            tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_HIGH.get(), 1), rangeReceipt, 15, 2, 0.05F));
         }
 
         offers.addAll(tokenOffers);
-        offers.addAll(emeraldOffers);
+        offers.addAll(materialOffers);
     }
 
     public static ItemStack getBoundToken(LightningWizardEntity turret, int count) {
-        // 레벨업 보상 토큰 역시 번개 전용 하급 토큰으로 변경합니다.
-        ItemStack token = new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_LOW.get(), count); // 👈 수정됨
+        ItemStack token = new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_LOW.get(), count);
         CompoundTag tag = token.getOrCreateTag();
         tag.putString("TurretType", turret.getType().getRegistryName().toString());
 

@@ -45,9 +45,9 @@ public class TurretStoreBlock extends Block {
                     999, 2, 0.05F
             ));
 
-            // 거래 3: 에메랄드 10개 ➔ 주민 터렛 스폰알 1개 (구매)
+            // 🌟 거래 3: 조약돌 3개 ➔ 주민 터렛 스폰알 1개 (에메랄드 10개에서 조약돌 3개로 변경됨)
             offers.add(new MerchantOffer(
-                    new ItemStack(Items.EMERALD, 10),
+                    new ItemStack(Items.COBBLESTONE, 3),
                     new ItemStack(ModItems.VILLAGER_TURRET_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
@@ -66,6 +66,20 @@ public class TurretStoreBlock extends Block {
                     999, 2, 0.05F
             ));
 
+            // 🌟 [신규 추가] 치유 토템 터렛 하급 토큰 9개 ➔ 중급 토큰 1개 (환전)
+            offers.add(new MerchantOffer(
+                    new ItemStack(ModItems.HEALER_POINT_TOKEN_LOW.get(), 9),
+                    new ItemStack(ModItems.HEALER_POINT_TOKEN_MID.get(), 1),
+                    999, 2, 0.05F
+            ));
+
+            // 🌟 [신규 추가] 치유 토템 터렛 중급 토큰 3개 ➔ 상급 토큰 1개 (환전)
+            offers.add(new MerchantOffer(
+                    new ItemStack(ModItems.HEALER_POINT_TOKEN_MID.get(), 3),
+                    new ItemStack(ModItems.HEALER_POINT_TOKEN_HIGH.get(), 1),
+                    999, 2, 0.05F
+            ));
+
             // 거래 6: 하급 토큰 9개 ➔ 중급 토큰 1개 (환전)
             offers.add(new MerchantOffer(
                     new ItemStack(ModItems.TURRET_POINT_TOKEN_LOW.get(), 9),
@@ -73,14 +87,12 @@ public class TurretStoreBlock extends Block {
                     999, 2, 0.05F
             ));
 
-            // 🆕 거래 7: 중급 토큰 3개 ➔ 상급 토큰 1개 (환전 비율 대폭 인하!)
+            // 거래 7: 중급 토큰 3개 ➔ 상급 토큰 1개 (환전)
             offers.add(new MerchantOffer(
-                    new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 3), // 기존 9개에서 3개로 하향 조정
+                    new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 3),
                     new ItemStack(ModItems.TURRET_POINT_TOKEN_HIGH.get(), 1),
                     999, 2, 0.05F
             ));
-
-
 
             // 거래 8: 다이아몬드 4개 ➔ 삼지창 주민 터렛 스폰알 1개 (구매)
             offers.add(new MerchantOffer(
@@ -96,21 +108,21 @@ public class TurretStoreBlock extends Block {
                     999, 2, 0.05F
             ));
 
-            // 거래 10: 삼지창 중급 토큰 3개 ➔ 삼지창 상급 토큰 1개 (환전 비율 인하 적용)
+            // 거래 10: 삼지창 중급 토큰 3개 ➔ 삼지창 상급 토큰 1개 (환전)
             offers.add(new MerchantOffer(
                     new ItemStack(ModItems.TRIDENT_POINT_TOKEN_MID.get(), 3),
                     new ItemStack(ModItems.TRIDENT_POINT_TOKEN_HIGH.get(), 1),
                     999, 2, 0.05F
             ));
 
-// 거래 11: 철 블록 1개 ➔ 탱커 주민 터렛 스폰알 1개 (구매)
+            // 거래 11: 철 블록 1개 ➔ 탱커 주민 터렛 스폰알 1개 (구매)
             offers.add(new MerchantOffer(
                     new ItemStack(Items.IRON_BLOCK, 1),
                     new ItemStack(ModItems.TANKER_TURRET_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
 
-            // 탱커 토큰 환전 거래 추가
+            // 탱커 토큰 환전 거래
             offers.add(new MerchantOffer(
                     new ItemStack(ModItems.TANKER_POINT_TOKEN_LOW.get(), 9),
                     new ItemStack(ModItems.TANKER_POINT_TOKEN_MID.get(), 1),
@@ -122,36 +134,47 @@ public class TurretStoreBlock extends Block {
                     999, 2, 0.05F
             ));
 
-
-
-            // 🆕 거래 14: 자수정 블록 1개 ➔ 번개 마법사 주민 터렛 스폰알 1개 (구매)
+            // 거래 14: 자수정 블록 1개 ➔ 번개 마법사 주민 터렛 스폰알 1개 (구매)
             offers.add(new MerchantOffer(
                     new ItemStack(Items.AMETHYST_BLOCK, 1),
                     new ItemStack(ModItems.LIGHTNING_WIZARD_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
 
-            // 🆕 거래 15: 번개 마법사 하급 토큰 9개 ➔ 번개 마법사 중급 토큰 1개 (환전)
+            // 거래 15: 번개 마법사 하급 토큰 9개 ➔ 번개 마법사 중급 토큰 1개 (환전)
             offers.add(new MerchantOffer(
                     new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_LOW.get(), 9),
                     new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_MID.get(), 1),
                     999, 2, 0.05F
             ));
 
-            // 🆕 거래 16: 번개 마법사 중급 토큰 3개 ➔ 번개 마법사 상급 토큰 1개 (환전)
+            // 거래 16: 번개 마법사 중급 토큰 3개 ➔ 번개 마법사 상급 토큰 1개 (환전)
             offers.add(new MerchantOffer(
                     new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_MID.get(), 3),
                     new ItemStack(ModItems.LIGHTNING_POINT_TOKEN_HIGH.get(), 1),
                     999, 2, 0.05F
             ));
 
-// 🆕 거래 17: 다이아몬드 4개 ➔ 플라즈마 마법사 주민 터렛 스폰알 1개 (구매)
+            // 거래 17: 다이아몬드 4개 ➔ 플라즈마 마법사 주민 터렛 스폰알 1개 (구매)
             offers.add(new MerchantOffer(
                     new ItemStack(Items.DIAMOND, 4),
                     new ItemStack(ModItems.PLASMA_WIZARD_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
 
+            // 🌟 [신규 추가] 플라즈마 마법사 하급 토큰 9개 ➔ 중급 토큰 1개 (환전)
+            offers.add(new MerchantOffer(
+                    new ItemStack(ModItems.PLASMA_POINT_TOKEN_LOW.get(), 9),
+                    new ItemStack(ModItems.PLASMA_POINT_TOKEN_MID.get(), 1),
+                    999, 2, 0.05F
+            ));
+
+            // 🌟 [신규 추가] 플라즈마 마법사 중급 토큰 3개 ➔ 상급 토큰 1개 (환전)
+            offers.add(new MerchantOffer(
+                    new ItemStack(ModItems.PLASMA_POINT_TOKEN_MID.get(), 3),
+                    new ItemStack(ModItems.PLASMA_POINT_TOKEN_HIGH.get(), 1),
+                    999, 2, 0.05F
+            ));
 
             merchant.overrideOffers(offers);
 
@@ -159,8 +182,6 @@ public class TurretStoreBlock extends Block {
                     (id, inv, p) -> new MerchantMenu(id, inv, merchant),
                     new TranslatableComponent("container.turret_store")
             ));
-
-
 
             if (containerId.isPresent()) {
                 player.sendMerchantOffers(

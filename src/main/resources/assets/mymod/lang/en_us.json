@@ -121,19 +121,21 @@
   "item.mymod.burst_upgrade": "Turret Tech: Linear Burst",
   "item.mymod.fan_upgrade": "Turret Tech: Fan-Spread",
   "item.mymod.poison_arrow_upgrade": "Turret Alchemy: Poison Arrow",
+
   "item.mymod.zombie1_spawn_egg": "Zombie Boss Spawn Egg",
+
   "item.mymod.turret_point_token_low": "Low-grade Turret Point Token",
   "item.mymod.turret_point_token_mid": "Mid-grade Turret Point Token",
   "item.mymod.turret_point_token_high": "High-grade Turret Point Token",
   "block.mymod.turret_store": "Turret Parts Exchange",
   "container.turret_store": "Turret Parts Exchange",
   "item.mymod.condensed_emerald": "Condensed Emerald",
-
   "entity.mymod.resource_villager": "Resource Villager Turret",
   "item.mymod.resource_villager_spawn_egg": "Resource Villager Turret Spawn Egg",
 
   "entity.mymod.healer_turret": "Healer Totem Turret",
   "item.mymod.healer_turret_spawn_egg": "Healer Totem Turret Spawn Egg",
+
   "item.mymod.healer_point_token_low": "Low Healer Token",
   "item.mymod.healer_point_token_mid": "Mid Healer Token",
   "item.mymod.healer_point_token_high": "High Healer Token",
@@ -147,11 +149,29 @@
   "entity.mymod.tanker_turret": "Tanker Villager Turret",
   "item.mymod.tanker_turret_spawn_egg": "Tanker Villager Turret Spawn Egg",
 
+  "item.mymod.tanker_point_token_low": "Tanker Turret Point Token (Low)",
+  "item.mymod.tanker_point_token_mid": "Tanker Turret Point Token (Mid)",
+  "item.mymod.tanker_point_token_high": "Tanker Turret Point Token (High)",
+
   "item.mymod.lightning_wizard_spawn_egg": "Lightning Wizard Turret Spawn Egg",
   "item.mymod.lightning_point_token_low": "Lightning Wizard Turret Token (Low)",
   "item.mymod.lightning_point_token_mid": "Lightning Wizard Turret Token (Mid)",
   "item.mymod.lightning_point_token_high": "Lightning Wizard Turret Token (High)",
   "effect.mymod.stun": "Stunned",
+
+  "item.mymod.plasma_wizard_spawn_egg": "Plasma Wizard Turret Spawn Egg",
+  "entity.mymod.plasma_wizard": "Plasma Wizard Villager Turret",
+  "entity.mymod.plasma_orb": "Plasma Orb",
+
+  "item.mymod.plasma_point_token_low": "Plasma Turret Point Token (Low)",
+  "item.mymod.plasma_point_token_mid": "Plasma Turret Point Token (Mid)",
+  "item.mymod.plasma_point_token_high": "Plasma Turret Point Token (High)",
+
+  "effect.mymod.rage": "Rage",
+  "item.minecraft.potion.effect.rage": "Potion of Rage",
+  "item.minecraft.splash_potion.effect.rage": "Splash Potion of Rage",
+  "item.minecraft.lingering_potion.effect.rage": "Lingering Potion of Rage",
+  "item.minecraft.tipped_arrow.effect.rage": "Arrow of Rage",
 
   "entity.mymod.assassin2": "Zombie Assassin II",
   "item.mymod.assassin2_spawn_egg": "Zombie Assassin II Spawn Egg"

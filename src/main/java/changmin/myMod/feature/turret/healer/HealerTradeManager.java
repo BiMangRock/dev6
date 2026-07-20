@@ -23,7 +23,7 @@ public class HealerTradeManager {
         MerchantOffers materialOffers = new MerchantOffers();
 
         // ==========================================
-        // 🟢 하급 업그레이드 품목 (하급 토큰 사용)
+        // 🟢 하급 업그레이드 품목 (하급 토큰 및 철 주괴 1개 사용)
         // ==========================================
 
         // 1. 쿨타임 단축
@@ -35,9 +35,8 @@ public class HealerTradeManager {
                     "■ 적용 즉시 해당 터렛의 성능이 강화됩니다.",
                     "효과: 치유 시전 대기시간이 0.5초 감소합니다. (최대 1초 대기시간까지 단축 가능)",
                     "현재 상태: " + currentSec + "초 ➔ " + nextSec + "초");
-            materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 16), cooldownReceipt, 15, 2, 0.05F));
-
-            // 🌟 일반 터렛과 동일하게 순수 토큰 스택을 요구하도록 변경
+            // 🌟 철 주괴 1개 요구로 변경
+            materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 1), cooldownReceipt, 15, 2, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_LOW.get(), 1), cooldownReceipt, 15, 2, 0.05F));
         }
 
@@ -47,14 +46,13 @@ public class HealerTradeManager {
                 "■ 적용 즉시 해당 터렛의 성능이 강화됩니다.",
                 "효과: 대상을 인지하여 치유할 수 있는 작동 반경이 1블록 상승합니다.",
                 "현재 상태: " + (8 + currentRangeLvl) + "블록 ➔ " + (8 + currentRangeLvl + 1) + "블록");
-        materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 16), rangeReceipt, 15, 2, 0.05F));
-
-        // 🌟 일반 터렛과 동일하게 순수 토큰 스택을 요구하도록 변경
+        // 🌟 철 주괴 1개 요구로 변경
+        materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 1), rangeReceipt, 15, 2, 0.05F));
         tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_LOW.get(), 1), rangeReceipt, 15, 2, 0.05F));
 
 
         // ==========================================
-        // 🟡 중급 업그레이드 품목 (중급 토큰 사용)
+        // 🟡 중급 업그레이드 품목 (중급 토큰 및 금 주괴 1개 사용)
         // ==========================================
 
         // 3. 치유량 강화
@@ -63,9 +61,8 @@ public class HealerTradeManager {
                 "■ 적용 즉시 해당 터렛의 성능이 강화됩니다.",
                 "효과: 1회당 대상 치유 수치가 하트 0.5개(+1 HP) 상승합니다.",
                 "현재 상태: " + (currentHeal / 2.0F) + " 하트 ➔ " + ((currentHeal + 1.0F) / 2.0F) + " 하트");
-        materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 16), healReceipt, 15, 2, 0.05F));
-
-        // 🌟 일반 터렛과 동일하게 순수 토큰 스택을 요구하도록 변경
+        // 🌟 금 주괴 1개 요구로 변경
+        materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), healReceipt, 15, 2, 0.05F));
         tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_MID.get(), 1), healReceipt, 15, 2, 0.05F));
 
         // 4. 과치유 보호막 해금
@@ -74,20 +71,18 @@ public class HealerTradeManager {
                 "효과: 치유 시 대상의 최대 체력을 초과하여 오버치유된 분량을 노란색 보호막 하트(흡수 수치)로 누적 전환합니다.",
                 "현재 상태: " + (turret.getShieldLevel() > 0 ? "★ 기능 활성화 완료" : "보호막 비활성화 ➔ 영구 보호막 기능 해금"));
 
-        // 🌟 일반 터렛과 동일하게 순수 토큰 스택을 요구하도록 변경
-        MerchantOffer shieldTokenOffer = new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_MID.get(), 1), shieldReceipt, 1, 5, 0.05F);
-        MerchantOffer shieldMaterialOffer = new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 16), shieldReceipt, 1, 5, 0.05F);
+        tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_MID.get(), 1), shieldReceipt, 1, 5, 0.05F));
+        // 🌟 금 주괴 1개 요구로 변경
+        MerchantOffer shieldMaterialOffer = new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), shieldReceipt, 1, 5, 0.05F);
 
         if (turret.getShieldLevel() > 0) {
-            shieldTokenOffer.setToOutOfStock();
             shieldMaterialOffer.setToOutOfStock();
         }
-        tokenOffers.add(shieldTokenOffer);
         materialOffers.add(shieldMaterialOffer);
 
 
         // ==========================================
-        // 🔴 상급 업그레이드 품목 (상급 토큰 사용)
+        // 🔴 상급 업그레이드 품목 (상급 토큰 및 에메랄드 1개 사용)
         // ==========================================
 
         // 5. 광역 치유 비기 해금
@@ -96,9 +91,9 @@ public class HealerTradeManager {
                 "효과: 범위 안의 모든 아군을 동시 치유합니다. (단, 치유량 -50%, 쿨타임 +50% 패널티 발생)",
                 "현재 상태: " + (turret.getAoeHealEnabled() > 0 ? "★ 기능 활성화 완료" : "단일 정밀 치유 ➔ 광역 동시 치유"));
 
-        // 🌟 일반 터렛과 동일하게 순수 토큰 스택을 요구하도록 변경
         MerchantOffer aoeTokenOffer = new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_HIGH.get(), 1), aoeReceipt, 1, 5, 0.05F);
-        MerchantOffer aoeMaterialOffer = new MerchantOffer(new ItemStack(Items.EMERALD, 20), aoeReceipt, 1, 5, 0.05F);
+        // 🌟 에메랄드 1개 요구로 변경
+        MerchantOffer aoeMaterialOffer = new MerchantOffer(new ItemStack(Items.EMERALD, 1), aoeReceipt, 1, 5, 0.05F);
 
         if (turret.getTurretLevel() < 3 && turret.getAoeHealEnabled() == 0) {
             aoeTokenOffer.setToOutOfStock();
@@ -117,9 +112,9 @@ public class HealerTradeManager {
                 "효과: 치유 시 대상의 독, 위더, 감속, 나약함 등 핵심 해로운 상태이상을 즉시 소거합니다.",
                 "현재 상태: " + (turret.getCleanseEnabled() > 0 ? "★ 기능 활성화 완료" : "기본 체력 회복 ➔ 정화 효과 도입"));
 
-        // 🌟 일반 터렛과 동일하게 순수 토큰 스택을 요구하도록 변경
         MerchantOffer cleanseTokenOffer = new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_HIGH.get(), 1), cleanseReceipt, 1, 5, 0.05F);
-        MerchantOffer cleanseMaterialOffer = new MerchantOffer(new ItemStack(Items.EMERALD, 20), cleanseReceipt, 1, 5, 0.05F);
+        // 🌟 에메랄드 1개 요구로 변경
+        MerchantOffer cleanseMaterialOffer = new MerchantOffer(new ItemStack(Items.EMERALD, 1), cleanseReceipt, 1, 5, 0.05F);
 
         if (turret.getTurretLevel() < 5 && turret.getCleanseEnabled() == 0) {
             cleanseTokenOffer.setToOutOfStock();
@@ -155,7 +150,6 @@ public class HealerTradeManager {
         CompoundTag tag = token.getOrCreateTag();
         tag.putString("TurretType", turret.getType().getRegistryName().toString());
 
-        // 🌟 일반 터렛과 완전히 동일한 이름/Lore 생성 방식으로 통일
         CompoundTag display = new CompoundTag();
         final String finalTierName = tierName;
         final int finalColor = nameColor;
