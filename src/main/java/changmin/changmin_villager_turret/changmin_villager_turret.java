@@ -1,5 +1,6 @@
 package changmin.changmin_villager_turret;
 
+import changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End.ApostleOfTheEndEntity;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.Assassin2Entity;
 import changmin.changmin_villager_turret.registry.*;
 import changmin.changmin_villager_turret.feature.turret.villager_turret.VillagerTurretEntity;
@@ -36,6 +37,7 @@ import org.slf4j.Logger;
 import software.bernie.geckolib3.GeckoLib;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.Assassin2Renderer;
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.*;
+import changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End.*;
 
 @Mod(changmin_villager_turret.MODID)
 public class changmin_villager_turret {
@@ -98,6 +100,9 @@ public class changmin_villager_turret {
 
         // 🆕 도넛 충격파 전용 렌더러 등록
         EntityRenderers.register(ModEntityTypes.SHOCKWAVE.get(), ShockwaveRenderer::new);
+
+        // clientSetup 메서드 안에 추가
+        EntityRenderers.register(ModEntityTypes.APOSTLE_OF_THE_END.get(), ApostleOfTheEndRenderer::new);
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -122,6 +127,9 @@ public class changmin_villager_turret {
             event.put(ModEntityTypes.SUMMONED_BEE.get(), SummonedBeeEntity.createAttributes().build());
 
             event.put(ModEntityTypes.ANGEL_ZOMBIE.get(), AngelZombieEntity.createAttributes().build());
+
+            // onAttributeCreate 메서드 안에 추가
+            event.put(ModEntityTypes.APOSTLE_OF_THE_END.get(), ApostleOfTheEndEntity.createAttributes().build());
         }
     }
 }

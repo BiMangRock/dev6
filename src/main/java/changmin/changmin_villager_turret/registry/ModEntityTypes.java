@@ -10,6 +10,7 @@ import changmin.changmin_villager_turret.feature.turret.villager_turret.Villager
 import changmin.changmin_villager_turret.feature.turret.resource_villager1.ResourceVillagerEntity;
 import changmin.changmin_villager_turret.feature.turret.lightning_wizard.LightningWizardEntity; // 🆕 추가
 import changmin.changmin_villager_turret.feature.turret.lightning_wizard.LightningProjectileEntity; // 🆕 추가
+import changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End.ApostleOfTheEndEntity;
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.AngelZombieArrow;
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.AngelZombieEntity;
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.ShockwaveEntity;
@@ -126,6 +127,12 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.<ShockwaveEntity>of(ShockwaveEntity::new, MobCategory.MISC)
                             .sized(1.0F, 1.0F)
                             .build("shockwave"));
+
+    public static final RegistryObject<EntityType<ApostleOfTheEndEntity>> APOSTLE_OF_THE_END =
+            ENTITY_TYPES.register("apostle_of_the_end",
+                    () -> EntityType.Builder.of(ApostleOfTheEndEntity::new, MobCategory.MONSTER)
+                            .sized(0.6F, 1.95F)
+                            .build("apostle_of_the_end"));
 
     public static final RegistryObject<EntityType<Assassin2Entity>> ASSASSIN2 = ENTITY_TYPES.register("assassin2", () ->
             EntityType.Builder.of(Assassin2Entity::new, MobCategory.MONSTER).sized(0.6F, 1.95F).build("assassin2"));

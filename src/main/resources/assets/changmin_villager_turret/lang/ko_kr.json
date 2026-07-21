@@ -184,5 +184,8 @@
   "item.changmin_villager_turret.bee_point_token_high": "벌소환사 터렛 포인트 토큰 (상급)",
 
   "entity.changmin_villager_turret.angel_zombie": "엔젤 좀비",
-  "item.changmin_villager_turret.angel_zombie_spawn_egg": "엔젤 좀비 스폰 알"
+  "item.changmin_villager_turret.angel_zombie_spawn_egg": "엔젤 좀비 스폰 알",
+
+  "entity.changmin_villager_turret.apostle_of_the_end": "종말의 사도",
+  "item.changmin_villager_turret.apostle_of_the_end_spawn_egg": "종말의 사도 스폰 알"
 }
