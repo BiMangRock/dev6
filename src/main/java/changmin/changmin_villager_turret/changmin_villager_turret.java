@@ -35,6 +35,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import software.bernie.geckolib3.GeckoLib;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.Assassin2Renderer;
+import changmin.changmin_villager_turret.feature.zombie.angel_zombie.*;
 
 @Mod(changmin_villager_turret.MODID)
 public class changmin_villager_turret {
@@ -91,6 +92,9 @@ public class changmin_villager_turret {
         // 🆕 벌 소환사 터렛 및 소환되는 벌 클라이언트 렌더러 등록
         EntityRenderers.register(ModEntityTypes.BEE_SUMMONER_TURRET.get(), BeeSummonerTurretRenderer::new);
         EntityRenderers.register(ModEntityTypes.SUMMONED_BEE.get(), SummonedBeeRenderer::new);
+
+        EntityRenderers.register(ModEntityTypes.ANGEL_ZOMBIE.get(), AngelZombieRenderer::new);
+        EntityRenderers.register(ModEntityTypes.ANGEL_ZOMBIE_ARROW.get(), net.minecraft.client.renderer.entity.TippableArrowRenderer::new);
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -113,6 +117,8 @@ public class changmin_villager_turret {
             // 🆕 벌 소환사 터렛 및 소환되는 벌의 기본 능력치 정보 등록
             event.put(ModEntityTypes.BEE_SUMMONER_TURRET.get(), BeeSummonerTurretEntity.createAttributes().build());
             event.put(ModEntityTypes.SUMMONED_BEE.get(), SummonedBeeEntity.createAttributes().build());
+
+            event.put(ModEntityTypes.ANGEL_ZOMBIE.get(), AngelZombieEntity.createAttributes().build());
         }
     }
 }

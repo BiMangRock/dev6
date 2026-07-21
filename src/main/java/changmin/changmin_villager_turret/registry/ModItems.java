@@ -194,6 +194,11 @@ public class ModItems {
             ITEMS.register("bee_point_token_high",
                     () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    public static final RegistryObject<Item> ANGEL_ZOMBIE_SPAWN_EGG =
+            ITEMS.register("angel_zombie_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.ANGEL_ZOMBIE, 0xFFFFFF, 0x445621,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
