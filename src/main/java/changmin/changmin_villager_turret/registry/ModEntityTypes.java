@@ -12,6 +12,7 @@ import changmin.changmin_villager_turret.feature.turret.lightning_wizard.Lightni
 import changmin.changmin_villager_turret.feature.turret.lightning_wizard.LightningProjectileEntity; // 🆕 추가
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.AngelZombieArrow;
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.AngelZombieEntity;
+import changmin.changmin_villager_turret.feature.zombie.angel_zombie.ShockwaveEntity;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.Assassin2Entity;
 import changmin.changmin_villager_turret.feature.zombie.zombie1.ZombieBossEntity;
 
@@ -118,6 +119,13 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.<AngelZombieArrow>of(AngelZombieArrow::new, MobCategory.MISC)
                             .sized(0.5F, 0.5F)
                             .build("angel_zombie_arrow"));
+
+    // 🆕 도넛 충격파 엔티티 등록
+    public static final RegistryObject<EntityType<ShockwaveEntity>> SHOCKWAVE =
+            ENTITY_TYPES.register("shockwave",
+                    () -> EntityType.Builder.<ShockwaveEntity>of(ShockwaveEntity::new, MobCategory.MISC)
+                            .sized(1.0F, 1.0F)
+                            .build("shockwave"));
 
     public static final RegistryObject<EntityType<Assassin2Entity>> ASSASSIN2 = ENTITY_TYPES.register("assassin2", () ->
             EntityType.Builder.of(Assassin2Entity::new, MobCategory.MONSTER).sized(0.6F, 1.95F).build("assassin2"));

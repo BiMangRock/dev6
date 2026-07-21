@@ -95,6 +95,9 @@ public class changmin_villager_turret {
 
         EntityRenderers.register(ModEntityTypes.ANGEL_ZOMBIE.get(), AngelZombieRenderer::new);
         EntityRenderers.register(ModEntityTypes.ANGEL_ZOMBIE_ARROW.get(), net.minecraft.client.renderer.entity.TippableArrowRenderer::new);
+
+        // 🆕 도넛 충격파 전용 렌더러 등록
+        EntityRenderers.register(ModEntityTypes.SHOCKWAVE.get(), ShockwaveRenderer::new);
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)

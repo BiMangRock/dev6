@@ -3,6 +3,7 @@ package changmin.changmin_villager_turret.feature.zombie.angel_zombie;
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
@@ -18,7 +19,6 @@ import net.minecraft.world.entity.ai.util.AirAndWaterRandomPos;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -31,7 +31,6 @@ import software.bernie.geckolib3.core.manager.AnimationData;
 import software.bernie.geckolib3.core.manager.AnimationFactory;
 import software.bernie.geckolib3.util.GeckoLibUtil;
 
-import javax.annotation.Nullable;
 import java.util.EnumSet;
 
 public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTribe {
@@ -63,47 +62,34 @@ public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTr
         this.goalSelector.addGoal(2, new AngelFlyWanderGoal(this));
     }
 
-    @Override
-    protected PathNavigation createNavigation(Level level) {
-        FlyingPathNavigation navigation = new FlyingPathNavigation(this, level);
-        navigation.setCanOpenDoors(false);
-        navigation.setCanFloat(true);
-        return navigation;
-    }
-
+    // [패턴 1] 화살 공격
     public void performRangedAttack(LivingEntity target) {
-        // 💡 전용 클래스를 직접 생성
         AngelZombieArrow arrow = new AngelZombieArrow(this.level, this);
-
-        // 무중력 설정
         arrow.setNoGravity(true);
-
         double dx = target.getX() - this.getX();
         double dy = target.getY(0.5D) - arrow.getY();
         double dz = target.getZ() - this.getZ();
-
         arrow.shoot(dx, dy, dz, 1.8F, 0.0F);
         arrow.setBaseDamage(5.0D);
-
         this.level.addFreshEntity(arrow);
-        this.attackTimer = 10;
+        this.attackTimer = 15;
     }
 
-    @Override
-    public void travel(Vec3 p_21280_) {
-        if (this.isEffectiveAi() || this.isControlledByLocalInstance()) {
-            if (this.isInWater()) {
-                this.moveRelative(0.02F, p_21280_);
-                this.move(MoverType.SELF, this.getDeltaMovement());
-                this.setDeltaMovement(this.getDeltaMovement().scale(0.8F));
-            } else {
-                float f = 0.91F;
-                this.moveRelative(0.02F, p_21280_);
-                this.move(MoverType.SELF, this.getDeltaMovement());
-                this.setDeltaMovement(this.getDeltaMovement().scale(f));
-            }
+    public void performDonutAttack(LivingEntity target) {
+        if (!this.level.isClientSide && target != null) {
+            // 타겟 방향 계산
+            Vec3 targetPos = target.position();
+            Vec3 myPos = this.position();
+            Vec3 direction = targetPos.subtract(myPos).normalize();
+
+            // 이동 속도 설정 (0.3D 정도로 천천히 이동하며 퍼짐)
+            double speed = 0.3D;
+            ShockwaveEntity shockwave = new ShockwaveEntity(this.level, this,
+                    direction.x * speed, direction.y * speed, direction.z * speed);
+
+            this.level.addFreshEntity(shockwave);
+            this.attackTimer = 15;
         }
-        this.calculateEntityAnimation(this, false);
     }
 
     @Override
@@ -111,11 +97,6 @@ public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTr
         super.aiStep();
         if (this.attackTimer > 0) this.attackTimer--;
     }
-
-    @Override
-    public boolean causeFallDamage(float f, float f1, net.minecraft.world.damagesource.DamageSource s) { return false; }
-    @Override
-    protected void checkFallDamage(double d, boolean b, BlockState s, BlockPos p) {}
 
     private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
         if (this.attackTimer > 0) {
@@ -130,15 +111,30 @@ public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTr
     public void registerControllers(AnimationData data) {
         data.addAnimationController(new AnimationController<>(this, "controller", 5, this::predicate));
     }
+
+    @Override
+    public void travel(Vec3 p_21280_) {
+        if (this.isEffectiveAi() || this.isControlledByLocalInstance()) {
+            float f = this.isInWater() ? 0.8F : 0.91F;
+            this.moveRelative(0.02F, p_21280_);
+            this.move(MoverType.SELF, this.getDeltaMovement());
+            this.setDeltaMovement(this.getDeltaMovement().scale(f));
+        }
+        this.calculateEntityAnimation(this, false);
+    }
+
+    @Override
+    public boolean causeFallDamage(float f, float f1, DamageSource s) { return false; }
+    @Override
+    protected void checkFallDamage(double d, boolean b, BlockState s, BlockPos p) {}
+    @Override
+    protected PathNavigation createNavigation(Level level) { return new FlyingPathNavigation(this, level); }
     @Override
     public AnimationFactory getFactory() { return factory; }
 
     static class AngelFlyWanderGoal extends Goal {
         private final AngelZombieEntity entity;
-        public AngelFlyWanderGoal(AngelZombieEntity entity) {
-            this.entity = entity;
-            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
-        }
+        public AngelFlyWanderGoal(AngelZombieEntity entity) { this.entity = entity; this.setFlags(EnumSet.of(Goal.Flag.MOVE)); }
         @Override
         public boolean canUse() { return !entity.getNavigation().isInProgress() && entity.getRandom().nextInt(10) == 0; }
         @Override
@@ -146,12 +142,8 @@ public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTr
         @Override
         public void start() {
             Vec3 viewVector = entity.getViewVector(0.0F);
-            // 💡 Vec3를 넣는 대신 viewVector.x, viewVector.z를 각각 넣어 7개의 인자를 맞춥니다.
             Vec3 vec3 = AirAndWaterRandomPos.getPos(entity, 8, 7, -1, viewVector.x, viewVector.z, (float)Math.PI / 2F);
-
-            if (vec3 != null) {
-                entity.getNavigation().moveTo(vec3.x, vec3.y, vec3.z, 1.0D);
-            }
+            if (vec3 != null) entity.getNavigation().moveTo(vec3.x, vec3.y, vec3.z, 1.0D);
         }
     }
 }
