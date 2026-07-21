@@ -1,0 +1,26 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"fly": {
+			"animation_length": 1.5833,
+			"bones": {
+				"bone": {
+					"scale": {
+						"0.0": {
+							"vector": [1, 1, 1]
+						},
+						"0.5": {
+							"vector": [2, 2, 2]
+						},
+						"1.0": {
+							"vector": [3, 3, 3]
+						},
+						"1.5": {
+							"vector": [4, 4, 4]
+						}
+					}
+				}
+			}
+		}
+	}
+}

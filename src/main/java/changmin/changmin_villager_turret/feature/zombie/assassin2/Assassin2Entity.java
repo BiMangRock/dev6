@@ -25,90 +25,85 @@ import software.bernie.geckolib3.core.manager.AnimationFactory;
 import software.bernie.geckolib3.util.GeckoLibUtil;
 
 public class Assassin2Entity extends Monster implements IAnimatable, IZombieTribe {
-    // 애니메이션 및 레벨업 시스템 동기화를 위한 데이터 와처 변수 등록
     private static final EntityDataAccessor<Boolean> DATA_IS_ATTACKING = SynchedEntityData.defineId(Assassin2Entity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DATA_ASSASSIN_LEVEL = SynchedEntityData.defineId(Assassin2Entity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_CURRENT_XP = SynchedEntityData.defineId(Assassin2Entity.class, EntityDataSerializers.INT);
 
     private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+    public int attackTimer = 0;
 
     public Assassin2Entity(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
-        this.maxUpStep = 1.0F; // 1블록 높이의 언덕을 점프 없이 민첩하게 넘는 Step Assist 설정
+        this.maxUpStep = 1.0F;
     }
+
+    @Override
+    public void jumpFromGround() { super.jumpFromGround(); }
+
+    public void performAssassinJump() { this.jumpFromGround(); }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
-                .add(Attributes.MAX_HEALTH, 30.0D)       // 기본 체력 30
-                .add(Attributes.ATTACK_DAMAGE, 4.0D)     // 기본 공격력 4
-                .add(Attributes.MOVEMENT_SPEED, 0.28D)
-                .add(Attributes.FOLLOW_RANGE, 32.0D);
+                .add(Attributes.MAX_HEALTH, 30.0D)
+                .add(Attributes.ATTACK_DAMAGE, 4.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.35D)
+                .add(Attributes.FOLLOW_RANGE, 40.0D);
     }
 
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(DATA_IS_ATTACKING, false);
-        this.entityData.define(DATA_ASSASSIN_LEVEL, 1); // 기본 암살자 레벨 1 등록
-        this.entityData.define(DATA_CURRENT_XP, 0);     // 기본 처치 경험치 0 등록
+        this.entityData.define(DATA_ASSASSIN_LEVEL, 1);
+        this.entityData.define(DATA_CURRENT_XP, 0);
     }
 
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new Assassin2AttackGoal(this, 1.2D, true));
+
+        // 💡 통합된 AI 하나만 등록 (이동과 공격을 동시에 수행)
+        this.goalSelector.addGoal(1, new Assassin2IntegratedGoal(this));
+
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
 
-        // [타겟 1] 나를 선제 타격한 대상을 우선적으로 반격 (반격 우선순위 1단계)
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
-
-        // [타겟 2] 플레이어, 주민, 주민 터렛을 포함한 모든 아군 진형을 하나의 목표로 타겟 지정 (우선순위 2단계)
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(
-                this,
-                LivingEntity.class,
-                10,
-                true,
-                false,
-                IAlly::isAllyEntity
-        ));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, IAlly::isAllyEntity));
     }
 
-    // 다음 레벨업에 필요한 킬 수 (레벨 * 3)
-    public int getNeededXp() {
-        return this.getAssassinLevel() * 3;
-    }
-
-    // 경험치 누적 및 레벨업 체크
-    public void recordKill() {
-        int nextXp = this.getCurrentXp() + 1;
-        this.setCurrentXp(nextXp);
-        if (nextXp >= getNeededXp()) {
-            levelUp();
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        if (this.attackTimer > 0) {
+            this.attackTimer--;
+            if (!this.level.isClientSide) this.setAttacking(true);
+        } else {
+            if (!this.level.isClientSide) this.setAttacking(false);
         }
     }
 
-    // 레벨업 시 속성 정보 변경 및 체력 회복
+    // 레벨업 로직 (기존 유지)
+    public int getNeededXp() { return this.getAssassinLevel() * 3; }
+    public void recordKill() {
+        int nextXp = this.getCurrentXp() + 1;
+        this.setCurrentXp(nextXp);
+        if (nextXp >= getNeededXp()) levelUp();
+    }
     private void levelUp() {
         this.setCurrentXp(0);
         int nextLevel = this.getAssassinLevel() + 1;
         this.setAssassinLevel(nextLevel);
-
-        // 1. 최대 체력 상승 (레벨당 +5)
         double newMaxHealth = 30.0D + (nextLevel - 1) * 5.0D;
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMaxHealth);
-        this.setHealth((float) newMaxHealth); // 체력 완전 회복
-
-        // 2. 공격력 상승 (레벨당 +1)
-        double newAttackDamage = 4.0D + (nextLevel - 1) * 1.0D;
-        this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(newAttackDamage);
+        this.setHealth((float) newMaxHealth);
+        double d = 4.0D + (nextLevel - 1) * 1.0D;
+        this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(d);
     }
 
-    // Getter & Setter들 (와처 데이터 기반 작동)
     public boolean isAttacking() { return this.entityData.get(DATA_IS_ATTACKING); }
     public void setAttacking(boolean attacking) { this.entityData.set(DATA_IS_ATTACKING, attacking); }
-
     public int getAssassinLevel() { return this.entityData.get(DATA_ASSASSIN_LEVEL); }
     public void setAssassinLevel(int level) { this.entityData.set(DATA_ASSASSIN_LEVEL, level); }
     public int getCurrentXp() { return this.entityData.get(DATA_CURRENT_XP); }
@@ -119,12 +114,10 @@ public class Assassin2Entity extends Monster implements IAnimatable, IZombieTrib
             event.getController().setAnimation(new AnimationBuilder().playOnce("attack"));
             return PlayState.CONTINUE;
         }
-
         if (event.isMoving()) {
             event.getController().setAnimation(new AnimationBuilder().loop("walk"));
             return PlayState.CONTINUE;
         }
-
         return PlayState.STOP;
     }
 
@@ -134,7 +127,5 @@ public class Assassin2Entity extends Monster implements IAnimatable, IZombieTrib
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return this.factory;
-    }
+    public AnimationFactory getFactory() { return this.factory; }
 }

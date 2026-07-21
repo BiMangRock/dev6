@@ -41,6 +41,10 @@ import changmin.changmin_villager_turret.feature.zombie.angel_zombie.*;
 import changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End.*;
 import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.*;
 
+import changmin.changmin_villager_turret.feature.zombie.assassin2.*;
+
+
+
 @Mod(changmin_villager_turret.MODID)
 public class changmin_villager_turret {
     public static final String MODID = "changmin_villager_turret";
@@ -108,6 +112,7 @@ public class changmin_villager_turret {
 
         EntityRenderers.register(ModEntityTypes.RAGED_ANGEL_ZOMBIE.get(), RagedAngelZombieRenderer::new);
         EntityRenderers.register(ModEntityTypes.RAGED_SHOCKWAVE.get(), RagedShockwaveRenderer::new);
+        EntityRenderers.register(ModEntityTypes.SWORD_GHOUL.get(), SwordGhoulRenderer::new);
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
