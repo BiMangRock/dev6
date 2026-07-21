@@ -2,9 +2,12 @@ package changmin.changmin_villager_turret.feature.zombie.assassin2;
 
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -15,6 +18,7 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.builder.AnimationBuilder;
@@ -128,4 +132,17 @@ public class Assassin2Entity extends Monster implements IAnimatable, IZombieTrib
 
     @Override
     public AnimationFactory getFactory() { return this.factory; }
+
+    // Assassin2Entity 클래스 안에 추가
+    public void performAirJump() {
+        // 현재 속도를 가져와서 Y값(높이)만 위로 다시 설정 (0.5D 정도가 적당함)
+        Vec3 currentMove = this.getDeltaMovement();
+        this.setDeltaMovement(currentMove.x, 0.5D, currentMove.z);
+
+        // 이단 점프 시 소리와 파티클 효과 (닌자 느낌)
+        if (!this.level.isClientSide) {
+            ((ServerLevel)this.level).sendParticles(ParticleTypes.CLOUD, this.getX(), this.getY(), this.getZ(), 5, 0.2, 0, 0.2, 0.05);
+            this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PHANTOM_FLAP, this.getSoundSource(), 1.0F, 1.5F);
+        }
+    }
 }

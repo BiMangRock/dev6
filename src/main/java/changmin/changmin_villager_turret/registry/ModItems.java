@@ -209,6 +209,11 @@ public class ModItems {
                     () -> new ForgeSpawnEggItem(ModEntityTypes.RAGED_ANGEL_ZOMBIE, 0x8B0000, 0x445621,
                             new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    public static final RegistryObject<Item> CREAKING_SPAWN_EGG =
+            ITEMS.register("creaking_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.CREAKING, 0x3E382F, 0xE9B113,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);

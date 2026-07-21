@@ -43,7 +43,7 @@ import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.*;
 
 import changmin.changmin_villager_turret.feature.zombie.assassin2.*;
 
-
+import changmin.changmin_villager_turret.feature.zombie.creaking.*;
 
 @Mod(changmin_villager_turret.MODID)
 public class changmin_villager_turret {
@@ -113,6 +113,8 @@ public class changmin_villager_turret {
         EntityRenderers.register(ModEntityTypes.RAGED_ANGEL_ZOMBIE.get(), RagedAngelZombieRenderer::new);
         EntityRenderers.register(ModEntityTypes.RAGED_SHOCKWAVE.get(), RagedShockwaveRenderer::new);
         EntityRenderers.register(ModEntityTypes.SWORD_GHOUL.get(), SwordGhoulRenderer::new);
+
+        EntityRenderers.register(ModEntityTypes.CREAKING.get(), CreakingRenderer::new);
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -142,6 +144,8 @@ public class changmin_villager_turret {
             event.put(ModEntityTypes.APOSTLE_OF_THE_END.get(), ApostleOfTheEndEntity.createAttributes().build());
 
             event.put(ModEntityTypes.RAGED_ANGEL_ZOMBIE.get(), RagedAngelZombieEntity.createAttributes().build());
+
+            event.put(ModEntityTypes.CREAKING.get(), CreakingEntity.createAttributes().build());
         }
     }
 }

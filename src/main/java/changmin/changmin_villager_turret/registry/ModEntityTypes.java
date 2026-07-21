@@ -16,6 +16,7 @@ import changmin.changmin_villager_turret.feature.zombie.angel_zombie.AngelZombie
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.ShockwaveEntity;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.Assassin2Entity;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.SwordGhoulEntity;
+import changmin.changmin_villager_turret.feature.zombie.creaking.CreakingEntity;
 import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedAngelZombieEntity;
 import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedShockwaveEntity;
 import changmin.changmin_villager_turret.feature.zombie.zombie1.ZombieBossEntity;
@@ -154,6 +155,13 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.<SwordGhoulEntity>of(SwordGhoulEntity::new, MobCategory.MISC)
                             .sized(2.0F, 0.5F) // 검귀 크기에 맞게 설정
                             .build("sword_ghoul"));
+
+    public static final RegistryObject<EntityType<CreakingEntity>> CREAKING =
+            ENTITY_TYPES.register("creaking",
+                    () -> EntityType.Builder.of(CreakingEntity::new, MobCategory.MONSTER)
+                            .sized(0.6F, 2.3F) // 크리킹의 키가 크므로 대략 2.3F 설정
+                            .build("creaking"));
+
 
     public static final RegistryObject<EntityType<Assassin2Entity>> ASSASSIN2 = ENTITY_TYPES.register("assassin2", () ->
             EntityType.Builder.of(Assassin2Entity::new, MobCategory.MONSTER).sized(0.6F, 1.95F).build("assassin2"));

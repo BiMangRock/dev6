@@ -14,7 +14,7 @@ public class RagedShockwaveModel extends AnimatedGeoModel<RagedShockwaveEntity> 
     }
     @Override
     public ResourceLocation getAnimationFileLocation(RagedShockwaveEntity animatable) {
-        // 기존 shockwave 애니메이션 재사용
-        return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "animations/shockwave.animation.json");
+
+        return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "animations/raged_shockwave.animation.json");
     }
 }

@@ -1,9 +1,11 @@
 package changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End;
 
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.AngelZombieEntity;
+import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedAngelZombieEntity;
 import changmin.changmin_villager_turret.registry.ModEntityTypes;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import changmin.changmin_villager_turret.ally.IAlly;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -38,7 +40,13 @@ public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZomb
     private static final EntityDataAccessor<Integer> DATA_SUMMON_TIME = SynchedEntityData.defineId(ApostleOfTheEndEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_ANGEL_COUNT = SynchedEntityData.defineId(ApostleOfTheEndEntity.class, EntityDataSerializers.INT);
     public static final int MAX_SUMMON_COOLDOWN = 600;
-    private final List<AngelZombieEntity> summonedAngels = new ArrayList<>();
+
+    // 일반 천사와 분노한 천사를 공통으로 관리하기 위해 Generic 타입을 Monster로 변경합니다.
+    private final List<Monster> summonedAngels = new ArrayList<>();
+
+    // 💡 체력이 처음으로 50% 이하가 되었는지 기록할 감지 플래그
+    private boolean hasRaged = false;
+
     public int attackTimer = 0;
 
     public ApostleOfTheEndEntity(EntityType<? extends Monster> type, Level level) {
@@ -50,6 +58,19 @@ public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZomb
         super.defineSynchedData();
         this.entityData.define(DATA_SUMMON_TIME, MAX_SUMMON_COOLDOWN);
         this.entityData.define(DATA_ANGEL_COUNT, 0);
+    }
+
+    // 💡 게임 저장/로드 시 체력 50% 이하 달성 상태(hasRaged)가 보존되도록 NBT 입출력을 추가합니다.
+    @Override
+    public void addAdditionalSaveData(CompoundTag compound) {
+        super.addAdditionalSaveData(compound);
+        compound.putBoolean("HasRaged", this.hasRaged);
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
+        this.hasRaged = compound.getBoolean("HasRaged");
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -79,18 +100,47 @@ public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZomb
             summonedAngels.removeIf(angel -> !angel.isAlive());
             this.entityData.set(DATA_ANGEL_COUNT, summonedAngels.size());
 
+            // 💡 1. 체력이 처음으로 50% 이하가 되었을 때의 특수 소환 기믹
+            if (!this.hasRaged && this.getHealth() <= this.getMaxHealth() * 0.5F) {
+                this.hasRaged = true;
+
+                // 기존 소환되어 있던 일반 천사들을 모두 안전하게 월드에서 지우고 리스트를 정리합니다.
+                for (Monster angel : this.summonedAngels) {
+                    if (angel.isAlive()) {
+                        angel.discard();
+                    }
+                }
+                this.summonedAngels.clear();
+
+                // 즉시 최대 수치(3마리)만큼 분노한 천사(Raged Angel)를 강제 소환합니다.
+                for (int i = 0; i < 3; i++) {
+                    summonRagedAngel();
+                }
+
+                // 기믹 발동 후 소환 쿨타임을 초기화합니다.
+                this.entityData.set(DATA_SUMMON_TIME, MAX_SUMMON_COOLDOWN);
+            }
+
+            // 2. 주기적인 소환 로직
             int currentTimer = this.entityData.get(DATA_SUMMON_TIME);
             if (currentTimer > 0) {
                 this.entityData.set(DATA_SUMMON_TIME, currentTimer - 1);
             } else {
-                if (this.getSummonedAngelsCount() < 3) summonAngel();
+                if (this.getSummonedAngelsCount() < 3) {
+                    // 💡 분노 모드가 활성화되었다면 Raged Angel을 소환하고, 아니라면 일반 Angel을 소환합니다.
+                    if (this.hasRaged) {
+                        summonRagedAngel();
+                    } else {
+                        summonAngel();
+                    }
+                }
                 this.entityData.set(DATA_SUMMON_TIME, MAX_SUMMON_COOLDOWN);
             }
         }
         if (this.attackTimer > 0) this.attackTimer--;
     }
 
-    // ... Apostle 클래스 내부 소환 메서드 중 일부
+    // 일반 천사 소환
     private void summonAngel() {
         if (this.level instanceof ServerLevel serverLevel) {
             AngelZombieEntity angel = (AngelZombieEntity) ModEntityTypes.ANGEL_ZOMBIE.get().spawn(
@@ -99,11 +149,25 @@ public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZomb
             );
 
             if (angel != null) {
-                // 💡 여기서만 주인을 설정함!
-                // 스폰 알로 소환된 천사는 이 과정을 거치지 않으므로 자유로운 야생 상태가 됨.
                 angel.setLeader(this);
-
                 summonedAngels.add(angel);
+                this.entityData.set(DATA_ANGEL_COUNT, summonedAngels.size());
+            }
+        }
+    }
+
+    // 💡 분노한 천사(Raged Angel) 소환 신규 메서드
+    private void summonRagedAngel() {
+        if (this.level instanceof ServerLevel serverLevel) {
+            // ※ ModEntityTypes.RAGED_ANGEL_ZOMBIE 명칭이 모드 프로젝트 내 등록된 명칭과 일치하는지 확인해 주세요.
+            RagedAngelZombieEntity ragedAngel = (RagedAngelZombieEntity) ModEntityTypes.RAGED_ANGEL_ZOMBIE.get().spawn(
+                    serverLevel, null, null, this.blockPosition().above(),
+                    MobSpawnType.MOB_SUMMONED, true, false
+            );
+
+            if (ragedAngel != null) {
+                ragedAngel.setLeader(this);
+                summonedAngels.add(ragedAngel);
                 this.entityData.set(DATA_ANGEL_COUNT, summonedAngels.size());
             }
         }
@@ -112,9 +176,9 @@ public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZomb
     @Override
     public boolean hurt(DamageSource source, float amount) {
         if (!this.level.isClientSide) {
-            // 💡 사도가 공격받으면 모든 천사에게 공격자를 알림 (호위 모드)
+            // 사도가 공격받으면 모든 천사에게 공격자를 알림 (호위 모드)
             if (source.getEntity() instanceof LivingEntity attacker) {
-                for (AngelZombieEntity angel : summonedAngels) {
+                for (Monster angel : summonedAngels) {
                     if (angel.isAlive()) {
                         angel.setTarget(attacker);
                     }

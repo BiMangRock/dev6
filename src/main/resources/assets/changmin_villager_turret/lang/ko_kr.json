@@ -191,5 +191,8 @@
 
   "entity.changmin_villager_turret.raged_shockwave": "분노한 충격파",
   "entity.changmin_villager_turret.raged_angel_zombie": "분노한 천사 좀비",
-  "item.changmin_villager_turret.raged_angel_zombie_spawn_egg": "분노한 천사 좀비 스폰 알"
+  "item.changmin_villager_turret.raged_angel_zombie_spawn_egg": "분노한 천사 좀비 스폰 알",
+
+  "entity.changmin_villager_turret.creaking": "크리킹",
+  "item.changmin_villager_turret.creaking_spawn_egg": "크리킹 스폰 알"
 }
