@@ -2,6 +2,7 @@ package changmin.changmin_villager_turret;
 
 import changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End.ApostleOfTheEndEntity;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.Assassin2Entity;
+import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedAngelZombieEntity;
 import changmin.changmin_villager_turret.registry.*;
 import changmin.changmin_villager_turret.feature.turret.villager_turret.VillagerTurretEntity;
 import changmin.changmin_villager_turret.feature.turret.villager_turret.VillagerTurretRenderer;
@@ -38,6 +39,7 @@ import software.bernie.geckolib3.GeckoLib;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.Assassin2Renderer;
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.*;
 import changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End.*;
+import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.*;
 
 @Mod(changmin_villager_turret.MODID)
 public class changmin_villager_turret {
@@ -103,6 +105,9 @@ public class changmin_villager_turret {
 
         // clientSetup 메서드 안에 추가
         EntityRenderers.register(ModEntityTypes.APOSTLE_OF_THE_END.get(), ApostleOfTheEndRenderer::new);
+
+        EntityRenderers.register(ModEntityTypes.RAGED_ANGEL_ZOMBIE.get(), RagedAngelZombieRenderer::new);
+        EntityRenderers.register(ModEntityTypes.RAGED_SHOCKWAVE.get(), RagedShockwaveRenderer::new);
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -130,6 +135,8 @@ public class changmin_villager_turret {
 
             // onAttributeCreate 메서드 안에 추가
             event.put(ModEntityTypes.APOSTLE_OF_THE_END.get(), ApostleOfTheEndEntity.createAttributes().build());
+
+            event.put(ModEntityTypes.RAGED_ANGEL_ZOMBIE.get(), RagedAngelZombieEntity.createAttributes().build());
         }
     }
 }

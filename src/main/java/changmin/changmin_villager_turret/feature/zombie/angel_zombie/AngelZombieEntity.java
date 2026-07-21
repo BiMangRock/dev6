@@ -29,11 +29,11 @@ import software.bernie.geckolib3.util.GeckoLibUtil;
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 
-public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTribe {
+public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTribe, IAngelAttack {
     private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
 
     @Nullable
-    private LivingEntity leader = null; // 💡 특정 보스가 아닌 일반 LivingEntity로 변경
+    private LivingEntity leader = null;
     public int attackTimer = 0;
 
     public AngelZombieEntity(EntityType<? extends Monster> type, Level level) {
@@ -41,7 +41,6 @@ public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTr
         this.moveControl = new FlyingMoveControl(this, 20, true);
     }
 
-    // 💡 주인을 설정하는 메서드 (사도가 소환할 때만 호출됨)
     public void setLeader(@Nullable LivingEntity leader) {
         this.leader = leader;
     }
@@ -56,45 +55,60 @@ public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTr
 
     @Override
     protected void registerGoals() {
-        // 💡 주인 곁을 지키는 AI (주인이 없으면 자동으로 무시됨)
         this.goalSelector.addGoal(1, new ReturnToLeaderGoal(this));
-
         this.goalSelector.addGoal(2, new AngelRangedAttackGoal(this));
-
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, (entity) -> entity instanceof IAlly));
     }
 
-    // --- 호위/귀환 AI (독립 클래스로 분리) ---
-    static class ReturnToLeaderGoal extends Goal {
-        private final AngelZombieEntity angel;
+    // 💡 IAngelAttack 인터페이스 구현: AI Goal이 호출하는 핵심 공격 시작 지점
+    @Override
+    public void startAttackSequence(LivingEntity target) {
+        this.performDonutAttack(target);
+    }
 
-        public ReturnToLeaderGoal(AngelZombieEntity angel) {
-            this.angel = angel;
-            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
-        }
+    // 💡 IAngelAttack 인터페이스 구현: Monster 객체 반환
+    @Override
+    public Monster asMonster() {
+        return this;
+    }
 
-        @Override
-        public boolean canUse() {
-            // 💡 핵심: 주인이 설정되어 있고, 살아있으며, 거리가 20블록(400.0D) 이상일 때만 작동
-            return angel.leader != null && angel.leader.isAlive() && angel.distanceToSqr(angel.leader) > 400.0D;
-        }
+    public void performDonutAttack(LivingEntity target) {
+        if (!this.level.isClientSide && target != null) {
+            Vec3 direction = target.position().subtract(this.position()).normalize();
+            double speed = 0.3D;
 
-        @Override
-        public void tick() {
-            if (angel.leader != null) {
-                // 주인 머리 위로 빠르게 귀환
-                angel.getNavigation().moveTo(angel.leader.getX(), angel.leader.getY() + 6, angel.leader.getZ(), 1.5D);
-            }
+            ShockwaveEntity shockwave = new ShockwaveEntity(this.level, this,
+                    direction.x * speed, direction.y * speed, direction.z * speed);
+
+            this.level.addFreshEntity(shockwave);
+            this.attackTimer = 15;
         }
     }
 
-    // --- 나머지 로직 (동일) ---
     @Override
     public void aiStep() {
         super.aiStep();
         if (this.attackTimer > 0) this.attackTimer--;
+    }
+
+    static class ReturnToLeaderGoal extends Goal {
+        private final AngelZombieEntity angel;
+        public ReturnToLeaderGoal(AngelZombieEntity angel) {
+            this.angel = angel;
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
+        }
+        @Override
+        public boolean canUse() {
+            return angel.leader != null && angel.leader.isAlive() && angel.distanceToSqr(angel.leader) > 400.0D;
+        }
+        @Override
+        public void tick() {
+            if (angel.leader != null) {
+                angel.getNavigation().moveTo(angel.leader.getX(), angel.leader.getY() + 6, angel.leader.getZ(), 1.5D);
+            }
+        }
     }
 
     @Override

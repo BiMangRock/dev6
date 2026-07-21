@@ -10,11 +10,15 @@ public class StunEffect extends MobEffect {
         super(MobEffectCategory.HARMFUL, 0x55FFFF); // 전자기 기절 하늘색 빛깔
     }
 
-    // 1.18.2 바닐라 소스 기준, applyUpdateEffect가 아닌 applyEffectTick을 오버라이드해야 합니다.
     @Override
     public void applyEffectTick(LivingEntity entity, int amplifier) {
-        // 수평 속도를 제어하여 제자리에 멈추게 함
-        entity.setDeltaMovement(0, entity.getDeltaMovement().y, 0);
+// 땅 위에 있지 않을 때만(공중에 떠 있을 때만) 아래로 당깁니다.
+        if (!entity.isOnGround()) {
+            entity.setDeltaMovement(0, -0.2D, 0);
+        } else {
+            // 이미 땅 위라면 수평 이동만 막습니다.
+            entity.setDeltaMovement(0, entity.getDeltaMovement().y, 0);
+        }
 
         if (entity instanceof Mob mob) {
             mob.setTarget(null);
@@ -22,9 +26,9 @@ public class StunEffect extends MobEffect {
         }
     }
 
-    // 매 틱마다 위의 applyEffectTick이 무조건 실행되도록 true를 반환합니다.
     @Override
     public boolean isDurationEffectTick(int duration, int amplifier) {
+        // 효과가 지속되는 동안 매 틱마다 위 로직을 실행함
         return true;
     }
 }

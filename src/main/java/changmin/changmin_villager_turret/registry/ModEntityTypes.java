@@ -15,6 +15,8 @@ import changmin.changmin_villager_turret.feature.zombie.angel_zombie.AngelZombie
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.AngelZombieEntity;
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.ShockwaveEntity;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.Assassin2Entity;
+import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedAngelZombieEntity;
+import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedShockwaveEntity;
 import changmin.changmin_villager_turret.feature.zombie.zombie1.ZombieBossEntity;
 
 import net.minecraft.world.entity.EntityType;
@@ -133,6 +135,17 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.of(ApostleOfTheEndEntity::new, MobCategory.MONSTER)
                             .sized(0.6F, 1.95F)
                             .build("apostle_of_the_end"));
+
+    public static final RegistryObject<EntityType<RagedAngelZombieEntity>> RAGED_ANGEL_ZOMBIE =
+            ENTITY_TYPES.register("raged_angel_zombie",
+                    () -> EntityType.Builder.of(RagedAngelZombieEntity::new, MobCategory.MONSTER)
+                            .sized(0.6F, 1.95F) // 히트박스 크기
+                            .build("raged_angel_zombie"));
+
+    public static final RegistryObject<EntityType<RagedShockwaveEntity>> RAGED_SHOCKWAVE =
+            ENTITY_TYPES.register("raged_shockwave",
+                    () -> EntityType.Builder.<RagedShockwaveEntity>of(RagedShockwaveEntity::new, MobCategory.MISC)
+                            .sized(1.0F, 1.0F).build("raged_shockwave"));
 
     public static final RegistryObject<EntityType<Assassin2Entity>> ASSASSIN2 = ENTITY_TYPES.register("assassin2", () ->
             EntityType.Builder.of(Assassin2Entity::new, MobCategory.MONSTER).sized(0.6F, 1.95F).build("assassin2"));
