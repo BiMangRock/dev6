@@ -17,6 +17,8 @@ import changmin.changmin_villager_turret.feature.zombie.angel_zombie.ShockwaveEn
 import changmin.changmin_villager_turret.feature.zombie.assassin2.Assassin2Entity;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.SwordGhoulEntity;
 import changmin.changmin_villager_turret.feature.zombie.creaking.CreakingEntity;
+import changmin.changmin_villager_turret.feature.zombie.demon1.Demon1BatEntity;
+import changmin.changmin_villager_turret.feature.zombie.demon1.Demon1Entity;
 import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedAngelZombieEntity;
 import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedShockwaveEntity;
 import changmin.changmin_villager_turret.feature.zombie.zombie1.ZombieBossEntity;
@@ -161,6 +163,20 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.of(CreakingEntity::new, MobCategory.MONSTER)
                             .sized(0.6F, 2.3F) // 크리킹의 키가 크므로 대략 2.3F 설정
                             .build("creaking"));
+
+    // 악마 몹 등록
+    public static final RegistryObject<EntityType<Demon1Entity>> DEMON1 =
+            ENTITY_TYPES.register("demon1",
+                    () -> EntityType.Builder.of(Demon1Entity::new, MobCategory.MONSTER)
+                            .sized(0.6F, 1.95F)
+                            .build("demon1"));
+
+    // 악마의 박쥐 투사체 등록
+    public static final RegistryObject<EntityType<Demon1BatEntity>> DEMON1_BAT =
+            ENTITY_TYPES.register("demon1_bat",
+                    () -> EntityType.Builder.<Demon1BatEntity>of(Demon1BatEntity::new, MobCategory.MISC)
+                            .sized(0.5F, 0.5F)
+                            .build("demon1_bat"));
 
 
     public static final RegistryObject<EntityType<Assassin2Entity>> ASSASSIN2 = ENTITY_TYPES.register("assassin2", () ->

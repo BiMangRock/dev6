@@ -31,21 +31,23 @@ public class TurretStoreBlock extends Block {
             ClientSideMerchant merchant = new ClientSideMerchant(player);
             MerchantOffers offers = new MerchantOffers();
 
-            // 거래 1: 에메랄드 9개 ➔ 응축된 에메랄드 1개 (응축)
+
+
+            // 🌟 [수정됨] 2단계 압축: 에메랄드 블록 9개 (에메랄드 81개 상당) ➔ 응축된 에메랄드 1개
             offers.add(new MerchantOffer(
-                    new ItemStack(Items.EMERALD, 9),
+                    new ItemStack(Items.EMERALD_BLOCK, 9),
                     new ItemStack(ModItems.CONDENSED_EMERALD.get(), 1),
                     999, 2, 0.05F
             ));
 
-            // 거래 2: 응축된 에메랄드 1개 ➔ 에메랄드 9개 (분해)
+            // 🌟 [수정됨] 2단계 분해: 응축된 에메랄드 1개 ➔ 에메랄드 블록 9개
             offers.add(new MerchantOffer(
                     new ItemStack(ModItems.CONDENSED_EMERALD.get(), 1),
-                    new ItemStack(Items.EMERALD, 9),
+                    new ItemStack(Items.EMERALD_BLOCK, 9),
                     999, 2, 0.05F
             ));
 
-            // 🌟 거래 3: 조약돌 3개 ➔ 주민 터렛 스폰알 1개 (에메랄드 10개에서 조약돌 3개로 변경됨)
+            // 거래 3: 조약돌 3개 ➔ 주민 터렛 스폰알 1개
             offers.add(new MerchantOffer(
                     new ItemStack(Items.COBBLESTONE, 3),
                     new ItemStack(ModItems.VILLAGER_TURRET_SPAWN_EGG.get(), 1),
@@ -66,14 +68,14 @@ public class TurretStoreBlock extends Block {
                     999, 2, 0.05F
             ));
 
-            // 🌟 [신규 추가] 치유 토템 터렛 하급 토큰 9개 ➔ 중급 토큰 1개 (환전)
+            // 치유 토템 터렛 하급 토큰 9개 ➔ 중급 토큰 1개 (환전)
             offers.add(new MerchantOffer(
                     new ItemStack(ModItems.HEALER_POINT_TOKEN_LOW.get(), 9),
                     new ItemStack(ModItems.HEALER_POINT_TOKEN_MID.get(), 1),
                     999, 2, 0.05F
             ));
 
-            // 🌟 [신규 추가] 치유 토템 터렛 중급 토큰 3개 ➔ 상급 토큰 1개 (환전)
+            // 치유 토템 터렛 중급 토큰 3개 ➔ 상급 토큰 1개 (환전)
             offers.add(new MerchantOffer(
                     new ItemStack(ModItems.HEALER_POINT_TOKEN_MID.get(), 3),
                     new ItemStack(ModItems.HEALER_POINT_TOKEN_HIGH.get(), 1),
@@ -162,29 +164,28 @@ public class TurretStoreBlock extends Block {
                     999, 2, 0.05F
             ));
 
-            // 🌟 [신규 추가] 플라즈마 마법사 하급 토큰 9개 ➔ 중급 토큰 1개 (환전)
+            // 플라즈마 마법사 하급 토큰 9개 ➔ 중급 토큰 1개 (환전)
             offers.add(new MerchantOffer(
                     new ItemStack(ModItems.PLASMA_POINT_TOKEN_LOW.get(), 9),
                     new ItemStack(ModItems.PLASMA_POINT_TOKEN_MID.get(), 1),
                     999, 2, 0.05F
             ));
 
-            // 🌟 [신규 추가] 플라즈마 마법사 중급 토큰 3개 ➔ 상급 토큰 1개 (환전)
+            // 플라즈마 마법사 중급 토큰 3개 ➔ 상급 토큰 1개 (환전)
             offers.add(new MerchantOffer(
                     new ItemStack(ModItems.PLASMA_POINT_TOKEN_MID.get(), 3),
                     new ItemStack(ModItems.PLASMA_POINT_TOKEN_HIGH.get(), 1),
                     999, 2, 0.05F
             ));
 
-
-            // 🌟 [벌소환사 전용] 금 블록 1개 ➔ 주민 벌 소환사 터렛 스폰알 1개 (구매)
+            // 금 블록 1개 ➔ 주민 벌 소환사 터렛 스폰알 1개 (구매)
             offers.add(new MerchantOffer(
                     new ItemStack(Items.GOLD_BLOCK, 1),
                     new ItemStack(ModItems.BEE_TURRET_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
 
-            // 🌟 [벌소환사 전용] 벌 소환사 토큰 환전 거래 등록
+            // 벌 소환사 토큰 환전 거래 등록
             offers.add(new MerchantOffer(
                     new ItemStack(ModItems.BEE_POINT_TOKEN_LOW.get(), 9),
                     new ItemStack(ModItems.BEE_POINT_TOKEN_MID.get(), 1),
@@ -193,6 +194,48 @@ public class TurretStoreBlock extends Block {
             offers.add(new MerchantOffer(
                     new ItemStack(ModItems.BEE_POINT_TOKEN_MID.get(), 3),
                     new ItemStack(ModItems.BEE_POINT_TOKEN_HIGH.get(), 1),
+                    999, 2, 0.05F
+            ));
+
+            // 거래: 에메랄드 1개 ➔ 철 주괴 4개 (구매)
+            offers.add(new MerchantOffer(
+                    new ItemStack(Items.EMERALD, 1),
+                    new ItemStack(Items.IRON_INGOT, 4),
+                    999, 2, 0.05F
+            ));
+
+            // 거래: 에메랄드 1개 ➔ 금 주괴 1개 (구매)
+            offers.add(new MerchantOffer(
+                    new ItemStack(Items.EMERALD, 1),
+                    new ItemStack(Items.GOLD_INGOT, 1),
+                    999, 2, 0.05F
+            ));
+
+            // 경험치 병 4개 ➔ 에메랄드 1개 (소량 판매)
+            offers.add(new MerchantOffer(
+                    new ItemStack(Items.EXPERIENCE_BOTTLE, 4),
+                    new ItemStack(Items.EMERALD, 1),
+                    999, 2, 0.05F
+            ));
+
+            // 경험치 병 64개 ➔ 일반 에메랄드 16개 (대량 판매)
+            offers.add(new MerchantOffer(
+                    new ItemStack(Items.EXPERIENCE_BOTTLE, 64),
+                    new ItemStack(Items.EMERALD, 16),
+                    999, 2, 0.05F
+            ));
+
+            // 거래: 에메랄드 4개 ➔ 다이아몬드 1개 (구매)
+            offers.add(new MerchantOffer(
+                    new ItemStack(Items.EMERALD, 4),
+                    new ItemStack(Items.DIAMOND, 1),
+                    999, 2, 0.05F
+            ));
+
+            // 거래: 에메랄드 1개 ➔ 자수정 블록 1개 (구매)
+            offers.add(new MerchantOffer(
+                    new ItemStack(Items.EMERALD, 1),
+                    new ItemStack(Items.AMETHYST_BLOCK, 1),
                     999, 2, 0.05F
             ));
 

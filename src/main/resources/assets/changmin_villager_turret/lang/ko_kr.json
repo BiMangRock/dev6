@@ -194,5 +194,9 @@
   "item.changmin_villager_turret.raged_angel_zombie_spawn_egg": "분노한 천사 좀비 스폰 알",
 
   "entity.changmin_villager_turret.creaking": "크리킹",
-  "item.changmin_villager_turret.creaking_spawn_egg": "크리킹 스폰 알"
+  "item.changmin_villager_turret.creaking_spawn_egg": "크리킹 스폰 알",
+
+  "entity.changmin_villager_turret.demon1": "악마 좀비 1",
+  "entity.changmin_villager_turret.demon1_bat": "악마의 박쥐",
+  "item.changmin_villager_turret.demon1_spawn_egg": "악마 좀비 1 스폰 알"
 }

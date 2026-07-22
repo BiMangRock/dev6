@@ -214,6 +214,12 @@ public class ModItems {
                     () -> new ForgeSpawnEggItem(ModEntityTypes.CREAKING, 0x3E382F, 0xE9B113,
                             new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    // 악마 1 스폰알 등록 (진한 자색 0x1E0D1C 과 붉은 피색 0x8A1212 테마)
+    public static final RegistryObject<Item> DEMON1_SPAWN_EGG =
+            ITEMS.register("demon1_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.DEMON1, 0x1E0D1C, 0x8A1212,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
