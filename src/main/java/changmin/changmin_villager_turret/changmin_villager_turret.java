@@ -3,6 +3,8 @@ package changmin.changmin_villager_turret;
 import changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End.ApostleOfTheEndEntity;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.Assassin2Entity;
 import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedAngelZombieEntity;
+
+import changmin.changmin_villager_turret.feature.zombie.zombie_commander.*;
 import changmin.changmin_villager_turret.registry.*;
 import changmin.changmin_villager_turret.feature.turret.villager_turret.VillagerTurretEntity;
 import changmin.changmin_villager_turret.feature.turret.villager_turret.VillagerTurretRenderer;
@@ -20,7 +22,7 @@ import changmin.changmin_villager_turret.feature.turret.plasma_wizard.*;
 
 // 🆕 벌 소환사 터렛 관련 패키지 일괄 임포트 추가
 import changmin.changmin_villager_turret.feature.turret.bee_summoner_turret.*;
-
+import changmin.changmin_villager_turret.feature.turret.goddess_of_flame.*;
 import changmin.changmin_villager_turret.util.BetterBrewingRecipe;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.renderer.entity.EntityRenderers;
@@ -106,6 +108,7 @@ public class changmin_villager_turret {
         EntityRenderers.register(ModEntityTypes.ANGEL_ZOMBIE.get(), AngelZombieRenderer::new);
         EntityRenderers.register(ModEntityTypes.ANGEL_ZOMBIE_ARROW.get(), net.minecraft.client.renderer.entity.TippableArrowRenderer::new);
 
+
         // 🆕 도넛 충격파 전용 렌더러 등록
         EntityRenderers.register(ModEntityTypes.SHOCKWAVE.get(), ShockwaveRenderer::new);
 
@@ -119,6 +122,27 @@ public class changmin_villager_turret {
         EntityRenderers.register(ModEntityTypes.CREAKING.get(), CreakingRenderer::new);
         EntityRenderers.register(ModEntityTypes.DEMON1.get(), Demon1Renderer::new);
         EntityRenderers.register(ModEntityTypes.DEMON1_BAT.get(), Demon1BatRenderer::new);
+
+        EntityRenderers.register(ModEntityTypes.GODDESS_OF_FLAME.get(), GoddessOfFlameRenderer::new);
+        // 바닐라의 다목적 투척형 아이템 렌더러를 투사체에 바로 연결하여 렌더링
+        EntityRenderers.register(ModEntityTypes.GODDESS_FIREBALL.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
+
+        EntityRenderers.register(ModEntityTypes.ZOMBIE_COMMANDER.get(), ZombieCommanderRenderer::new);
+
+        // 💡 에러 해결: 전용 렌더러(위에서 만든 것)를 사용하여 등록
+        EntityRenderers.register(ModEntityTypes.COMMANDER_MAGGOT.get(), ZombieCommanderMaggotRenderer::new);
+
+        // 투사체는 슬라임볼(바닐라 아이템) 모델을 사용하도록 등록
+        EntityRenderers.register(ModEntityTypes.COMMANDER_PROJECTILE.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
+
+
+
+
+
+
+
+
+
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -151,6 +175,10 @@ public class changmin_villager_turret {
 
             event.put(ModEntityTypes.CREAKING.get(), CreakingEntity.createAttributes().build());
             event.put(ModEntityTypes.DEMON1.get(), Demon1Entity.createAttributes().build());
+            event.put(ModEntityTypes.GODDESS_OF_FLAME.get(), GoddessOfFlameEntity.createAttributes().build());
+            event.put(ModEntityTypes.ZOMBIE_COMMANDER.get(), ZombieCommanderEntity.createAttributes().build());
+
+            event.put(ModEntityTypes.COMMANDER_MAGGOT.get(), ZombieCommanderMaggotEntity.createAttributes().build());
         }
     }
 }

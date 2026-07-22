@@ -220,6 +220,17 @@ public class ModItems {
                     () -> new ForgeSpawnEggItem(ModEntityTypes.DEMON1, 0x1E0D1C, 0x8A1212,
                             new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    // 주황색 바탕 0xFF8500 에 황금빛 불꽃 무늬 0xFFD700 스폰알 등록
+    public static final RegistryObject<Item> GODDESS_OF_FLAME_SPAWN_EGG =
+            ITEMS.register("goddess_of_flame_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.GODDESS_OF_FLAME, 0xFF8500, 0xFFD700,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> ZOMBIE_COMMANDER_SPAWN_EGG =
+            ITEMS.register("zombie_commander_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.ZOMBIE_COMMANDER, 0x1D2D1B, 0xDAA520, // 짙은 녹색과 금색 테마
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);

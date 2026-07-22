@@ -3,6 +3,8 @@ package changmin.changmin_villager_turret.registry;
 import changmin.changmin_villager_turret.changmin_villager_turret;
 import changmin.changmin_villager_turret.feature.turret.bee_summoner_turret.BeeSummonerTurretEntity;
 import changmin.changmin_villager_turret.feature.turret.bee_summoner_turret.SummonedBeeEntity;
+import changmin.changmin_villager_turret.feature.turret.goddess_of_flame.GoddessFireballEntity;
+import changmin.changmin_villager_turret.feature.turret.goddess_of_flame.GoddessOfFlameEntity;
 import changmin.changmin_villager_turret.feature.turret.healer.HealerTurretEntity;
 import changmin.changmin_villager_turret.feature.turret.tanker.TankerTurretEntity;
 import changmin.changmin_villager_turret.feature.turret.trident_turret.TridentTurretEntity;
@@ -23,6 +25,9 @@ import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.Raged
 import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedShockwaveEntity;
 import changmin.changmin_villager_turret.feature.zombie.zombie1.ZombieBossEntity;
 
+import changmin.changmin_villager_turret.feature.zombie.zombie_commander.ZombieCommanderEntity;
+import changmin.changmin_villager_turret.feature.zombie.zombie_commander.ZombieCommanderMaggotEntity;
+import changmin.changmin_villager_turret.feature.zombie.zombie_commander.ZombieCommanderProjectile;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -177,6 +182,38 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.<Demon1BatEntity>of(Demon1BatEntity::new, MobCategory.MISC)
                             .sized(0.5F, 0.5F)
                             .build("demon1_bat"));
+
+    // 화염의 여신 엔티티 등록
+    public static final RegistryObject<EntityType<GoddessOfFlameEntity>> GODDESS_OF_FLAME =
+            ENTITY_TYPES.register("goddess_of_flame",
+                    () -> EntityType.Builder.of(GoddessOfFlameEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 1.95F)
+                            .build("goddess_of_flame"));
+
+    // 화염 여신의 불덩이 투사체 등록
+    public static final RegistryObject<EntityType<GoddessFireballEntity>> GODDESS_FIREBALL =
+            ENTITY_TYPES.register("goddess_fireball",
+                    () -> EntityType.Builder.<GoddessFireballEntity>of(GoddessFireballEntity::new, MobCategory.MISC)
+                            .sized(0.3125F, 0.3125F)
+                            .build("goddess_fireball"));
+
+    public static final RegistryObject<EntityType<ZombieCommanderEntity>> ZOMBIE_COMMANDER =
+            ENTITY_TYPES.register("zombie_commander",
+                    () -> EntityType.Builder.of(ZombieCommanderEntity::new, MobCategory.MONSTER)
+                            .sized(0.6F, 1.95F)
+                            .build("zombie_commander"));
+
+    public static final RegistryObject<EntityType<ZombieCommanderMaggotEntity>> COMMANDER_MAGGOT =
+            ENTITY_TYPES.register("commander_maggot",
+                    () -> EntityType.Builder.of(ZombieCommanderMaggotEntity::new, MobCategory.MONSTER)
+                            .sized(0.4F, 0.3F)
+                            .build("commander_maggot"));
+
+    public static final RegistryObject<EntityType<ZombieCommanderProjectile>> COMMANDER_PROJECTILE =
+            ENTITY_TYPES.register("commander_projectile",
+                    () -> EntityType.Builder.<ZombieCommanderProjectile>of(ZombieCommanderProjectile::new, MobCategory.MISC)
+                            .sized(0.25F, 0.25F)
+                            .build("commander_projectile"));
 
 
     public static final RegistryObject<EntityType<Assassin2Entity>> ASSASSIN2 = ENTITY_TYPES.register("assassin2", () ->

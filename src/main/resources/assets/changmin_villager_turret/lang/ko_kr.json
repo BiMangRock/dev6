@@ -198,5 +198,15 @@
 
   "entity.changmin_villager_turret.demon1": "악마 좀비 1",
   "entity.changmin_villager_turret.demon1_bat": "악마의 박쥐",
-  "item.changmin_villager_turret.demon1_spawn_egg": "악마 좀비 1 스폰 알"
+  "item.changmin_villager_turret.demon1_spawn_egg": "악마 좀비 1 스폰 알",
+
+  "entity.changmin_villager_turret.goddess_of_flame": "화염의 여신",
+  "entity.changmin_villager_turret.goddess_fireball": "화염 여신의 불덩이",
+  "item.changmin_villager_turret.goddess_of_flame_spawn_egg": "화염의 여신 스폰 알",
+
+  "entity.changmin_villager_turret.zombie_commander": "좀비 커맨더",
+  "item.changmin_villager_turret.zombie_commander_spawn_egg": "좀비 커맨더 스폰 알",
+
+  "entity.changmin_villager_turret.commander_maggot": "기생 구더기",
+  "entity.changmin_villager_turret.commander_projectile": "구더기 투사체"
 }
