@@ -21,6 +21,7 @@ import changmin.changmin_villager_turret.feature.zombie.assassin2.SwordGhoulEnti
 import changmin.changmin_villager_turret.feature.zombie.creaking.CreakingEntity;
 import changmin.changmin_villager_turret.feature.zombie.demon1.Demon1BatEntity;
 import changmin.changmin_villager_turret.feature.zombie.demon1.Demon1Entity;
+import changmin.changmin_villager_turret.feature.zombie.healer_zombie.HealerZombieEntity;
 import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedAngelZombieEntity;
 import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedShockwaveEntity;
 import changmin.changmin_villager_turret.feature.zombie.zombie1.ZombieBossEntity;
@@ -214,6 +215,12 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.<ZombieCommanderProjectile>of(ZombieCommanderProjectile::new, MobCategory.MISC)
                             .sized(0.25F, 0.25F)
                             .build("commander_projectile"));
+
+    public static final RegistryObject<EntityType<HealerZombieEntity>> HEALER_ZOMBIE =
+            ENTITY_TYPES.register("healer_zombie",
+                    () -> EntityType.Builder.of(HealerZombieEntity::new, MobCategory.MONSTER)
+                            .sized(0.6F, 1.95F)
+                            .build("healer_zombie"));
 
 
     public static final RegistryObject<EntityType<Assassin2Entity>> ASSASSIN2 = ENTITY_TYPES.register("assassin2", () ->

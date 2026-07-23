@@ -19,6 +19,7 @@ import changmin.changmin_villager_turret.feature.turret.tanker.TankerTurretRende
 import changmin.changmin_villager_turret.feature.turret.lightning_wizard.LightningWizardEntity;
 import changmin.changmin_villager_turret.feature.turret.lightning_wizard.LightningWizardRenderer;
 import changmin.changmin_villager_turret.feature.turret.plasma_wizard.*;
+import changmin.changmin_villager_turret.feature.zombie.healer_zombie.*;
 
 // 🆕 벌 소환사 터렛 관련 패키지 일괄 임포트 추가
 import changmin.changmin_villager_turret.feature.turret.bee_summoner_turret.*;
@@ -136,7 +137,7 @@ public class changmin_villager_turret {
         EntityRenderers.register(ModEntityTypes.COMMANDER_PROJECTILE.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
 
 
-
+        EntityRenderers.register(ModEntityTypes.HEALER_ZOMBIE.get(), HealerZombieRenderer::new);
 
 
 
@@ -179,6 +180,8 @@ public class changmin_villager_turret {
             event.put(ModEntityTypes.ZOMBIE_COMMANDER.get(), ZombieCommanderEntity.createAttributes().build());
 
             event.put(ModEntityTypes.COMMANDER_MAGGOT.get(), ZombieCommanderMaggotEntity.createAttributes().build());
+
+            event.put(ModEntityTypes.HEALER_ZOMBIE.get(), HealerZombieEntity.createAttributes().build());
         }
     }
 }

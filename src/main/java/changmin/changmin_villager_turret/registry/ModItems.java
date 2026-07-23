@@ -231,6 +231,11 @@ public class ModItems {
                     () -> new ForgeSpawnEggItem(ModEntityTypes.ZOMBIE_COMMANDER, 0x1D2D1B, 0xDAA520, // 짙은 녹색과 금색 테마
                             new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    public static final RegistryObject<Item> HEALER_ZOMBIE_SPAWN_EGG =
+            ITEMS.register("healer_zombie_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.HEALER_ZOMBIE, 0x1D2D1B, 0xFFFFB6C1,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
