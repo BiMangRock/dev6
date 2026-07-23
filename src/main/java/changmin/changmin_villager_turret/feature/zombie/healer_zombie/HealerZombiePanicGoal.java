@@ -19,7 +19,7 @@ public class HealerZombiePanicGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        // 🆕 치유 애니메이션(State == 1)이 활성화되어 시전 중인 경우에는 도망 골로 전환하지 못하도록 제어합니다.
+        // 🆕 힐러 좀비가 치유 캐스팅 애니메이션(State 1)을 사용 중인 경우는 피격당해도 도망행동으로 캔슬하지 않습니다.
         if (this.healer.getAnimationState() == 1) {
             return false;
         }
@@ -29,7 +29,7 @@ public class HealerZombiePanicGoal extends Goal {
 
     @Override
     public void start() {
-        this.panicTime = 60; // 3초 유지
+        this.panicTime = 60;
         this.findRandomPosition();
     }
 
@@ -45,7 +45,6 @@ public class HealerZombiePanicGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        // 도망 중에도 혹시 치유 조건이 먼저 충족되더라도 도망 상태 타이머가 끝날 때까지 이동을 이어갑니다.
         return this.panicTime > 0 && this.healer.getLastHurtByMob() != null;
     }
 

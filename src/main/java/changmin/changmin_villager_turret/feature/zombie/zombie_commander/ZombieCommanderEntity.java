@@ -1,6 +1,7 @@
 package changmin.changmin_villager_turret.feature.zombie.zombie_commander;
 
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
+import net.minecraft.nbt.CompoundTag; // 🆕 추가
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -88,12 +89,53 @@ public class ZombieCommanderEntity extends PathfinderMob implements IAnimatable,
         this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
     }
 
-    // 💡 에러 해결: recordKill 메서드 추가 (직접 킬 시 공격 XP 5점 부여)
+    // 💡 레벨 및 보너스 데이터를 세이브파일에 저장하는 메서드
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putInt("BossLevel", this.getBossLevel());
+        tag.putInt("BuffXp", this.getBuffXp());
+        tag.putInt("AttackXp", this.getAttackXp());
+        tag.putDouble("AbsorbedHealthBonus", this.absorbedHealthBonus);
+        tag.putFloat("MaggotAtkBonus", this.maggotAtkBonus);
+        tag.putInt("MaggotLifeBonus", this.maggotLifeBonus);
+        tag.putDouble("MaggotHpBonus", this.maggotHpBonus);
+    }
+
+    // 💡 세이브파일로부터 이전 레벨 및 보너스 스탯을 불러오는 메서드
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.contains("BossLevel", 99)) {
+            this.setBossLevel(tag.getInt("BossLevel"));
+        }
+        if (tag.contains("BuffXp", 99)) {
+            this.setBuffXp(tag.getInt("BuffXp"));
+        }
+        if (tag.contains("AttackXp", 99)) {
+            this.setAttackXp(tag.getInt("AttackXp"));
+        }
+        if (tag.contains("AbsorbedHealthBonus", 99)) {
+            this.absorbedHealthBonus = tag.getDouble("AbsorbedHealthBonus");
+        }
+        if (tag.contains("MaggotAtkBonus", 99)) {
+            this.maggotAtkBonus = tag.getFloat("MaggotAtkBonus");
+        }
+        if (tag.contains("MaggotLifeBonus", 99)) {
+            this.maggotLifeBonus = tag.getInt("MaggotLifeBonus");
+        }
+        if (tag.contains("MaggotHpBonus", 99)) {
+            this.maggotHpBonus = tag.getDouble("MaggotHpBonus");
+        }
+
+        // 데이터가 주입된 후 성장 속성을 갱신합니다.
+        this.updateMaxHealthAttribute();
+    }
+
     public void recordKill() {
         this.recordAttackXP(5.0D);
     }
 
-    // Goal에서 호출하는 메서드
     public void recordBuffs(int count) {
         this.setBuffXp(this.getBuffXp() + count);
         checkLevelUp();

@@ -1,0 +1,85 @@
+
+월드에 다시 접속했을 때 레벨과 최대 체력이 초기화(레벨 1로 회복)되는 명확한 원인과 해결법을 설명해 드립니다.
+원인 분석
+마인크래프트 엔티티는 게임이 저장되거나 청크가 언로드될 때 엔티티의 정보(레벨, 스탯, 타이머 등)를 NBT(명명된 이진 태그) 형식으로 파일에 영구히 기록해 두어야 합니다 [1].
+제공해 주신 ZombieCommanderEntity 코드를 확인해 보면, NBT를 저장하고 읽는 핵심 메서드인 addAdditionalSaveData와 readAdditionalSaveData가 구현되어 있지 않습니다.
+이로 인해 발생하는 구체적인 단계는 다음과 같습니다.
+로그아웃(월드 저장 시): 레벨 정보(DATA_LEVEL), 경험치(DATA_XP_BUFF, DATA_XP_ATTACK), 성장에 따른 누적 보너스 수치(absorbedHealthBonus, maggotAtkBonus, maggotHpBonus 등)가 저장되지 않고 공중으로 날아갑니다.
+부모 클래스의 자동 저장: 하지만 LivingEntity 부모 클래스 내부에서는 **현재 남은 체력 수치(예: 62.0)**를 자체 NBT 시스템을 통해 자동으로 저장합니다 [1].
+재접속(월드 로드 시):
+엔티티가 생성자로 새롭게 태어나면서 레벨은 다시 기본값인 1로 초기화됩니다.
+부모 클래스는 저장되어 있던 체력 수치(62.0)를 복원하여 불러옵니다. 접속 직후 잠깐 체력이 남아 있어 보이는 이유가 이 때문입니다.
+하지만 몇 초 후 레벨이 1이기 때문에 최대 체력 한도가 다시 기본값(40.0)으로 재조정(Clamp)되면서 체력이 깎이고 레벨이 1인 상태로 되돌아가 버립니다.
+해결 방법
+이 현상을 해결하려면 엔티티 클래스 내부에 NBT 저장 및 로드 처리를 명시해 주어야 합니다. ZombieCommanderEntity와 이전에 제작했던 HealerZombieEntity 둘 다 동일한 문제를 겪게 되므로 각각 아래 코드를 클래스 내부에 삽입해 주시면 됩니다.
+① ZombieCommanderEntity.java에 추가할 코드
+클래스 내부 하단 적절한 위치에 아래 메서드들을 넣어주세요.
+code
+Java
+@Override
+    public void addAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        // 레벨, 경험치 및 실시간 성장 보너스 데이터 저장
+        tag.putInt("BossLevel", this.getBossLevel());
+        tag.putInt("BuffXp", this.getBuffXp());
+        tag.putInt("AttackXp", this.getAttackXp());
+        tag.putDouble("AbsorbedHealthBonus", this.absorbedHealthBonus);
+        tag.putFloat("MaggotAtkBonus", this.maggotAtkBonus);
+        tag.putInt("MaggotLifeBonus", this.maggotLifeBonus);
+        tag.putDouble("MaggotHpBonus", this.maggotHpBonus);
+    }
+
+    @Override
+    public void readAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        // 저장된 파일로부터 데이터 불러오기
+        if (tag.contains("BossLevel", 99)) {
+            this.setBossLevel(tag.getInt("BossLevel"));
+        }
+        if (tag.contains("BuffXp", 99)) {
+            this.setBuffXp(tag.getInt("BuffXp"));
+        }
+        if (tag.contains("AttackXp", 99)) {
+            this.setAttackXp(tag.getInt("AttackXp"));
+        }
+        if (tag.contains("AbsorbedHealthBonus", 99)) {
+            this.absorbedHealthBonus = tag.getDouble("AbsorbedHealthBonus");
+        }
+        if (tag.contains("MaggotAtkBonus", 99)) {
+            this.maggotAtkBonus = tag.getFloat("MaggotAtkBonus");
+        }
+        if (tag.contains("MaggotLifeBonus", 99)) {
+            this.maggotLifeBonus = tag.getInt("MaggotLifeBonus");
+        }
+        if (tag.contains("MaggotHpBonus", 99)) {
+            this.maggotHpBonus = tag.getDouble("MaggotHpBonus");
+        }
+
+        // 데이터를 불러온 후 반영된 레벨에 맞춰 최대 체력 속성을 재조정합니다.
+        this.updateMaxHealthAttribute();
+    }
+② HealerZombieEntity.java에 추가할 코드 (마찬가지로 해결 필요)
+마찬가지로 힐러 좀비 클래스 내부에도 추가해 줍니다.
+code
+Java
+@Override
+    public void addAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        // 레벨 및 경험치 저장
+        tag.putInt("HealerLevel", this.getHealerLevel());
+        tag.putInt("HealerXp", this.getXp());
+    }
+
+    @Override
+    public void readAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        // 저장된 데이터 복원
+        if (tag.contains("HealerLevel", 99)) {
+            this.setHealerLevel(tag.getInt("HealerLevel"));
+        }
+        if (tag.contains("HealerXp", 99)) {
+            this.setXp(tag.getInt("HealerXp"));
+        }
+
+        // 데이터 복원 이후 최대 체력 한도를 재계산하여 올바르게 주입합니다.
+        this.updateMaxHealthAttribute();

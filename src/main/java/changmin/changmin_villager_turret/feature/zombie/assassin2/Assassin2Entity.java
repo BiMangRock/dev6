@@ -3,6 +3,7 @@ package changmin.changmin_villager_turret.feature.zombie.assassin2;
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag; // 🆕 추가
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -75,6 +76,39 @@ public class Assassin2Entity extends Monster implements IAnimatable, IZombieTrib
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, IAlly::isAllyEntity));
+    }
+
+    // 💡 암살자 저장 데이터를 NBT 파일에 기록하는 메서드
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putInt("AssassinLevel", this.getAssassinLevel());
+        tag.putInt("CurrentXp", this.getCurrentXp());
+    }
+
+    // 💡 세이브파일로부터 암살자 레벨/경험치 복구 및 속성 재설정 메서드
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.contains("AssassinLevel", 99)) {
+            this.setAssassinLevel(tag.getInt("AssassinLevel"));
+        }
+        if (tag.contains("CurrentXp", 99)) {
+            this.setCurrentXp(tag.getInt("CurrentXp"));
+        }
+
+        // 💡 [속성 동기화] 저장된 레벨 값에 맞게 최대 체력과 공격력을 파일 로딩 시점에 올바르게 주입합니다.
+        int loadedLevel = this.getAssassinLevel();
+
+        double newMaxHealth = 30.0D + (loadedLevel - 1) * 5.0D;
+        if (this.getAttribute(Attributes.MAX_HEALTH) != null) {
+            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMaxHealth);
+        }
+
+        double d = 4.0D + (loadedLevel - 1) * 1.0D;
+        if (this.getAttribute(Attributes.ATTACK_DAMAGE) != null) {
+            this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(d);
+        }
     }
 
     @Override

@@ -3,6 +3,7 @@ package changmin.changmin_villager_turret.feature.zombie.zombie1;
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import changmin.changmin_villager_turret.registry.ModItems;
+import net.minecraft.nbt.CompoundTag; // 🆕 추가
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -80,6 +81,33 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
+    }
+
+    // 💡 좀비 보스의 데이터(레벨 및 경험치)를 월드 세이브파일에 기록하는 메서드
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putInt("BossLevel", this.getBossLevel());
+        tag.putInt("CurrentXp", this.getCurrentXp());
+    }
+
+    // 💡 세이브파일로부터 보스 레벨 및 처치 경험치를 로드하고 최대 체력 속성을 올바르게 업데이트하는 메서드
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.contains("BossLevel", 99)) {
+            this.setBossLevel(tag.getInt("BossLevel"));
+        }
+        if (tag.contains("CurrentXp", 99)) {
+            this.setCurrentXp(tag.getInt("CurrentXp"));
+        }
+
+        // 💡 [속성 주입 동기화] 저장된 보스 레벨 값에 맞춰 최대 체력을 로딩 시점에 올바르게 동기화합니다.
+        int loadedLevel = this.getBossLevel();
+        double newMaxHealth = 50.0D + (loadedLevel - 1) * 10.0D;
+        if (this.getAttribute(Attributes.MAX_HEALTH) != null) {
+            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMaxHealth);
+        }
     }
 
     @Override
