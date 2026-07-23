@@ -1,7 +1,8 @@
 package changmin.changmin_villager_turret.feature.turret.healer;
 
 import changmin.changmin_villager_turret.ally.IAlly;
-import net.minecraft.core.particles.ParticleTypes; // 🆕 에메랄드 파티클용 추가
+import changmin.changmin_villager_turret.feature.hero.healer_hero.HealerHeroEntity; // 🆕 임포트 추가
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -13,7 +14,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.ExperienceOrb; // 🆕 경험치 즉시 분출용 추가
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -26,6 +27,7 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
+import java.util.UUID; // 🆕 임포트 추가
 
 public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant {
 
@@ -42,6 +44,9 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
 
     private Player tradingPlayer;
     private MerchantOffers offers;
+
+    // 🆕 영웅 주인을 식별하기 위한 변수 추가
+    private UUID ownerUUID;
 
     public HealerTurretEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -100,6 +105,14 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
         int currentXp = this.entityData.get(XP) + amount;
         int currentLvl = this.getTurretLevel();
         int neededXp = this.getNeededXp();
+
+        // 🆕 [경험치 공유] 이 터렛이 힐을 하여 경험치를 획득할 때, 소환사 영웅이 생존해 있다면 영웅에게도 똑같이 힐 XP를 부여합니다.
+        if (this.ownerUUID != null && this.level instanceof ServerLevel serverLevel) {
+            net.minecraft.world.entity.Entity owner = serverLevel.getEntity(this.ownerUUID);
+            if (owner instanceof HealerHeroEntity hero && hero.isAlive()) {
+                hero.recordHealXP(amount);
+            }
+        }
 
         if (currentXp >= neededXp) {
             currentXp -= neededXp;
@@ -192,6 +205,10 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
         return InteractionResult.sidedSuccess(this.level.isClientSide);
     }
 
+    // 🆕 주인 정보 게터 및 세터 선언
+    public void setOwnerUUID(UUID uuid) { this.ownerUUID = uuid; }
+    public UUID getOwnerUUID() { return this.ownerUUID; }
+
     @Override public void setTradingPlayer(@Nullable Player player) { this.tradingPlayer = player; }
     @Override @Nullable public Player getTradingPlayer() { return this.tradingPlayer; }
     @Override public void overrideOffers(MerchantOffers offers) { this.offers = offers; }
@@ -255,6 +272,11 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
         tag.putInt("AoeHealEnabled", this.getAoeHealEnabled());
         tag.putInt("CleanseEnabled", this.getCleanseEnabled());
         tag.putInt("ShieldLevel", this.getShieldLevel());
+
+        // 🆕 주인 정보 보존 저장 추가
+        if (this.ownerUUID != null) {
+            tag.putUUID("OwnerUUID", this.ownerUUID);
+        }
     }
 
     @Override
@@ -269,6 +291,11 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
         if (tag.contains("AoeHealEnabled")) this.setAoeHealEnabled(tag.getInt("AoeHealEnabled"));
         if (tag.contains("CleanseEnabled")) this.setCleanseEnabled(tag.getInt("CleanseEnabled"));
         if (tag.contains("ShieldLevel")) this.setShieldLevel(tag.getInt("ShieldLevel"));
+
+        // 🆕 주인 정보 보존 로드 추가
+        if (tag.hasUUID("OwnerUUID")) {
+            this.ownerUUID = tag.getUUID("OwnerUUID");
+        }
 
         double loadedMax = 10.0D + (this.getTurretLevel() - 1) * 5.0D;
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(loadedMax);

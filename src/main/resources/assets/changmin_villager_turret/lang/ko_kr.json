@@ -211,5 +211,9 @@
   "entity.changmin_villager_turret.commander_projectile": "구더기 투사체",
 
   "entity.changmin_villager_turret.healer_zombie": "힐러 좀비",
-  "item.changmin_villager_turret.healer_zombie_spawn_egg": "힐러 좀비 스폰알"
+  "item.changmin_villager_turret.healer_zombie_spawn_egg": "힐러 좀비 스폰알",
+
+  "entity.changmin_villager_turret.healer_hero": "힐러 영웅",
+  "item.changmin_villager_turret.healer_hero_spawn_egg": "힐러 영웅 스폰알",
+  "entity.changmin_villager_turret.love_projectile": "하트 투사체"
 }

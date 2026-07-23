@@ -1,0 +1,30 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"play": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"semmi": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, -5, 0]
+						},
+						"0.25": {
+							"vector": [0, -50, 0]
+						},
+						"0.5": {
+							"vector": [0, -92.5, 0]
+						},
+						"0.75": {
+							"vector": [0, -140, 0]
+						},
+						"1.0": {
+							"vector": [0, -205, 0]
+						}
+					}
+				}
+			}
+		}
+	}
+}

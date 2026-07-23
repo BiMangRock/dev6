@@ -1,6 +1,8 @@
 package changmin.changmin_villager_turret.registry;
 
 import changmin.changmin_villager_turret.changmin_villager_turret;
+import changmin.changmin_villager_turret.feature.hero.healer_hero.HealerHeroEntity;
+import changmin.changmin_villager_turret.feature.hero.healer_hero.LoveProjectileEntity;
 import changmin.changmin_villager_turret.feature.turret.bee_summoner_turret.BeeSummonerTurretEntity;
 import changmin.changmin_villager_turret.feature.turret.bee_summoner_turret.SummonedBeeEntity;
 import changmin.changmin_villager_turret.feature.turret.goddess_of_flame.GoddessFireballEntity;
@@ -221,6 +223,20 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.of(HealerZombieEntity::new, MobCategory.MONSTER)
                             .sized(0.6F, 1.95F)
                             .build("healer_zombie"));
+
+    // 🆕 힐러 영웅 등록
+    public static final RegistryObject<EntityType<HealerHeroEntity>> HEALER_HERO =
+            ENTITY_TYPES.register("healer_hero",
+                    () -> EntityType.Builder.of(HealerHeroEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 1.95F)
+                            .build("healer_hero"));
+
+    // 🆕 하트(Love) 투사체 엔티티 등록
+    public static final RegistryObject<EntityType<LoveProjectileEntity>> LOVE_PROJECTILE =
+            ENTITY_TYPES.register("love_projectile",
+                    () -> EntityType.Builder.<LoveProjectileEntity>of(LoveProjectileEntity::new, MobCategory.MISC)
+                            .sized(0.5F, 0.5F)
+                            .build("love_projectile"));
 
 
     public static final RegistryObject<EntityType<Assassin2Entity>> ASSASSIN2 = ENTITY_TYPES.register("assassin2", () ->

@@ -236,6 +236,12 @@ public class ModItems {
                     () -> new ForgeSpawnEggItem(ModEntityTypes.HEALER_ZOMBIE, 0x1D2D1B, 0xFFFFB6C1,
                             new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    // 🆕 힐러 히어로 스폰알 등록 (베이비 핑크 및 로즈 핑크 컬러 테마)
+    public static final RegistryObject<Item> HEALER_HERO_SPAWN_EGG =
+            ITEMS.register("healer_hero_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntityTypes.HEALER_HERO, 0xFFC0CB, 0xFF69B4,
+                            new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);

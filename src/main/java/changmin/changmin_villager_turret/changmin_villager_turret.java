@@ -50,6 +50,8 @@ import changmin.changmin_villager_turret.feature.zombie.creaking.*;
 
 import changmin.changmin_villager_turret.feature.zombie.demon1.*;
 
+import changmin.changmin_villager_turret.feature.hero.healer_hero.*;
+
 @Mod(changmin_villager_turret.MODID)
 public class changmin_villager_turret {
     public static final String MODID = "changmin_villager_turret";
@@ -139,7 +141,8 @@ public class changmin_villager_turret {
 
         EntityRenderers.register(ModEntityTypes.HEALER_ZOMBIE.get(), HealerZombieRenderer::new);
 
-
+        EntityRenderers.register(ModEntityTypes.HEALER_HERO.get(), HealerHeroRenderer::new);
+        EntityRenderers.register(ModEntityTypes.LOVE_PROJECTILE.get(), LoveProjectileRenderer::new);
 
 
 
@@ -182,6 +185,8 @@ public class changmin_villager_turret {
             event.put(ModEntityTypes.COMMANDER_MAGGOT.get(), ZombieCommanderMaggotEntity.createAttributes().build());
 
             event.put(ModEntityTypes.HEALER_ZOMBIE.get(), HealerZombieEntity.createAttributes().build());
+
+            event.put(ModEntityTypes.HEALER_HERO.get(), HealerHeroEntity.createAttributes().build());
         }
     }
 }
