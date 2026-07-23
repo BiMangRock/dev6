@@ -45,6 +45,12 @@ public class PlasmaWizardRenderer extends MobRenderer<PlasmaWizardEntity, Villag
 
             Font font = this.getFont();
 
+            // 🆕 0. 영문 이름표 추가 (Y축: -37.0F)
+            String nameText = "Plasma Wizard";
+            Component nameComponent = new TextComponent(nameText);
+            float nameWidth = (float)font.width(nameComponent);
+            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -37.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+
             // 1. 등급 및 HP 정보
             String infoText = String.format("Lv. %d (HP: %d/%d)", entity.getTurretLevel(), (int)entity.getHealth(), (int)entity.getMaxHealth());
             Component textComponent = new TextComponent(infoText);

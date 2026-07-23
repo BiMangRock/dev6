@@ -45,6 +45,12 @@ public class VillagerTurretRenderer extends MobRenderer<VillagerTurretEntity, Vi
 
             Font font = this.getFont();
 
+            // 🆕 0. 영문 이름표 추가 (Y축: -32.0F)
+            String nameText = "Villager Turret";
+            Component nameComponent = new TextComponent(nameText);
+            float nameWidth = (float)font.width(nameComponent);
+            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -32.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+
             // 1. 레벨 및 체력 정보 텍스트 (Y축: -22.0F)
             String infoText = String.format("Lv. %d (%d/%d)", entity.getTurretLevel(), (int)entity.getHealth(), (int)entity.getMaxHealth());
             Component textComponent = new TextComponent(infoText);

@@ -45,14 +45,20 @@ public class BeeSummonerTurretRenderer extends MobRenderer<BeeSummonerTurretEnti
 
             Font font = this.getFont();
 
-            // 1. 레벨 및 체력 표기
+            // 🆕 0. 영문 이름표 추가 (Y축: -32.0F)
+            String nameText = "Bee Summoner";
+            Component nameComponent = new TextComponent(nameText);
+            float nameWidth = (float)font.width(nameComponent);
+            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -32.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+
+            // 1. 레벨 및 체력 표기 (Y축: -22.0F)
             String infoText = String.format("Lv. %d (%d/%d)", entity.getTurretLevel(), (int)entity.getHealth(), (int)entity.getMaxHealth());
             Component textComponent = new TextComponent(infoText);
             float textWidth = (float)font.width(textComponent);
             float textX = -textWidth / 2.0F;
             font.drawInBatch(textComponent, textX, -22.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
 
-            // 2. 경험치 텍스트 표기
+            // 2. 경험치 텍스트 표기 (Y축: -12.0F)
             String xpText = String.format("XP: %d/%d", entity.getXp(), entity.getNeededXp());
             Component xpComponent = new TextComponent(xpText);
             float xpTextWidth = (float)font.width(xpComponent);

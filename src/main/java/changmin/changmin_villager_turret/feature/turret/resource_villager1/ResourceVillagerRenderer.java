@@ -16,7 +16,6 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 
 public class ResourceVillagerRenderer extends MobRenderer<ResourceVillagerEntity, VillagerModel<ResourceVillagerEntity>> {
-    // 💡 경고(deprecation)를 방지하기 위해 fromNamespaceAndPath를 사용하도록 수정했습니다.
     private static final ResourceLocation VILLAGER_BASE_SKIN = ResourceLocation.fromNamespaceAndPath("minecraft", "textures/entity/villager/villager.png");
 
     public ResourceVillagerRenderer(EntityRendererProvider.Context context) {
@@ -46,6 +45,12 @@ public class ResourceVillagerRenderer extends MobRenderer<ResourceVillagerEntity
             Matrix4f matrix4f = poseStack.last().pose();
 
             Font font = this.getFont();
+
+            // 🆕 0. 영문 이름표 추가 (Y축: -32.0F)
+            String nameText = "Resource Villager";
+            Component nameComponent = new TextComponent(nameText);
+            float nameWidth = (float)font.width(nameComponent);
+            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -32.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
 
             // 1. 레벨 정보 텍스트 (Y축: -22.0F)
             String levelText = String.format("Lv. %d", entity.getTurretLevel());

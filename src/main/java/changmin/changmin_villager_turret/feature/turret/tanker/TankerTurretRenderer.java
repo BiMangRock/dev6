@@ -15,7 +15,6 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 
 public class TankerTurretRenderer extends MobRenderer<TankerTurretEntity, VillagerModel<TankerTurretEntity>> {
-    // 텍스처는 바닐라 석재 느낌 혹은 주민 대장장이 등 취향에 맞춰 경로 변경 가능합니다.
     private static final ResourceLocation TANKER_LOCATION =
             ResourceLocation.fromNamespaceAndPath("minecraft", "textures/entity/villager/villager.png");
 
@@ -45,6 +44,12 @@ public class TankerTurretRenderer extends MobRenderer<TankerTurretEntity, Villag
             Matrix4f matrix4f = poseStack.last().pose();
 
             Font font = this.getFont();
+
+            // 🆕 0. 영문 이름표 추가 (Y축: -32.0F)
+            String nameText = "Tanker Turret";
+            Component nameComponent = new TextComponent(nameText);
+            float nameWidth = (float)font.width(nameComponent);
+            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -32.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
 
             // 1. 레벨 정보 텍스트
             String infoText = String.format("Lv. %d (%d/%d)", entity.getTurretLevel(), (int)entity.getHealth(), (int)entity.getMaxHealth());

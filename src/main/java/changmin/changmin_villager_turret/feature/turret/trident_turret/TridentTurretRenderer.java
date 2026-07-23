@@ -16,7 +16,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public class TridentTurretRenderer extends MobRenderer<TridentTurretEntity, VillagerModel<TridentTurretEntity>> {
     private static final ResourceLocation TRIDENT_VILLAGER_LOCATION =
-            ResourceLocation.fromNamespaceAndPath("minecraft", "textures/entity/villager/villager.png"); // 혹은 원하는 커스텀 텍스처 지정 가능
+            ResourceLocation.fromNamespaceAndPath("minecraft", "textures/entity/villager/villager.png");
 
     public TridentTurretRenderer(EntityRendererProvider.Context context) {
         super(context, new VillagerModel<>(context.bakeLayer(ModelLayers.VILLAGER)), 0.5F);
@@ -44,6 +44,12 @@ public class TridentTurretRenderer extends MobRenderer<TridentTurretEntity, Vill
             Matrix4f matrix4f = poseStack.last().pose();
 
             Font font = this.getFont();
+
+            // 🆕 0. 영문 이름표 추가 (Y축: -32.0F)
+            String nameText = "Trident Turret";
+            Component nameComponent = new TextComponent(nameText);
+            float nameWidth = (float)font.width(nameComponent);
+            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -32.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
 
             // 1. 레벨 정보 및 체력 정수 출력
             String infoText = String.format("Lv. %d (%d/%d)", entity.getTurretLevel(), (int)entity.getHealth(), (int)entity.getMaxHealth());

@@ -55,6 +55,12 @@ public class HealerRenderer extends MobRenderer<HealerTurretEntity, VillagerMode
 
             Font font = this.getFont();
 
+            // 🆕 0. 영문 이름표 추가 (Y축: -37.0F)
+            String nameText = "Healer Turret";
+            Component nameComponent = new TextComponent(nameText);
+            float nameWidth = (float)font.width(nameComponent);
+            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -37.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+
             // 1. 레벨 및 체력 정보 표시
             String infoText = String.format("Lv. %d (HP: %d/%d)", entity.getTurretLevel(), (int)entity.getHealth(), (int)entity.getMaxHealth());
             Component textComponent = new TextComponent(infoText);
