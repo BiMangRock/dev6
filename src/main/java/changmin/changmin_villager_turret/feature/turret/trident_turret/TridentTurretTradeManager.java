@@ -1,5 +1,7 @@
 package changmin.changmin_villager_turret.feature.turret.trident_turret;
 
+import changmin.changmin_villager_turret.feature.turret.common.TurretTradeUtil;
+
 import changmin.changmin_villager_turret.registry.ModItems;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -99,40 +101,14 @@ public class TridentTurretTradeManager {
     }
 
     public static ItemStack getBoundToken(TridentTurretEntity turret, int count) {
-        ItemStack token = new ItemStack(ModItems.TRIDENT_POINT_TOKEN_LOW.get(), count);
-        CompoundTag tag = token.getOrCreateTag();
-        tag.putString("TurretType", turret.getType().getRegistryName().toString());
-
-        CompoundTag display = new CompoundTag();
-        display.putString("Name", Component.Serializer.toJson(new TextComponent("삼지창 터렛 포인트 토큰 (하급)").withStyle(style -> style.withColor(0x33CCFF).withItalic(false))));
-
-        ListTag lore = new ListTag();
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent("허용 터렛 종류: " + turret.getType().getDescription().getString()).withStyle(style -> style.withColor(0xAAAAAA)))));
-        display.put("Lore", lore);
-        tag.put("display", display);
-
-        return token;
+        return TurretTradeUtil.boundToken(ModItems.TRIDENT_POINT_TOKEN_LOW.get(), turret, count, "삼지창 터렛 포인트 토큰 (하급)", 0x33CCFF);
     }
 
     private static ItemStack createUpgradeReceipt(TridentTurretEntity turret, String type, String title, String desc1, String desc2) {
-        ItemStack stack = new ItemStack(Items.PAPER);
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putString("UpgradeType", type);
-        tag.putString("TurretType", turret.getType().getRegistryName().toString());
-
-        CompoundTag display = new CompoundTag();
-        display.putString("Name", Component.Serializer.toJson(new TextComponent(title).withStyle(style -> style.withColor(0x33CCFF).withBold(true).withItalic(false))));
-
-        ListTag lore = new ListTag();
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent("■ 구매 즉시 이 터렛에 즉시 적용됩니다.").withStyle(style -> style.withColor(0x55FF55)))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent(desc1).withStyle(style -> style.withColor(0xFFFF55)))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent(desc2).withStyle(style -> style.withColor(0x55FFFF)))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent("허용 터렛 종류: " + turret.getType().getDescription().getString()).withStyle(style -> style.withColor(0xAAAAAA)))));
-
-        display.put("Lore", lore);
-        tag.put("display", display);
-
-        return stack;
+        return TurretTradeUtil.upgradeReceipt(Items.PAPER, turret, type, title, 0x33CCFF,
+                TurretTradeUtil.line(TurretTradeUtil.APPLY_NOW, TurretTradeUtil.GREEN),
+                TurretTradeUtil.line(desc1, TurretTradeUtil.YELLOW),
+                TurretTradeUtil.line(desc2, TurretTradeUtil.CYAN));
     }
 
     public static void applyUpgradeDirectly(TridentTurretEntity turret, String type) {

@@ -1,5 +1,7 @@
 package changmin.changmin_villager_turret.feature.turret.bee_summoner_turret;
 
+import changmin.changmin_villager_turret.feature.turret.common.AbstractTurretEntity;
+
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.nbt.CompoundTag;
@@ -31,7 +33,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BeeSummonerTurretEntity extends PathfinderMob implements IAlly, Merchant {
+public class BeeSummonerTurretEntity extends AbstractTurretEntity {
 
     private static final EntityDataAccessor<Integer> TURRET_LEVEL = SynchedEntityData.defineId(BeeSummonerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(BeeSummonerTurretEntity.class, EntityDataSerializers.INT);
@@ -53,8 +55,6 @@ public class BeeSummonerTurretEntity extends PathfinderMob implements IAlly, Mer
     // 🆕 렌더러 표기를 위해 남은 쿨타임을 네트워크 상에서 동기화하는 데이터 키 추가
     private static final EntityDataAccessor<Integer> SUMMON_COOLDOWN = SynchedEntityData.defineId(BeeSummonerTurretEntity.class, EntityDataSerializers.INT);
 
-    private Player tradingPlayer;
-    private MerchantOffers offers;
 
     private final List<SummonedBeeEntity> activeBees = new ArrayList<>();
 
@@ -302,15 +302,6 @@ public class BeeSummonerTurretEntity extends PathfinderMob implements IAlly, Mer
     // 🆕 클라이언트 렌더용 남은 쿨타임(CD) getter 추가
     public int getSummonCooldown() { return this.entityData.get(SUMMON_COOLDOWN); }
 
-    @Override public void setTradingPlayer(@Nullable Player player) { this.tradingPlayer = player; }
-    @Override @Nullable public Player getTradingPlayer() { return this.tradingPlayer; }
-    @Override public void overrideOffers(MerchantOffers offers) { this.offers = offers; }
-    @Override public void notifyTradeUpdated(ItemStack stack) {}
-    @Override public int getVillagerXp() { return 0; }
-    @Override public void overrideXp(int xp) {}
-    @Override public boolean showProgressBar() { return false; }
-    @Override public net.minecraft.sounds.SoundEvent getNotifyTradeSound() { return SoundEvents.VILLAGER_YES; }
-    @Override public boolean isClientSide() { return this.level.isClientSide; }
 
     @Override
     public MerchantOffers getOffers() {
@@ -379,8 +370,6 @@ public class BeeSummonerTurretEntity extends PathfinderMob implements IAlly, Mer
     }
 
     @Override public Component getDisplayName() { return new TextComponent("주민 벌 소환사 터렛"); }
-    @Override public boolean isPushable() { return false; }
-    @Override protected void doPush(net.minecraft.world.entity.Entity entity) {}
 
     private static class RetaliateGoal extends net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal {
         public RetaliateGoal(BeeSummonerTurretEntity turret) {

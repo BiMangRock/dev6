@@ -1,5 +1,9 @@
 package changmin.changmin_villager_turret.feature.turret.tanker;
 
+import changmin.changmin_villager_turret.feature.turret.common.AbstractTurretEntity;
+
+import changmin.changmin_villager_turret.config.TurretConfig;
+
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.core.particles.ParticleTypes;
@@ -31,7 +35,7 @@ import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 
-public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant {
+public class TankerTurretEntity extends AbstractTurretEntity {
 
     private static final EntityDataAccessor<Integer> TURRET_LEVEL = SynchedEntityData.defineId(TankerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(TankerTurretEntity.class, EntityDataSerializers.INT);
@@ -44,8 +48,6 @@ public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant
     private static final EntityDataAccessor<Integer> RECHARGE_LEVEL = SynchedEntityData.defineId(TankerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_TAUNTING = SynchedEntityData.defineId(TankerTurretEntity.class, EntityDataSerializers.BOOLEAN);
 
-    private Player tradingPlayer;
-    private MerchantOffers offers;
 
     private int tauntCooldown = 0;
     private int tauntDuration = 0;
@@ -139,19 +141,17 @@ public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant
                 this.tauntCooldown--;
             }
 
-            // 📢 도발 상태인 경우 매 틱 범위 어그로 강제 고정 연산
+            // 📢 도발 상태: 매 틱이 아닌 일정 주기(기본 10틱)마다 범위 어그로를 고정합니다. (렉 감소)
             if (this.tauntDuration > 0) {
                 this.tauntDuration--;
 
-                if (this.level instanceof ServerLevel serverLevel) {
+                if (this.tickCount % TurretConfig.scanInterval() == 0 && this.level instanceof ServerLevel serverLevel) {
                     for (Mob enemy : serverLevel.getEntitiesOfClass(Mob.class, this.getBoundingBox().inflate(10.0D))) {
                         if (IZombieTribe.isZombieTribe(enemy)) {
                             enemy.setTarget(this); // 좀비의 공격 타겟을 강제로 나로 고정
 
                             // 좀비 머리 위에 화난 주민(분노) 빨간색 번개구름 파티클 소환
-                            if (this.tickCount % 6 == 0) {
-                                serverLevel.sendParticles(ParticleTypes.ANGRY_VILLAGER, enemy.getX(), enemy.getY() + enemy.getBbHeight() + 0.3D, enemy.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
-                            }
+                            serverLevel.sendParticles(ParticleTypes.ANGRY_VILLAGER, enemy.getX(), enemy.getY() + enemy.getBbHeight() + 0.3D, enemy.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
                         }
                     }
                 }
@@ -161,8 +161,8 @@ public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant
                 }
             }
 
-            // 📢 쿨타임 만료 시 도발 자동 시전 판단
-            if (this.tauntCooldown <= 0 && this.tauntDuration <= 0) {
+            // 📢 쿨타임 만료 시 도발 자동 시전 판단 (주변에 좀비가 없을 때 매 틱 검색하지 않도록 주기 제한)
+            if (this.tauntCooldown <= 0 && this.tauntDuration <= 0 && this.tickCount % TurretConfig.scanInterval() == 0) {
                 boolean hasZombies = false;
                 for (Mob enemy : this.level.getEntitiesOfClass(Mob.class, this.getBoundingBox().inflate(10.0D))) {
                     if (IZombieTribe.isZombieTribe(enemy)) {
@@ -291,15 +291,6 @@ public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant
     public boolean getIsTaunting() { return this.entityData.get(IS_TAUNTING); }
     public void setIsTaunting(boolean taunting) { this.entityData.set(IS_TAUNTING, taunting); }
 
-    @Override public void setTradingPlayer(@Nullable Player player) { this.tradingPlayer = player; }
-    @Override @Nullable public Player getTradingPlayer() { return this.tradingPlayer; }
-    @Override public void overrideOffers(MerchantOffers offers) { this.offers = offers; }
-    @Override public void notifyTradeUpdated(ItemStack stack) {}
-    @Override public int getVillagerXp() { return 0; }
-    @Override public void overrideXp(int xp) {}
-    @Override public boolean showProgressBar() { return false; }
-    @Override public net.minecraft.sounds.SoundEvent getNotifyTradeSound() { return SoundEvents.VILLAGER_YES; }
-    @Override public boolean isClientSide() { return this.level.isClientSide; }
 
     @Override
     public MerchantOffers getOffers() {
@@ -358,6 +349,4 @@ public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant
     }
 
     @Override public Component getDisplayName() { return new TextComponent("탱커 주민 터렛"); }
-    @Override public boolean isPushable() { return false; }
-    @Override protected void doPush(net.minecraft.world.entity.Entity entity) {}
 }

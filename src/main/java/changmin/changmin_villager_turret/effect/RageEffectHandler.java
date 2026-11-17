@@ -98,6 +98,8 @@ public class RageEffectHandler {
     public static class RageTargetGoal extends Goal {
         private final Mob mob;
 
+        private int scanCooldown = 0; // 범위 검색 주기 카운터
+
         public RageTargetGoal(Mob mob) {
             this.mob = mob;
             // TARGET 플래그를 할당하여 바닐라 좀비의 일반 타겟팅을 안전하게 억제합니다.
@@ -111,6 +113,13 @@ public class RageEffectHandler {
             if (currentTarget != null && currentTarget.isAlive() && !(currentTarget instanceof IAlly) && currentTarget != this.mob) {
                 return false;
             }
+
+            // 대상이 없을 때 2틱마다 범위 검색이 반복되지 않도록 주기 제한
+            // (canUse는 2틱마다 호출될 수 있어 tickCount % N 대신 호출 횟수 카운터 사용)
+            if (--this.scanCooldown > 0) {
+                return false;
+            }
+            this.scanCooldown = Math.max(1, changmin.changmin_villager_turret.config.TurretConfig.scanInterval() / 2);
 
             // 10블록 반경 내 가장 가까운 몬스터를 강제 탐색 (질문자님의 핵심 로직 활용)
             AABB area = this.mob.getBoundingBox().inflate(10.0D);

@@ -26,6 +26,21 @@ public class ZombieCommanderMaggotEntity extends PathfinderMob implements IZombi
     // 💡 수명 설정용 메서드 추가
     public void setLifeTicks(int ticks) { this.lifeTicks = ticks; }
 
+    // 💾 주인(커맨더) UUID와 남은 수명을 저장해 재접속 후에도 경험치 귀속·자동 소멸이 유지되게 합니다.
+    @Override
+    public void addAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        if (this.ownerUUID != null) tag.putUUID("OwnerUUID", this.ownerUUID);
+        tag.putInt("LifeTicks", this.lifeTicks);
+    }
+
+    @Override
+    public void readAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.hasUUID("OwnerUUID")) this.ownerUUID = tag.getUUID("OwnerUUID");
+        if (tag.contains("LifeTicks")) this.lifeTicks = tag.getInt("LifeTicks");
+    }
+
     public static AttributeSupplier.Builder createAttributes() {
         return PathfinderMob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 6.0D)

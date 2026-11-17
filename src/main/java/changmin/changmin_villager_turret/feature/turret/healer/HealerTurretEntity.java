@@ -1,5 +1,7 @@
 package changmin.changmin_villager_turret.feature.turret.healer;
 
+import changmin.changmin_villager_turret.feature.turret.common.AbstractTurretEntity;
+
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.feature.hero.healer_hero.HealerHeroEntity; // 🆕 임포트 추가
 import net.minecraft.core.particles.ParticleTypes;
@@ -29,7 +31,7 @@ import net.minecraft.world.level.Level;
 import javax.annotation.Nullable;
 import java.util.UUID; // 🆕 임포트 추가
 
-public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant {
+public class HealerTurretEntity extends AbstractTurretEntity {
 
     private static final EntityDataAccessor<Integer> TURRET_LEVEL = SynchedEntityData.defineId(HealerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(HealerTurretEntity.class, EntityDataSerializers.INT);
@@ -42,8 +44,6 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
     private static final EntityDataAccessor<Integer> SHIELD_LEVEL = SynchedEntityData.defineId(HealerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> CURRENT_COOLDOWN = SynchedEntityData.defineId(HealerTurretEntity.class, EntityDataSerializers.INT);
 
-    private Player tradingPlayer;
-    private MerchantOffers offers;
 
     // 🆕 영웅 주인을 식별하기 위한 변수 추가
     private UUID ownerUUID;
@@ -209,15 +209,6 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
     public void setOwnerUUID(UUID uuid) { this.ownerUUID = uuid; }
     public UUID getOwnerUUID() { return this.ownerUUID; }
 
-    @Override public void setTradingPlayer(@Nullable Player player) { this.tradingPlayer = player; }
-    @Override @Nullable public Player getTradingPlayer() { return this.tradingPlayer; }
-    @Override public void overrideOffers(MerchantOffers offers) { this.offers = offers; }
-    @Override public void notifyTradeUpdated(ItemStack stack) {}
-    @Override public int getVillagerXp() { return 0; }
-    @Override public void overrideXp(int xp) {}
-    @Override public boolean showProgressBar() { return false; }
-    @Override public net.minecraft.sounds.SoundEvent getNotifyTradeSound() { return SoundEvents.VILLAGER_YES; }
-    @Override public boolean isClientSide() { return this.level.isClientSide; }
 
     @Override
     public MerchantOffers getOffers() {
@@ -302,6 +293,4 @@ public class HealerTurretEntity extends PathfinderMob implements IAlly, Merchant
     }
 
     @Override public Component getDisplayName() { return new TextComponent("치유 토템 터렛"); }
-    @Override public boolean isPushable() { return false; }
-    @Override protected void doPush(net.minecraft.world.entity.Entity entity) {}
 }

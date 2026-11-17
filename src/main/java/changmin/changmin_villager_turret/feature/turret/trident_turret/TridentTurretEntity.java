@@ -1,5 +1,7 @@
 package changmin.changmin_villager_turret.feature.turret.trident_turret;
 
+import changmin.changmin_villager_turret.feature.turret.common.AbstractTurretEntity;
+
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.nbt.CompoundTag;
@@ -28,7 +30,7 @@ import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 
-public class TridentTurretEntity extends PathfinderMob implements RangedAttackMob, IAlly, Merchant {
+public class TridentTurretEntity extends AbstractTurretEntity implements RangedAttackMob {
 
     private static final EntityDataAccessor<Integer> TURRET_LEVEL = SynchedEntityData.defineId(TridentTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(TridentTurretEntity.class, EntityDataSerializers.INT);
@@ -43,8 +45,6 @@ public class TridentTurretEntity extends PathfinderMob implements RangedAttackMo
     // 🆕 관통 레벨 연동 데이터 키 추가 (기본 0마리 관통)
     private static final EntityDataAccessor<Integer> PIERCE_LEVEL = SynchedEntityData.defineId(TridentTurretEntity.class, EntityDataSerializers.INT);
 
-    private Player tradingPlayer;
-    private MerchantOffers offers;
     private int attackCooldown = 0;
 
     public TridentTurretEntity(EntityType<? extends PathfinderMob> type, Level level) {
@@ -194,15 +194,6 @@ public class TridentTurretEntity extends PathfinderMob implements RangedAttackMo
     public int getPierceLevel() { return this.entityData.get(PIERCE_LEVEL); }
     public void setPierceLevel(int level) { this.entityData.set(PIERCE_LEVEL, level); }
 
-    @Override public void setTradingPlayer(@Nullable Player player) { this.tradingPlayer = player; }
-    @Override @Nullable public Player getTradingPlayer() { return this.tradingPlayer; }
-    @Override public void overrideOffers(MerchantOffers offers) { this.offers = offers; }
-    @Override public void notifyTradeUpdated(ItemStack stack) {}
-    @Override public int getVillagerXp() { return 0; }
-    @Override public void overrideXp(int xp) {}
-    @Override public boolean showProgressBar() { return false; }
-    @Override public net.minecraft.sounds.SoundEvent getNotifyTradeSound() { return SoundEvents.VILLAGER_YES; }
-    @Override public boolean isClientSide() { return this.level.isClientSide; }
 
     @Override
     public MerchantOffers getOffers() {
@@ -257,7 +248,5 @@ public class TridentTurretEntity extends PathfinderMob implements RangedAttackMo
     }
 
     @Override public Component getDisplayName() { return new TextComponent("삼지창 주민 터렛"); }
-    @Override public boolean isPushable() { return false; }
-    @Override protected void doPush(net.minecraft.world.entity.Entity entity) {}
     @Override public void performRangedAttack(LivingEntity target, float velocity) {}
 }

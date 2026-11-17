@@ -67,6 +67,11 @@ public class changmin_villager_turret {
         ModEffects.register(modEventBus);
         ModPotions.register(modEventBus); // 💡 포션 레지스트리 버스 등록 추가
 
+        // ⚙️ 밸런스·성능 설정 파일 등록 (config/changmin_villager_turret-common.toml 자동 생성)
+        net.minecraftforge.fml.ModLoadingContext.get().registerConfig(
+                net.minecraftforge.fml.config.ModConfig.Type.COMMON,
+                changmin.changmin_villager_turret.config.TurretConfig.SPEC);
+
         modEventBus.addListener(this::setup);
         modEventBus.addListener(this::clientSetup);
 

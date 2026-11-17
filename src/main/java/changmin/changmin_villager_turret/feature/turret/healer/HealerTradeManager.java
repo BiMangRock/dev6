@@ -1,5 +1,7 @@
 package changmin.changmin_villager_turret.feature.turret.healer;
 
+import changmin.changmin_villager_turret.feature.turret.common.TurretTradeUtil;
+
 import changmin.changmin_villager_turret.registry.ModItems;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -132,62 +134,20 @@ public class HealerTradeManager {
     }
 
     public static ItemStack getBoundToken(HealerTurretEntity turret, int count, int tier) {
-        Item tokenItem = ModItems.HEALER_POINT_TOKEN_LOW.get();
-        String tierName = "하급";
-        int nameColor = 0xFFD700; // 하급: 골드빛
-
+        // tier: 0 하급(골드), 1 중급(녹색), 2 상급(자주)
         if (tier == 1) {
-            tokenItem = ModItems.HEALER_POINT_TOKEN_MID.get();
-            tierName = "중급";
-            nameColor = 0x55FF55; // 중급: 녹색빛
+            return TurretTradeUtil.boundToken(ModItems.HEALER_POINT_TOKEN_MID.get(), turret, count, "치유 터렛 포인트 토큰 (중급)", 0x55FF55);
         } else if (tier == 2) {
-            tokenItem = ModItems.HEALER_POINT_TOKEN_HIGH.get();
-            tierName = "상급";
-            nameColor = 0xFF55FF; // 상급: 자줏빛
+            return TurretTradeUtil.boundToken(ModItems.HEALER_POINT_TOKEN_HIGH.get(), turret, count, "치유 터렛 포인트 토큰 (상급)", 0xFF55FF);
         }
-
-        ItemStack token = new ItemStack(tokenItem, count);
-        CompoundTag tag = token.getOrCreateTag();
-        tag.putString("TurretType", turret.getType().getRegistryName().toString());
-
-        CompoundTag display = new CompoundTag();
-        final String finalTierName = tierName;
-        final int finalColor = nameColor;
-        display.putString("Name", Component.Serializer.toJson(
-                new TextComponent("치유 터렛 포인트 토큰 (" + finalTierName + ")")
-                        .withStyle(style -> style.withColor(finalColor).withItalic(false))
-        ));
-
-        ListTag lore = new ListTag();
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                new TextComponent("허용 터렛 종류: " + turret.getType().getDescription().getString())
-                        .withStyle(style -> style.withColor(0xAAAAAA))
-        )));
-        display.put("Lore", lore);
-        tag.put("display", display);
-
-        return token;
+        return TurretTradeUtil.boundToken(ModItems.HEALER_POINT_TOKEN_LOW.get(), turret, count, "치유 터렛 포인트 토큰 (하급)", 0xFFD700);
     }
 
     public static ItemStack createUpgradeReceipt(HealerTurretEntity turret, String type, String title, String desc1, String desc2, String currentLvlInfo) {
-        ItemStack stack = new ItemStack(Items.PAPER);
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putString("UpgradeType", type);
-        tag.putString("TurretType", turret.getType().getRegistryName().toString());
-
-        CompoundTag display = new CompoundTag();
-        display.putString("Name", Component.Serializer.toJson(new TextComponent(title).withStyle(style -> style.withColor(0x55FFFF).withBold(true).withItalic(false))));
-
-        ListTag lore = new ListTag();
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent(desc1).withStyle(style -> style.withColor(0x55FF55)))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent(desc2).withStyle(style -> style.withColor(0xFFFF55)))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent(currentLvlInfo).withStyle(style -> style.withColor(0xFF55FF)))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent("허용 터렛 종류: " + turret.getType().getDescription().getString()).withStyle(style -> style.withColor(0xAAAAAA)))));
-
-        display.put("Lore", lore);
-        tag.put("display", display);
-
-        return stack;
+        return TurretTradeUtil.upgradeReceipt(Items.PAPER, turret, type, title, 0x55FFFF,
+                TurretTradeUtil.line(desc1, TurretTradeUtil.GREEN),
+                TurretTradeUtil.line(desc2, TurretTradeUtil.YELLOW),
+                TurretTradeUtil.line(currentLvlInfo, TurretTradeUtil.MAGENTA));
     }
 
     public static void applyUpgradeDirectly(HealerTurretEntity turret, String type) {

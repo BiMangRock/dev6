@@ -1,5 +1,7 @@
 package changmin.changmin_villager_turret.feature.turret.healer;
 
+import changmin.changmin_villager_turret.config.TurretConfig;
+
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,6 +13,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 public class HealerHealGoal extends Goal {
+    private int scanCooldown = 0; // 범위 검색 주기 카운터
     private final HealerTurretEntity healer;
     private LivingEntity target;
 
@@ -24,6 +27,12 @@ public class HealerHealGoal extends Goal {
         if (this.healer.getCurrentCooldown() > 0) {
             return false;
         }
+        // 부상자가 없을 때 2틱마다 범위 검색이 반복되지 않도록 주기 제한
+        // (canUse는 2틱마다 호출될 수 있어 tickCount % N 대신 호출 횟수 카운터 사용)
+        if (--this.scanCooldown > 0) {
+            return false;
+        }
+        this.scanCooldown = Math.max(1, TurretConfig.scanInterval() / 2);
 
         this.target = findHealingTarget();
         return this.target != null;

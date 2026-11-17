@@ -1,5 +1,9 @@
 package changmin.changmin_villager_turret.feature.turret.lightning_wizard;
 
+import changmin.changmin_villager_turret.feature.turret.common.AbstractTurretEntity;
+
+import changmin.changmin_villager_turret.config.TurretConfig;
+
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.nbt.CompoundTag;
@@ -30,7 +34,7 @@ import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 
-public class LightningWizardEntity extends PathfinderMob implements IAlly, Merchant {
+public class LightningWizardEntity extends AbstractTurretEntity {
 
     private static final EntityDataAccessor<Integer> TURRET_LEVEL = SynchedEntityData.defineId(LightningWizardEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(LightningWizardEntity.class, EntityDataSerializers.INT);
@@ -47,8 +51,6 @@ public class LightningWizardEntity extends PathfinderMob implements IAlly, Merch
     private static final EntityDataAccessor<Integer> ULT_COOLDOWN = SynchedEntityData.defineId(LightningWizardEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ULT_ACTIVE_TIME = SynchedEntityData.defineId(LightningWizardEntity.class, EntityDataSerializers.INT);
 
-    private Player tradingPlayer;
-    private MerchantOffers offers;
     private int attackCooldown = 0;
 
     public LightningWizardEntity(EntityType<? extends PathfinderMob> type, Level level) {
@@ -124,7 +126,8 @@ public class LightningWizardEntity extends PathfinderMob implements IAlly, Merch
             }
 
             // 궁극기가 충전 완료되었고 비활성 상태일 때 자동 시전 판단
-            if (ultCD <= 0 && ultActive <= 0) {
+            // (주변에 좀비가 없을 때 매 틱 범위 검색하지 않도록 주기 제한)
+            if (ultCD <= 0 && ultActive <= 0 && this.tickCount % TurretConfig.scanInterval() == 0) {
                 double range = 4.0D + (this.getUltRangeLevel() * 1.0D);
                 boolean hasZombies = false;
                 for (LivingEntity enemy : this.level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(range))) {
@@ -270,15 +273,6 @@ public class LightningWizardEntity extends PathfinderMob implements IAlly, Merch
     public int getUltActiveTime() { return this.entityData.get(ULT_ACTIVE_TIME); }
     public void setUltActiveTime(int active) { this.entityData.set(ULT_ACTIVE_TIME, active); }
 
-    @Override public void setTradingPlayer(@Nullable Player player) { this.tradingPlayer = player; }
-    @Override @Nullable public Player getTradingPlayer() { return this.tradingPlayer; }
-    @Override public void overrideOffers(MerchantOffers offers) { this.offers = offers; }
-    @Override public void notifyTradeUpdated(ItemStack stack) {}
-    @Override public int getVillagerXp() { return 0; }
-    @Override public void overrideXp(int xp) {}
-    @Override public boolean showProgressBar() { return false; }
-    @Override public net.minecraft.sounds.SoundEvent getNotifyTradeSound() { return SoundEvents.VILLAGER_YES; }
-    @Override public boolean isClientSide() { return this.level.isClientSide; }
 
     @Override
     public MerchantOffers getOffers() {
@@ -332,6 +326,4 @@ public class LightningWizardEntity extends PathfinderMob implements IAlly, Merch
     }
 
     @Override public Component getDisplayName() { return new TextComponent("번개 마법사 주민 터렛"); }
-    @Override public boolean isPushable() { return false; }
-    @Override protected void doPush(net.minecraft.world.entity.Entity entity) {}
 }

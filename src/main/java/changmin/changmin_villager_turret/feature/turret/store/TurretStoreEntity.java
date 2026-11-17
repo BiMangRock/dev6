@@ -109,28 +109,28 @@ public class TurretStoreEntity extends PathfinderMob implements Merchant {
 
             // 3. 조약돌 3개 -> 주민 터렛 스폰알 1개
             this.offers.add(new MerchantOffer(
-                    new ItemStack(Items.COBBLESTONE, 3),
+                    new ItemStack(Items.COBBLESTONE, changmin.changmin_villager_turret.config.TurretConfig.eggCost("VILLAGER_TURRET_SPAWN_EGG", 3)),
                     new ItemStack(ModItems.VILLAGER_TURRET_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
 
             // 4. 조약돌 3개 -> 자원 수확 주민 터렛 스폰알 1개
             this.offers.add(new MerchantOffer(
-                    new ItemStack(Items.COBBLESTONE, 3),
+                    new ItemStack(Items.COBBLESTONE, changmin.changmin_villager_turret.config.TurretConfig.eggCost("RESOURCE_VILLAGER_SPAWN_EGG", 3)),
                     new ItemStack(ModItems.RESOURCE_VILLAGER_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
 
             // 4. 조약돌 3개 -> 자원 수확 주민 터렛 스폰알 1개(쉬움버전)
             this.offers.add(new MerchantOffer(
-                    new ItemStack(Items.COBBLESTONE, 3),
+                    new ItemStack(Items.COBBLESTONE, changmin.changmin_villager_turret.config.TurretConfig.eggCost("RESOURCE_VILLAGER_EASY_SPAWN_EGG", 3)),
                     new ItemStack(ModItems.RESOURCE_VILLAGER_EASY_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
 
             // 5. 금 블록 1개 -> 치유 토템 터렛 스폰알 1개
             this.offers.add(new MerchantOffer(
-                    new ItemStack(Items.GOLD_BLOCK, 1),
+                    new ItemStack(Items.GOLD_BLOCK, changmin.changmin_villager_turret.config.TurretConfig.eggCost("HEALER_TURRET_SPAWN_EGG", 1)),
                     new ItemStack(ModItems.HEALER_TURRET_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
@@ -165,7 +165,7 @@ public class TurretStoreEntity extends PathfinderMob implements Merchant {
 
             // 10. 다이아몬드 4개 -> 삼지창 주민 터렛 스폰알 1개
             this.offers.add(new MerchantOffer(
-                    new ItemStack(Items.DIAMOND, 4),
+                    new ItemStack(Items.DIAMOND, changmin.changmin_villager_turret.config.TurretConfig.eggCost("TRIDENT_TURRET_SPAWN_EGG", 4)),
                     new ItemStack(ModItems.TRIDENT_TURRET_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
@@ -186,7 +186,7 @@ public class TurretStoreEntity extends PathfinderMob implements Merchant {
 
             // 13. 철 블록 1개 -> 탱커 주민 터렛 스폰알 1개
             this.offers.add(new MerchantOffer(
-                    new ItemStack(Items.IRON_BLOCK, 1),
+                    new ItemStack(Items.IRON_BLOCK, changmin.changmin_villager_turret.config.TurretConfig.eggCost("TANKER_TURRET_SPAWN_EGG", 1)),
                     new ItemStack(ModItems.TANKER_TURRET_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
@@ -207,7 +207,7 @@ public class TurretStoreEntity extends PathfinderMob implements Merchant {
 
             // 16. 자수정 블록 1개 -> 번개 마법사 주민 터렛 스폰알 1개
             this.offers.add(new MerchantOffer(
-                    new ItemStack(Items.AMETHYST_BLOCK, 1),
+                    new ItemStack(Items.AMETHYST_BLOCK, changmin.changmin_villager_turret.config.TurretConfig.eggCost("LIGHTNING_WIZARD_SPAWN_EGG", 1)),
                     new ItemStack(ModItems.LIGHTNING_WIZARD_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
@@ -228,7 +228,7 @@ public class TurretStoreEntity extends PathfinderMob implements Merchant {
 
             // 19. 다이아몬드 4개 -> 플라즈마 마법사 주민 터렛 스폰알 1개
             this.offers.add(new MerchantOffer(
-                    new ItemStack(Items.DIAMOND, 4),
+                    new ItemStack(Items.DIAMOND, changmin.changmin_villager_turret.config.TurretConfig.eggCost("PLASMA_WIZARD_SPAWN_EGG", 4)),
                     new ItemStack(ModItems.PLASMA_WIZARD_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));
@@ -249,7 +249,7 @@ public class TurretStoreEntity extends PathfinderMob implements Merchant {
 
             // 22. 금 블록 1개 -> 주민 벌 소환사 터렛 스폰알 1개
             this.offers.add(new MerchantOffer(
-                    new ItemStack(Items.GOLD_BLOCK, 1),
+                    new ItemStack(Items.GOLD_BLOCK, changmin.changmin_villager_turret.config.TurretConfig.eggCost("BEE_TURRET_SPAWN_EGG", 1)),
                     new ItemStack(ModItems.BEE_TURRET_SPAWN_EGG.get(), 1),
                     999, 2, 0.05F
             ));

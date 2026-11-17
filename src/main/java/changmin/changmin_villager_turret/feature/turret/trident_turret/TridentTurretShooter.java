@@ -194,14 +194,16 @@ public class TridentTurretShooter {
             trident.addTag("lightning_trident");
         }
 
-        double d0 = target.getX() - turret.getX();
-        double d1 = target.getY(0.3333333333333333D) - trident.getY();
-        double d2 = target.getZ() - turret.getZ();
-        double d3 = Math.sqrt(d0 * d0 + d2 * d2);
-
         float throwSpeed = 1.6F + (turret.getRangeLevel() * 0.1F);
 
-        trident.shoot(d0, d1 + d3 * 0.15D, d2, throwSpeed, spreadOffset);
+        // 🎯 탄도 계산: 이동 예측(리드샷) + 중력 포물선 정밀 계산 (삼지창도 화살과 같은 물리 규칙)
+        net.minecraft.world.phys.Vec3 dir = changmin.changmin_villager_turret.util.BallisticAim.solve(
+                trident.position(), target, 0.5D, throwSpeed,
+                changmin.changmin_villager_turret.util.BallisticAim.ARROW_GRAVITY,
+                changmin.changmin_villager_turret.util.BallisticAim.ARROW_DRAG,
+                changmin.changmin_villager_turret.config.TurretConfig.leadTargeting());
+
+        trident.shoot(dir.x, dir.y, dir.z, throwSpeed, spreadOffset);
 
         level.addFreshEntity(trident);
     }

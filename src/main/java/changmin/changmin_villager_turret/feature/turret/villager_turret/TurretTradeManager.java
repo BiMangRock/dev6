@@ -1,5 +1,13 @@
 package changmin.changmin_villager_turret.feature.turret.villager_turret;
 
+import changmin.changmin_villager_turret.config.TurretConfig;
+import changmin.changmin_villager_turret.feature.turret.common.TurretTradeUtil;
+import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
 import changmin.changmin_villager_turret.registry.ModItems;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -16,6 +24,117 @@ import net.minecraft.world.item.trading.MerchantOffers;
 
 public class TurretTradeManager {
 
+    // ==========================================
+    // 📋 업그레이드 정의 표
+    // 새 업그레이드는 여기 한 줄(register)만 추가하면 됩니다.
+    //   id          : 인증서의 UpgradeType 값
+    //   canApply    : 적용 가능 조건 (최대 레벨 제한 등). false면 적용하지 않음
+    //   apply       : 실제 효과 적용 후, 플레이어에게 보여줄 메시지를 반환
+    //   maxedMessage: null이 아니면, 적용 불가 시 이 메시지만 띄우고 효과음·화면 갱신 없이 종료
+    // ==========================================
+    private record Upgrade(Predicate<VillagerTurretEntity> canApply,
+                           Function<VillagerTurretEntity, String> apply,
+                           @Nullable String maxedMessage) {}
+
+    private static final Map<String, Upgrade> UPGRADES = new HashMap<>();
+
+    private static void register(String id, Predicate<VillagerTurretEntity> canApply, Function<VillagerTurretEntity, String> apply) {
+        UPGRADES.put(id, new Upgrade(canApply, apply, null));
+    }
+
+    private static void register(String id, Function<VillagerTurretEntity, String> apply) {
+        register(id, t -> true, apply);
+    }
+
+    /** 사격 패턴 변경 (0 일반, 1 부채꼴, 2 점사, 3 넉백, 4 강공격) */
+    private static void registerPattern(String id, int pattern, String message) {
+        register(id, t -> { t.setArrowPattern(pattern); return message; });
+    }
+
+    static {
+        // ── 수치형 강화 ──
+        register("recharge", t -> t.getRechargeLevel() < TurretConfig.maxRechargeLevel(), t -> {
+            t.setRechargeLevel(t.getRechargeLevel() + 1);
+            return "재장전 속도 업그레이드 완료! (현재: " + t.getRechargeLevel() + "레벨)";
+        });
+        register("speed", t -> t.getSpeedLevel() < TurretConfig.maxSpeedLevel(), t -> {
+            t.setSpeedLevel(t.getSpeedLevel() + 1);
+            return "화살 비행 속도 업그레이드 완료! (현재: " + t.getSpeedLevel() + "레벨)";
+        });
+        register("invuln", t -> {
+            t.setInvulnerabilityLevel(t.getInvulnerabilityLevel() + 1);
+            return "무적 시간 업그레이드 완료! (현재 피격 시: " + t.getInvulnerabilityLevel() + "초 무적)";
+        });
+        register("heal", t -> {
+            t.setHealLevel(t.getHealLevel() + 1);
+            return "자가 회복력 업그레이드 완료! (현재: 5초당 +1 치유 / 레벨업 시 최대 체력의 " + (t.getHealLevel() * 20) + "% 회복)";
+        });
+        register("damage", t -> {
+            t.setDamageLevel(t.getDamageLevel() + 1);
+            return "화살 공격력 업그레이드 완료! (현재: " + t.getDamageLevel() + "레벨)";
+        });
+        register("health", t -> {
+            t.setMaxHealthBonus(t.getMaxHealthBonus() + 5);
+            t.heal(5.0F);
+            return "최대 체력 업그레이드 완료! (+5 HP, 현재 최대 체력: " + (int) t.getMaxHealth() + " HP)";
+        });
+        register("automation", t -> {
+            t.setAutomationLevel(t.getAutomationLevel() + 1);
+            return "자동화 레벨업 업그레이드 완료! (현재: " + t.getAutomationLevel() + "레벨)";
+        });
+
+        // ── 상태이상 화살 ──
+        register("poison", t -> t.getPoisonLevel() < 255, t -> {
+            t.setPoisonLevel(t.getPoisonLevel() + 1);
+            return "독성 약화 주입 완료! (현재: " + t.getPoisonLevel() + "레벨)";
+        });
+        register("wither", t -> t.getWitherLevel() < 255, t -> {
+            t.setWitherLevel(t.getWitherLevel() + 1);
+            return "부패 위더 주입 완료! (현재: " + t.getWitherLevel() + "레벨)";
+        });
+        register("slowness", t -> t.getSlownessLevel() < 5, t -> {
+            t.setSlownessLevel(t.getSlownessLevel() + 1);
+            return "감속 제동 주입 완료! (현재: " + t.getSlownessLevel() + "레벨)";
+        });
+        register("weakness", t -> t.getWeaknessLevel() < 5, t -> {
+            t.setWeaknessLevel(t.getWeaknessLevel() + 1);
+            return "나약 쇠퇴 주입 완료! (현재: " + t.getWeaknessLevel() + "레벨)";
+        });
+
+        // ── 경험치 할인 ──
+        register("xp_discount", t -> {
+            int previousNeeded = t.getNeededXp();
+            int discounted = (previousNeeded + 1) / 2;
+            t.setNeededXp(discounted);
+            t.addXp(0);
+            return "경험치 속성 훈련 완료! (레벨업 요구량: " + previousNeeded + " ➔ " + discounted + ")";
+        });
+
+        // ── 화살 개수 (최대 10, 최대치면 안내 후 종료) ──
+        UPGRADES.put("arrow_count", new Upgrade(
+                t -> t.getTurretArrowCount() < 10,
+                t -> {
+                    t.setTurretArrowCount(t.getTurretArrowCount() + 1);
+                    return "화살 발사 개수 업그레이드 완료! (현재: " + t.getTurretArrowCount() + "개 격발)";
+                },
+                "이미 최대 업그레이드 상태입니다!"));
+
+        // ── 사격 패턴 ──
+        registerPattern("normal_pattern", 0, "사격 패턴 리셋 완료: 표준 정밀 사격 장착");
+        registerPattern("fan", 1, "발사 패턴 변경 완료: 부채꼴 확산형");
+        registerPattern("burst", 2, "발사 패턴 변경 완료: 일직선 속사(점사)");
+        registerPattern("knockback_mode", 3, "발사 패턴 변경 완료: 넉백 특화 모드(연사 및 넉백 최대화)");
+        registerPattern("heavy_mode", 4, "발사 패턴 변경 완료: 동시 강공격 격발 모드 장착!");
+
+        // ── 토글형 기술 ──
+        register("normal_gravity", t -> { t.setNoGravityEnabled(0); return "중력 복구 완료: 마찰 및 곡사 낙하 비행 활성화"; });
+        register("vacuum", t -> { t.setNoGravityEnabled(1); return "진공 환경 제어 장치 장착 완료: 무중력 투사체 적용!"; });
+        register("normal_blocks", t -> { t.setPassBlocksEnabled(0); return "물질 충돌 활성화 완료: 화살이 블록에 부딪혀 고정됩니다."; });
+        register("pass_blocks", t -> { t.setPassBlocksEnabled(1); return "물질 통과 제어 완료! 화살이 구조물 벽을 뚫고 통과합니다."; });
+        register("normal_sight", t -> { t.setCanSeeThroughWalls(0); return "시야 제어 정상화 완료: 표준 탐색 및 조준 적용"; });
+        register("can_see_through_walls", t -> { t.setCanSeeThroughWalls(1); return "투시 감지 세팅 완료! 벽 너머에 가려진 몹까지 포착합니다."; });
+    }
+
     public static void populateOffers(VillagerTurretEntity turret, MerchantOffers offers) {
         offers.clear();
 
@@ -25,8 +144,8 @@ public class TurretTradeManager {
         // ==========================================
         // 🟢 9진법 및 27진법 기반 동적 가격 계산 및 만렙 달성 시 목록 말소 처리 적용
         // ==========================================
-        addDynamicOffer(turret, tokenOffers, "recharge", "터렛 강화 인증서: 재장전 속도", turret.getRechargeLevel(), "화살 발사 대기시간(쿨타임)이 0.25초 감소합니다.", 10); // 만렙 10
-        addDynamicOffer(turret, tokenOffers, "speed", "터렛 강화 인증서: 화살 비행 속도", turret.getSpeedLevel(), "화살의 날아가는 속도가 더 신속하게 증가합니다.", 15); // 탄속 만렙: 15 (물리 관통 필터 한도)
+        addDynamicOffer(turret, tokenOffers, "recharge", "터렛 강화 인증서: 재장전 속도", turret.getRechargeLevel(), "화살 발사 대기시간(쿨타임)이 0.25초 감소합니다.", TurretConfig.maxRechargeLevel()); // 만렙 (config, 기본 10)
+        addDynamicOffer(turret, tokenOffers, "speed", "터렛 강화 인증서: 화살 비행 속도", turret.getSpeedLevel(), "화살의 날아가는 속도가 더 신속하게 증가합니다.", TurretConfig.maxSpeedLevel()); // 탄속 만렙 (config, 기본 15)
         addDynamicOffer(turret, tokenOffers, "invuln", "터렛 방어 인증서: 피격 무적 증가", turret.getInvulnerabilityLevel(), "몹에게 공격받았을 때 발생하는 무적 시간이 1초 늘어납니다.", Integer.MAX_VALUE);
         addDynamicOffer(turret, tokenOffers, "heal", "터렛 방어 인증서: 자가 회복력 강화", turret.getHealLevel(), "5초마다 체력 1씩 회복 및 레벨업 시 최대 체력 비례 즉시 회복을 강화합니다.", Integer.MAX_VALUE);
         addDynamicOffer(turret, tokenOffers, "damage", "터렛 강화 인증서: 화살 공격력", turret.getDamageLevel(), "화살의 피해량이 1.0(하트 0.5칸) 증가합니다.", Integer.MAX_VALUE);
@@ -237,204 +356,44 @@ public class TurretTradeManager {
     }
 
     public static ItemStack getBoundToken(VillagerTurretEntity turret, int count) {
-        ItemStack token = new ItemStack(ModItems.TURRET_POINT_TOKEN_LOW.get(), count);
-        CompoundTag tag = token.getOrCreateTag();
-        tag.putString("TurretType", turret.getType().getRegistryName().toString());
-
-        CompoundTag display = new CompoundTag();
-        display.putString("Name", Component.Serializer.toJson(new TextComponent("터렛 포인트 토큰 (하급)").withStyle(style -> style.withColor(0xFFD700).withItalic(false))));
-
-        ListTag lore = new ListTag();
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent("허용 터렛 종류: " + turret.getType().getDescription().getString()).withStyle(style -> style.withColor(0xAAAAAA)))));
-        display.put("Lore", lore);
-
-        tag.put("display", display);
-        return token;
+        return TurretTradeUtil.boundToken(ModItems.TURRET_POINT_TOKEN_LOW.get(), turret, count, "터렛 포인트 토큰 (하급)", 0xFFD700);
     }
 
     public static ItemStack createUpgradeReceipt(VillagerTurretEntity turret, String type, String title, String desc1, String desc2, String currentLvlInfo) {
-        Item baseItem;
-        if (type.equals("speed")) baseItem = ModItems.SPEED_UPGRADE.get();
-        else if (type.equals("recharge")) baseItem = ModItems.RECHARGE_UPGRADE.get();
-        else if (type.equals("burst")) baseItem = ModItems.BURST_UPGRADE.get();
-        else if (type.equals("fan")) baseItem = ModItems.FAN_UPGRADE.get();
-        else if (type.equals("poison")) baseItem = ModItems.POISON_ARROW_UPGRADE.get();
-        else baseItem = Items.PAPER;
-
-        ItemStack stack = new ItemStack(baseItem);
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putString("UpgradeType", type);
-        tag.putString("TurretType", turret.getType().getRegistryName().toString());
-
-        CompoundTag display = new CompoundTag();
-        display.putString("Name", Component.Serializer.toJson(new TextComponent(title).withStyle(style -> style.withColor(0xFF55FF).withBold(true).withItalic(false))));
-
-        ListTag lore = new ListTag();
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent(desc1).withStyle(style -> style.withColor(0x55FF55)))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent(desc2).withStyle(style -> style.withColor(0xFFFF55)))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent(currentLvlInfo).withStyle(style -> style.withColor(0x55FFFF)))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent("허용 터렛 종류: " + turret.getType().getDescription().getString()).withStyle(style -> style.withColor(0xAAAAAA)))));
-
-        display.put("Lore", lore);
-        tag.put("display", display);
-
-        return stack;
+        Item baseItem = switch (type) {
+            case "speed" -> ModItems.SPEED_UPGRADE.get();
+            case "recharge" -> ModItems.RECHARGE_UPGRADE.get();
+            case "burst" -> ModItems.BURST_UPGRADE.get();
+            case "fan" -> ModItems.FAN_UPGRADE.get();
+            case "poison" -> ModItems.POISON_ARROW_UPGRADE.get();
+            default -> Items.PAPER;
+        };
+        return TurretTradeUtil.upgradeReceipt(baseItem, turret, type, title, 0xFF55FF,
+                TurretTradeUtil.line(desc1, TurretTradeUtil.GREEN),
+                TurretTradeUtil.line(desc2, TurretTradeUtil.YELLOW),
+                TurretTradeUtil.line(currentLvlInfo, TurretTradeUtil.CYAN));
     }
 
     public static void applyUpgradeDirectly(VillagerTurretEntity turret, String type) {
         Player tradingPlayer = turret.getTradingPlayer();
+        Upgrade upgrade = UPGRADES.get(type);
 
-        if (type.equals("recharge")) {
-            if (turret.getRechargeLevel() < 10) { // 🌟 재장전 속도 최대 상한 10레벨 제한 보호막
-                turret.setRechargeLevel(turret.getRechargeLevel() + 1);
-                if (tradingPlayer != null) {
-                    tradingPlayer.displayClientMessage(new TextComponent("재장전 속도 업그레이드 완료! (현재: " + turret.getRechargeLevel() + "레벨)"), true);
+        if (upgrade != null) {
+            if (upgrade.canApply().test(turret)) {
+                String message = upgrade.apply().apply(turret);
+                if (tradingPlayer != null && message != null) {
+                    tradingPlayer.displayClientMessage(new TextComponent(message), true);
                 }
-            }
-        } else if (type.equals("speed")) {
-            if (turret.getSpeedLevel() < 15) { // 🌟 화살 비행 속도 최대 상한 15레벨 제한 보호막 (물리 관통 버그 원천 방지)
-                turret.setSpeedLevel(turret.getSpeedLevel() + 1);
+            } else if (upgrade.maxedMessage() != null) {
+                // 최대치 도달 시 안내만 하고 종료 (효과음·화면 갱신 없음)
                 if (tradingPlayer != null) {
-                    tradingPlayer.displayClientMessage(new TextComponent("화살 비행 속도 업그레이드 완료! (현재: " + turret.getSpeedLevel() + "레벨)"), true);
-                }
-            }
-        } else if (type.equals("invuln")) {
-            turret.setInvulnerabilityLevel(turret.getInvulnerabilityLevel() + 1);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("무적 시간 업그레이드 완료! (현재 피격 시: " + turret.getInvulnerabilityLevel() + "초 무적)"), true);
-            }
-        } else if (type.equals("heal")) {
-            turret.setHealLevel(turret.getHealLevel() + 1);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("자가 회복력 업그레이드 완료! (현재: 5초당 +1 치유 / 레벨업 시 최대 체력의 " + (turret.getHealLevel() * 20) + "% 회복)"), true);
-            }
-        } else if (type.equals("damage")) {
-            turret.setDamageLevel(turret.getDamageLevel() + 1);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("화살 공격력 업그레이드 완료! (현재: " + turret.getDamageLevel() + "레벨)"), true);
-            }
-        } else if (type.equals("health")) {
-            turret.setMaxHealthBonus(turret.getMaxHealthBonus() + 5);
-            turret.heal(5.0F);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("최대 체력 업그레이드 완료! (+5 HP, 현재 최대 체력: " + (int)turret.getMaxHealth() + " HP)"), true);
-            }
-        } else if (type.equals("automation")) {
-            turret.setAutomationLevel(turret.getAutomationLevel() + 1);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("자동화 레벨업 업그레이드 완료! (현재: " + turret.getAutomationLevel() + "레벨)"), true);
-            }
-        } else if (type.equals("poison")) {
-            if (turret.getPoisonLevel() < 255) { // 🌟 독성 주입 최대 255레벨 제한 보호막
-                turret.setPoisonLevel(turret.getPoisonLevel() + 1);
-                if (tradingPlayer != null) {
-                    tradingPlayer.displayClientMessage(new TextComponent("독성 약화 주입 완료! (현재: " + turret.getPoisonLevel() + "레벨)"), true);
-                }
-            }
-        } else if (type.equals("wither")) {
-            if (turret.getWitherLevel() < 255) { // 🌟 위더 부패 최대 255레벨 제한 보호막
-                turret.setWitherLevel(turret.getWitherLevel() + 1);
-                if (tradingPlayer != null) {
-                    tradingPlayer.displayClientMessage(new TextComponent("부패 위더 주입 완료! (현재: " + turret.getWitherLevel() + "레벨)"), true);
-                }
-            }
-        } else if (type.equals("slowness")) {
-            if (turret.getSlownessLevel() < 5) { // 🌟 감속 제동 최대 5레벨 스펙 제한 보호막
-                turret.setSlownessLevel(turret.getSlownessLevel() + 1);
-                if (tradingPlayer != null) {
-                    tradingPlayer.displayClientMessage(new TextComponent("감속 제동 주입 완료! (현재: " + turret.getSlownessLevel() + "레벨)"), true);
-                }
-            }
-        } else if (type.equals("weakness")) {
-            if (turret.getWeaknessLevel() < 5) { // 🌟 나약 쇠퇴 최대 5레벨 스펙 제한 보호막
-                turret.setWeaknessLevel(turret.getWeaknessLevel() + 1);
-                if (tradingPlayer != null) {
-                    tradingPlayer.displayClientMessage(new TextComponent("나약 쇠퇴 주입 완료! (현재: " + turret.getWeaknessLevel() + "레벨)"), true);
-                }
-            }
-        } else if (type.equals("xp_discount")) {
-            int previousNeeded = turret.getNeededXp();
-            int discounted = (previousNeeded + 1) / 2;
-            turret.setNeededXp(discounted);
-            turret.addXp(0);
-
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("경험치 속성 훈련 완료! (레벨업 요구량: " + previousNeeded + " ➔ " + discounted + ")"), true);
-            }
-        } else if (type.equals("arrow_count")) {
-            if (turret.getTurretArrowCount() < 10) {
-                turret.setTurretArrowCount(turret.getTurretArrowCount() + 1);
-                if (tradingPlayer != null) {
-                    tradingPlayer.displayClientMessage(new TextComponent("화살 발사 개수 업그레이드 완료! (현재: " + turret.getTurretArrowCount() + "개 격발)"), true);
-                }
-            } else {
-                if (tradingPlayer != null) {
-                    tradingPlayer.displayClientMessage(new TextComponent("이미 최대 업그레이드 상태입니다!"), true);
+                    tradingPlayer.displayClientMessage(new TextComponent(upgrade.maxedMessage()), true);
                 }
                 return;
-            }
-        } else if (type.equals("normal_pattern")) {
-            turret.setArrowPattern(0);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("사격 패턴 리셋 완료: 표준 정밀 사격 장착"), true);
-            }
-        } else if (type.equals("burst")) {
-            turret.setArrowPattern(2);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("발사 패턴 변경 완료: 일직선 속사(점사)"), true);
-            }
-        } else if (type.equals("fan")) {
-            turret.setArrowPattern(1);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("발사 패턴 변경 완료: 부채꼴 확산형"), true);
-            }
-        } else if (type.equals("knockback_mode")) {
-            turret.setArrowPattern(3);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("발사 패턴 변경 완료: 넉백 특화 모드(연사 및 넉백 최대화)"), true);
-            }
-        } else if (type.equals("heavy_mode")) {
-            turret.setArrowPattern(4);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("발사 패턴 변경 완료: 동시 강공격 격발 모드 장착!"), true);
-            }
-        } else if (type.equals("normal_gravity")) {
-            turret.setNoGravityEnabled(0);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("중력 복구 완료: 마찰 및 곡사 낙하 비행 활성화"), true);
-            }
-        } else if (type.equals("vacuum")) {
-            turret.setNoGravityEnabled(1);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("진공 환경 제어 장치 장착 완료: 무중력 투사체 적용!"), true);
-            }
-        } else if (type.equals("normal_blocks")) {
-            turret.setPassBlocksEnabled(0);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("물질 충돌 활성화 완료: 화살이 블록에 부딪혀 고정됩니다."), true);
-            }
-        } else if (type.equals("pass_blocks")) {
-            turret.setPassBlocksEnabled(1);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("물질 통과 제어 완료! 화살이 구조물 벽을 뚫고 통과합니다."), true);
-            }
-        } else if (type.equals("normal_sight")) {
-            turret.setCanSeeThroughWalls(0);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("시야 제어 정상화 완료: 표준 탐색 및 조준 적용"), true);
-            }
-        } else if (type.equals("can_see_through_walls")) {
-            turret.setCanSeeThroughWalls(1);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("투시 감지 세팅 완료! 벽 너머에 가려진 몹까지 포착합니다."), true);
             }
         }
 
         turret.playSound(SoundEvents.ANVIL_USE, 1.0F, 1.0F);
-
-        turret.overrideOffers(null);
-        if (tradingPlayer != null) {
-            turret.openTradingScreen(tradingPlayer, turret.getDisplayName(), turret.getVillagerXp());
-        }
+        turret.refreshTradeScreen();
     }
 }

@@ -1,5 +1,7 @@
 package changmin.changmin_villager_turret.feature.turret.plasma_wizard;
 
+import changmin.changmin_villager_turret.feature.turret.common.AbstractTurretEntity;
+
 import changmin.changmin_villager_turret.ally.IAlly;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -28,7 +30,7 @@ import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 
-public class PlasmaWizardEntity extends PathfinderMob implements IAlly, Merchant {
+public class PlasmaWizardEntity extends AbstractTurretEntity {
 
     private static final EntityDataAccessor<Integer> TURRET_LEVEL = SynchedEntityData.defineId(PlasmaWizardEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(PlasmaWizardEntity.class, EntityDataSerializers.INT);
@@ -42,8 +44,6 @@ public class PlasmaWizardEntity extends PathfinderMob implements IAlly, Merchant
     private static final EntityDataAccessor<Integer> SPLIT_SHOT_LEVEL = SynchedEntityData.defineId(PlasmaWizardEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> CURRENT_COOLDOWN = SynchedEntityData.defineId(PlasmaWizardEntity.class, EntityDataSerializers.INT);
 
-    private Player tradingPlayer;
-    private MerchantOffers offers;
 
     public PlasmaWizardEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -228,15 +228,6 @@ public class PlasmaWizardEntity extends PathfinderMob implements IAlly, Merchant
         return 100 + (this.getStunLevel() * 20); // 레벨당 기절 지속 시간 1.0초 증가
     }
 
-    @Override public void setTradingPlayer(@Nullable Player player) { this.tradingPlayer = player; }
-    @Override @Nullable public Player getTradingPlayer() { return this.tradingPlayer; }
-    @Override public void overrideOffers(MerchantOffers offers) { this.offers = offers; }
-    @Override public void notifyTradeUpdated(ItemStack stack) {}
-    @Override public int getVillagerXp() { return 0; }
-    @Override public void overrideXp(int xp) {}
-    @Override public boolean showProgressBar() { return false; }
-    @Override public net.minecraft.sounds.SoundEvent getNotifyTradeSound() { return SoundEvents.VILLAGER_YES; }
-    @Override public boolean isClientSide() { return this.level.isClientSide; }
 
     @Override
     public MerchantOffers getOffers() {
@@ -304,6 +295,4 @@ public class PlasmaWizardEntity extends PathfinderMob implements IAlly, Merchant
     }
 
     @Override public Component getDisplayName() { return new TextComponent("플라즈마 마법사 주민 터렛"); }
-    @Override public boolean isPushable() { return false; }
-    @Override protected void doPush(net.minecraft.world.entity.Entity entity) {}
 }

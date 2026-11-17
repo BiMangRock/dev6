@@ -62,7 +62,38 @@ public class Demon1Entity extends Monster implements IAnimatable, IZombieTribe, 
 
     public void setLeader(@Nullable LivingEntity leader) {
         this.leader = leader;
+        this.leaderUUID = leader == null ? null : leader.getUUID();
     }
+
+    // 💾 리더 UUID 저장: 월드 재접속 후에도 리더(종말의 사도 등)와의 연결을 복원합니다.
+    @Nullable private java.util.UUID leaderUUID = null;
+    private int leaderLookupCooldown = 0;
+
+    /** 리더 참조가 끊겼으면(재접속 등) 1초마다 UUID로 다시 찾아 연결합니다. */
+    @Nullable
+    LivingEntity resolveLeader() {
+        // (AI 목표는 2틱마다 호출될 수 있어 tickCount % N 대신 호출 횟수 카운터 사용)
+        if (this.leader == null && this.leaderUUID != null && --this.leaderLookupCooldown <= 0
+                && this.level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            this.leaderLookupCooldown = 10;
+            net.minecraft.world.entity.Entity found = serverLevel.getEntity(this.leaderUUID);
+            if (found instanceof LivingEntity living) this.leader = living;
+        }
+        return this.leader;
+    }
+
+    @Override
+    public void addAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        if (this.leaderUUID != null) tag.putUUID("LeaderUUID", this.leaderUUID);
+    }
+
+    @Override
+    public void readAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.hasUUID("LeaderUUID")) this.leaderUUID = tag.getUUID("LeaderUUID");
+    }
+
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
@@ -142,7 +173,7 @@ public class Demon1Entity extends Monster implements IAnimatable, IZombieTribe, 
         }
         @Override
         public boolean canUse() {
-            return demon.leader != null && demon.leader.isAlive() && demon.distanceToSqr(demon.leader) > 400.0D;
+            return demon.resolveLeader() != null && demon.leader.isAlive() && demon.distanceToSqr(demon.leader) > 400.0D;
         }
         @Override
         public void tick() {

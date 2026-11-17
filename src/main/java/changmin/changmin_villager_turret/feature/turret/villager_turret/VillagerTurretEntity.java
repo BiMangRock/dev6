@@ -1,6 +1,9 @@
 package changmin.changmin_villager_turret.feature.turret.villager_turret;
 
+import changmin.changmin_villager_turret.feature.turret.common.AbstractTurretEntity;
+
 import changmin.changmin_villager_turret.ally.IAlly;
+import changmin.changmin_villager_turret.config.TurretConfig;
 import changmin.changmin_villager_turret.registry.ModItems;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.nbt.CompoundTag;
@@ -32,10 +35,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VillagerTurretEntity extends PathfinderMob implements RangedAttackMob, IAlly, Merchant {
-
-    public static final float ARROW_SPEED = 0.8F;
-    public static final double ARROW_DAMAGE = 2.0D;
+public class VillagerTurretEntity extends AbstractTurretEntity implements RangedAttackMob {
 
     private static final EntityDataAccessor<Integer> TURRET_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
@@ -60,8 +60,6 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
     private static final EntityDataAccessor<Integer> SLOWNESS_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> WEAKNESS_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
 
-    private Player tradingPlayer;
-    private MerchantOffers offers;
     private int attackCooldown = 0;
     private int customInvulnTicks = 0;
 
@@ -139,7 +137,7 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
             // 🏹 1. 순차 발사(연사) 루프 처리
             // ==========================================
             if (this.burstArrowsLeft > 0 && this.burstTarget != null) {
-                if (this.burstTarget.isAlive() && this.distanceToSqr(this.burstTarget) <= 400.0D) {
+                if (this.burstTarget.isAlive() && this.distanceToSqr(this.burstTarget) <= this.getAttackRangeSqr()) {
                     this.getLookControl().setLookAt(this.burstTarget, 30.0F, 30.0F);
                     if (this.burstDelayTicks > 0) {
                         this.burstDelayTicks--;
@@ -172,7 +170,7 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
             // ==========================================
             if (this.burstArrowsLeft <= 0) {
                 LivingEntity target = this.getTarget();
-                if (target != null && target.isAlive() && this.distanceToSqr(target) <= 400.0D) {
+                if (target != null && target.isAlive() && this.distanceToSqr(target) <= this.getAttackRangeSqr()) {
                     this.getLookControl().setLookAt(target, 30.0F, 30.0F);
                     if (this.attackCooldown <= 0) {
                         int pattern = this.getArrowPattern();
@@ -193,11 +191,16 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
         }
     }
 
-    // 기본 사격 쿨타임 계산 공식 (기본 3초 - 강화 레벨당 0.25초 감소)
+    // 기본 사격 쿨타임 계산 공식 (기본 3초 - 강화 레벨당 0.25초 감소, 수치는 config에서 조정)
     public int getCalculatedCooldown() {
-        int baseCooldown = 60; // 3.0초 (60틱)
-        int reduction = this.getRechargeLevel() * 5; // 레벨당 5틱(0.25초) 감소
-        return Math.max(10, baseCooldown - reduction); // 최소 0.5초 쿨타임 보장
+        int reduction = this.getRechargeLevel() * TurretConfig.cooldownReductionPerLevel();
+        return Math.max(TurretConfig.minCooldown(), TurretConfig.baseCooldown() - reduction);
+    }
+
+    // 사격 사거리의 제곱 (기본 20블록 → 400)
+    public double getAttackRangeSqr() {
+        double range = TurretConfig.attackRange();
+        return range * range;
     }
 
     @Override
@@ -240,8 +243,8 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
 
         // 🌟 무작위 자동강화 대상 리스트를 실시간으로 조율 (각각의 정립된 만레벨 한계 초과 시 자동화 대상 풀에서 즉각 소거)
         List<Integer> eligibleStats = new ArrayList<>();
-        if (this.getRechargeLevel() < 10) eligibleStats.add(0); // 재장전속도 만렙: 10
-        if (this.getSpeedLevel() < 15) eligibleStats.add(1); // 화살탄속 만렙: 15 (물리 관통 버그 방지 한계선)
+        if (this.getRechargeLevel() < TurretConfig.maxRechargeLevel()) eligibleStats.add(0); // 재장전속도 만렙 (기본 10)
+        if (this.getSpeedLevel() < TurretConfig.maxSpeedLevel()) eligibleStats.add(1); // 화살탄속 만렙 (기본 15, 물리 관통 버그 방지 한계선)
         eligibleStats.add(2); // invuln (무적): 무제한
         eligibleStats.add(3); // heal (회복): 무제한
         eligibleStats.add(4); // damage (공격력): 무제한
@@ -261,13 +264,13 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
             switch (statToUpgrade) {
                 case 0 -> {
                     this.setRechargeLevel(this.getRechargeLevel() + 1);
-                    if (this.getRechargeLevel() >= 10) {
+                    if (this.getRechargeLevel() >= TurretConfig.maxRechargeLevel()) {
                         eligibleStats.remove(Integer.valueOf(0));
                     }
                 }
                 case 1 -> {
                     this.setSpeedLevel(this.getSpeedLevel() + 1);
-                    if (this.getSpeedLevel() >= 15) {
+                    if (this.getSpeedLevel() >= TurretConfig.maxSpeedLevel()) {
                         eligibleStats.remove(Integer.valueOf(1));
                     }
                 }
@@ -337,15 +340,6 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
         return InteractionResult.sidedSuccess(this.level.isClientSide);
     }
 
-    @Override public void setTradingPlayer(@Nullable Player player) { this.tradingPlayer = player; }
-    @Override @Nullable public Player getTradingPlayer() { return this.tradingPlayer; }
-    @Override public void overrideOffers(MerchantOffers offers) { this.offers = offers; }
-    @Override public void notifyTradeUpdated(ItemStack stack) {}
-    @Override public int getVillagerXp() { return 0; }
-    @Override public void overrideXp(int xp) {}
-    @Override public boolean showProgressBar() { return false; }
-    @Override public net.minecraft.sounds.SoundEvent getNotifyTradeSound() { return SoundEvents.VILLAGER_YES; }
-    @Override public boolean isClientSide() { return this.level.isClientSide; }
 
     @Override
     public MerchantOffers getOffers() {
@@ -482,7 +476,5 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
     }
 
     @Override public Component getDisplayName() { return new TextComponent("주민 터렛"); }
-    @Override public boolean isPushable() { return false; }
-    @Override protected void doPush(net.minecraft.world.entity.Entity entity) {}
     @Override public void performRangedAttack(LivingEntity target, float velocity) {}
 }

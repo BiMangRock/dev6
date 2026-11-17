@@ -1,5 +1,7 @@
 package changmin.changmin_villager_turret.feature.turret.bee_summoner_turret;
 
+import changmin.changmin_villager_turret.feature.turret.common.TurretTradeUtil;
+
 import changmin.changmin_villager_turret.registry.ModItems;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -118,40 +120,14 @@ public class BeeSummonerTradeManager {
     }
 
     public static ItemStack getBoundToken(BeeSummonerTurretEntity turret, int count) {
-        ItemStack token = new ItemStack(ModItems.BEE_POINT_TOKEN_LOW.get(), count);
-        CompoundTag tag = token.getOrCreateTag();
-        tag.putString("TurretType", turret.getType().getRegistryName().toString());
-
-        CompoundTag display = new CompoundTag();
-        display.putString("Name", Component.Serializer.toJson(new TextComponent("벌소환사 터렛 포인트 토큰 (하급)").withStyle(style -> style.withColor(0xFFE066).withItalic(false))));
-
-        ListTag lore = new ListTag();
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent("허용 터렛 종류: " + turret.getType().getDescription().getString()).withStyle(style -> style.withColor(0xAAAAAA)))));
-        display.put("Lore", lore);
-        tag.put("display", display);
-
-        return token;
+        return TurretTradeUtil.boundToken(ModItems.BEE_POINT_TOKEN_LOW.get(), turret, count, "벌소환사 터렛 포인트 토큰 (하급)", 0xFFE066);
     }
 
     private static ItemStack createUpgradeReceipt(BeeSummonerTurretEntity turret, String type, String title, String desc1, String desc2) {
-        ItemStack stack = new ItemStack(Items.PAPER);
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putString("UpgradeType", type);
-        tag.putString("TurretType", turret.getType().getRegistryName().toString());
-
-        CompoundTag display = new CompoundTag();
-        display.putString("Name", Component.Serializer.toJson(new TextComponent(title).withStyle(style -> style.withColor(0xFFCC33).withBold(true).withItalic(false))));
-
-        ListTag lore = new ListTag();
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent("■ 구매 즉시 이 터렛에 즉시 적용됩니다.").withStyle(style -> style.withColor(0x55FF55)))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent(desc1).withStyle(style -> style.withColor(0xFFFF55)))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent(desc2).withStyle(style -> style.withColor(0x55FFFF)))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent("허용 터렛 종류: " + turret.getType().getDescription().getString()).withStyle(style -> style.withColor(0xAAAAAA)))));
-
-        display.put("Lore", lore);
-        tag.put("display", display);
-
-        return stack;
+        return TurretTradeUtil.upgradeReceipt(Items.PAPER, turret, type, title, 0xFFCC33,
+                TurretTradeUtil.line(TurretTradeUtil.APPLY_NOW, TurretTradeUtil.GREEN),
+                TurretTradeUtil.line(desc1, TurretTradeUtil.YELLOW),
+                TurretTradeUtil.line(desc2, TurretTradeUtil.CYAN));
     }
 
     public static void applyUpgradeDirectly(BeeSummonerTurretEntity turret, String type) {
