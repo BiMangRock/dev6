@@ -23,7 +23,7 @@ public class RageEffectHandler {
 
     // [매 틱 최적화 검사] 효과가 있을 때만 주입을 시도하므로 렉이 발생하지 않습니다.
     @SubscribeEvent
-    public static void onLivingUpdate(LivingEvent.LivingUpdateEvent event) {
+    public static void onLivingUpdate(LivingEvent.LivingTickEvent event) {
         if (event.getEntity() instanceof Mob mob && !mob.level().isClientSide) {
             if (mob.hasEffect(ModEffects.RAGE.get())) {
                 injectRageGoals(mob);

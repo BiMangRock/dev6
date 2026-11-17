@@ -203,8 +203,8 @@ public class VillagerTurretEntity extends AbstractTurretEntity implements Ranged
     }
 
     @Override
-    public boolean wasKilled(ServerLevel level, LivingEntity killedEntity) {
-        boolean result = super.wasKilled(level, killedEntity); // 1.19+: killed → wasKilled
+    public boolean killedEntity(ServerLevel level, LivingEntity killedEntity) {
+        boolean result = super.killedEntity(level, killedEntity); // 1.20: killed → killedEntity
         // [수정] 바닐라 좀비뿐만 아니라 IZombieTribe 구현 종족을 사살했을 때도 경험치를 정상 부여하도록 확장
         if (IZombieTribe.isZombieTribe(killedEntity)) {
             this.addXp(1);

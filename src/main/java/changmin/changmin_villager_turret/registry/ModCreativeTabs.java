@@ -4,7 +4,12 @@ import changmin.changmin_villager_turret.changmin_villager_turret;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.SpawnEggItem;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 
@@ -14,7 +19,10 @@ import net.minecraftforge.registries.RegistryObject;
  * 1.18.2에서는 아이템마다 .tab(CreativeModeTab.TAB_MISC)로 "기타" 탭에 넣었지만,
  * 1.20.1에서는 그 방식이 없어져서 이 모드 전용 탭을 하나 만들고 등록된 아이템을 전부 넣습니다.
  * 탭 이름은 언어 파일의 itemGroup.changmin_villager_turret 값입니다.
+ *
+ * 스폰알은 바닐라 "생성 알(Spawn Eggs)" 탭에도 함께 넣습니다.
  */
+@Mod.EventBusSubscriber(modid = changmin_villager_turret.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class ModCreativeTabs {
 
     public static final DeferredRegister<CreativeModeTab> TABS =
@@ -27,4 +35,16 @@ public final class ModCreativeTabs {
             .build());
 
     private ModCreativeTabs() {}
+
+    /** 바닐라 탭에 이 모드 아이템 추가: 스폰알 → "생성 알" 탭 */
+    @SubscribeEvent
+    public static void addToVanillaTabs(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
+            ModItems.ITEMS.getEntries().forEach(item -> {
+                if (item.get() instanceof SpawnEggItem) {
+                    event.accept(item);
+                }
+            });
+        }
+    }
 }

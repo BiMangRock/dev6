@@ -128,7 +128,7 @@ public class LightningWizardRenderer extends MobRenderer<LightningWizardEntity, 
 
             // 궁극기 우측 텍스트 상태 정보 표기
             String ultState = entity.getUltActiveTime() > 0 ? "STORM" : (entity.getUltCooldown() <= 0 ? "READY" : (entity.getUltCooldown() / 20) + "s");
-            font.drawInBatch(Component.literal("ULT: " + ultState), barX + barWidth + 4.0F, ultBarY - 2.5F, ultColor, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(Component.literal("ULT: " + ultState), barX + barWidth + 4.0F, ultBarY - 2.5F, ultColor, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             poseStack.popPose();
         }

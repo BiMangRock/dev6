@@ -146,7 +146,7 @@ public class ApostleOfTheEndEntity extends Monster implements GeoEntity, IZombie
     private void summonAngel() {
         if (this.level() instanceof ServerLevel serverLevel) {
             AngelZombieEntity angel = (AngelZombieEntity) ModEntityTypes.ANGEL_ZOMBIE.get().spawn(
-                    serverLevel, null, null, this.blockPosition().above(),
+                    serverLevel, (net.minecraft.world.item.ItemStack) null, null, this.blockPosition().above(),
                     MobSpawnType.MOB_SUMMONED, true, false
             );
 
@@ -163,7 +163,7 @@ public class ApostleOfTheEndEntity extends Monster implements GeoEntity, IZombie
         if (this.level() instanceof ServerLevel serverLevel) {
             // ※ ModEntityTypes.RAGED_ANGEL_ZOMBIE 명칭이 모드 프로젝트 내 등록된 명칭과 일치하는지 확인해 주세요.
             RagedAngelZombieEntity ragedAngel = (RagedAngelZombieEntity) ModEntityTypes.RAGED_ANGEL_ZOMBIE.get().spawn(
-                    serverLevel, null, null, this.blockPosition().above(),
+                    serverLevel, (net.minecraft.world.item.ItemStack) null, null, this.blockPosition().above(),
                     MobSpawnType.MOB_SUMMONED, true, false
             );
 

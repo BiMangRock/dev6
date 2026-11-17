@@ -79,7 +79,7 @@ public class SummonedBeeEntity extends PathfinderMob implements IAlly {
         FlyingPathNavigation flyingpathnavigation = new FlyingPathNavigation(this, level) {
             @Override
             public boolean isStableDestination(BlockPos pos) {
-                return !this.level().getBlockState(pos.below()).isAir();
+                return !this.level.getBlockState(pos.below()).isAir(); // PathNavigation의 level 필드 (엔티티 아님)
             }
         };
         flyingpathnavigation.setCanOpenDoors(false);

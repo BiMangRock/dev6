@@ -143,7 +143,9 @@ public class TurretShooter {
         if (result.getType() != HitResult.Type.BLOCK) return;
 
         Level level = arrow.level();
-        event.setCanceled(true); // 블록 충돌 취소
+        // 블록 충돌 취소. (Forge 1.20.1에서 setCanceled는 "제거 예정" 경고가 뜨지만 동작은 그대로입니다.
+        //  권장 대체인 setImpactResult(SKIP_ENTITY)는 블록 충돌을 그대로 처리해 버려서 벽 관통이 깨지므로 쓰지 않습니다.)
+        event.setCanceled(true);
 
         Vec3 hitLoc = result.getLocation();
         Vec3 motion = arrow.getDeltaMovement().normalize();

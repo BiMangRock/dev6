@@ -210,8 +210,8 @@ public class BeeSummonerTurretEntity extends AbstractTurretEntity {
     }
 
     @Override
-    public boolean wasKilled(ServerLevel level, LivingEntity killedEntity) {
-        boolean result = super.wasKilled(level, killedEntity); // 1.19+: killed → wasKilled
+    public boolean killedEntity(ServerLevel level, LivingEntity killedEntity) {
+        boolean result = super.killedEntity(level, killedEntity); // 1.20: killed → killedEntity
         if (IZombieTribe.isZombieTribe(killedEntity)) {
             this.addXp(1);
         }

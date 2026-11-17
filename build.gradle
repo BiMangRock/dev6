@@ -29,6 +29,11 @@ minecraft {
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
 
+            // GeckoLib 4 등 Mixin을 쓰는 모드를 개발 환경(runClient)에서 실행하려면 필요한 설정.
+            // Mixin 대상 이름(SRG)을 개발 환경 이름(공식 매핑)으로 바꿔 주는 변환표 파일을 지정합니다.
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+
             mods {
                 "${mod_id}" {
                     source sourceSets.main
@@ -38,13 +43,11 @@ minecraft {
 
         client {
             property 'forge.enabledGameTestNamespaces', mod_id
-            property 'mixin.env.remapRefMap', 'true'
         }
 
         server {
             property 'forge.enabledGameTestNamespaces', mod_id
             args '--nogui'
-            property 'mixin.env.remapRefMap', 'true'
         }
 
         gameTestServer {
