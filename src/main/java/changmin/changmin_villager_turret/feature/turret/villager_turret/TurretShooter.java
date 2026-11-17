@@ -33,7 +33,7 @@ public class TurretShooter {
     public static void shootTarget(VillagerTurretEntity turret, LivingEntity target) {
         int pattern = turret.getArrowPattern();
         int arrowCount = turret.getTurretArrowCount();
-        Level level = turret.level;
+        Level level = turret.level();
 
         if (pattern == 4) { // 강공격 모드 (완전 동시 격발)
             for (int i = 0; i < arrowCount; i++) {
@@ -54,7 +54,7 @@ public class TurretShooter {
 
     // 단발 화살 격발 상세 연산
     public static void shootSingleArrow(VillagerTurretEntity turret, LivingEntity target, int mode, float spread) {
-        TurretArrow arrow = new TurretArrow(turret.level, turret);
+        TurretArrow arrow = new TurretArrow(turret.level(), turret);
 
         // 공격력 계산 (넉백 모드는 피해 1/10)
         double baseDamage = TurretConfig.arrowDamage() + turret.getDamageLevel() * TurretConfig.arrowDamagePerLevel();
@@ -83,7 +83,7 @@ public class TurretShooter {
                 TurretConfig.leadTargeting());
 
         arrow.shoot(dir.x, dir.y, dir.z, finalSpeed, spread);
-        turret.level.addFreshEntity(arrow);
+        turret.level().addFreshEntity(arrow);
     }
 
     // ==========================================
@@ -91,7 +91,7 @@ public class TurretShooter {
     // ==========================================
     @SubscribeEvent
     public static void onLivingHurt(LivingHurtEvent event) {
-        LivingEntity victim = event.getEntityLiving();
+        LivingEntity victim = event.getEntity();
 
         if (event.getSource().getDirectEntity() instanceof TurretArrow arrow) {
             if (arrow.resetsInvulnerability()) {
@@ -122,11 +122,11 @@ public class TurretShooter {
         }
 
         // 🌟 독/위더 틱 피해를 레벨 비례로 증폭 (Method A)
-        if (event.getSource() == DamageSource.MAGIC && victim.hasEffect(MobEffects.POISON)) {
+        if (event.getSource().is(net.minecraft.world.damagesource.DamageTypes.MAGIC) && victim.hasEffect(MobEffects.POISON)) {
             int level = victim.getPersistentData().getInt(POISON_KEY);
             if (level > 0) event.setAmount(event.getAmount() * level);
         }
-        if (event.getSource() == DamageSource.WITHER && victim.hasEffect(MobEffects.WITHER)) {
+        if (event.getSource().is(net.minecraft.world.damagesource.DamageTypes.WITHER) && victim.hasEffect(MobEffects.WITHER)) {
             int level = victim.getPersistentData().getInt(WITHER_KEY);
             if (level > 0) event.setAmount(event.getAmount() * level);
         }
@@ -142,8 +142,10 @@ public class TurretShooter {
         HitResult result = event.getRayTraceResult();
         if (result.getType() != HitResult.Type.BLOCK) return;
 
-        Level level = arrow.level;
-        event.setCanceled(true); // 블록 충돌 취소
+        Level level = arrow.level();
+        // 블록 충돌 취소. (Forge 1.20.1에서 setCanceled는 "제거 예정" 경고가 뜨지만 동작은 그대로입니다.
+        //  권장 대체인 setImpactResult(SKIP_ENTITY)는 블록 충돌을 그대로 처리해 버려서 벽 관통이 깨지므로 쓰지 않습니다.)
+        event.setCanceled(true);
 
         Vec3 hitLoc = result.getLocation();
         Vec3 motion = arrow.getDeltaMovement().normalize();
@@ -151,7 +153,7 @@ public class TurretShooter {
         Vec3 finalLoc = null;
         for (double warpDist = 0.5D; warpDist < 16.0D; warpDist += 0.5D) {
             Vec3 test = hitLoc.add(motion.scale(warpDist));
-            BlockPos testPos = new BlockPos(test.x, test.y, test.z);
+            BlockPos testPos = BlockPos.containing(test.x, test.y, test.z);
             if (level.getBlockState(testPos).getCollisionShape(level, testPos).isEmpty()) {
                 finalLoc = test;
                 break;
@@ -175,7 +177,7 @@ public class TurretShooter {
 
         if (hitTarget != null) {
             Entity owner = arrow.getOwner();
-            DamageSource damageSource = owner == null ? DamageSource.arrow(arrow, arrow) : DamageSource.arrow(arrow, owner);
+            DamageSource damageSource = arrow.damageSources().arrow(arrow, owner == null ? arrow : owner);
 
             int knockback = arrow.getKnockback();
             if (knockback > 0) {

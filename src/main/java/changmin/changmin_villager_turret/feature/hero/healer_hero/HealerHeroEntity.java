@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.hero.healer_hero;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.feature.turret.common.TurretTradeUtil;
 
 import changmin.changmin_villager_turret.ally.IAlly;
@@ -26,21 +35,12 @@ import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack; // 🆕 추가
 import net.minecraft.world.level.Level;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
-import net.minecraft.network.chat.TextComponent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class HealerHeroEntity extends PathfinderMob implements IAlly, IAnimatable {
+public class HealerHeroEntity extends PathfinderMob implements IAlly, GeoEntity {
     private static final EntityDataAccessor<Integer> DATA_LEVEL = SynchedEntityData.defineId(HealerHeroEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_XP_BUFF = SynchedEntityData.defineId(HealerHeroEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_XP_ATTACK = SynchedEntityData.defineId(HealerHeroEntity.class, EntityDataSerializers.INT);
@@ -48,7 +48,7 @@ public class HealerHeroEntity extends PathfinderMob implements IAlly, IAnimatabl
 
     public static final UUID HERO_GROWTH_ID = UUID.fromString("4e5f6a7b-8c9d-0e1f-2a3b-4c5d6e7f8a9b");
 
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private int animationTick = 0;
     private final List<UUID> summonedTurretUUIDs = new ArrayList<>();
 
@@ -104,7 +104,7 @@ public class HealerHeroEntity extends PathfinderMob implements IAlly, IAnimatabl
             if (heldItem.is(ModItems.GUARD_LINKER.get())) {
                 CompoundTag tag = heldItem.getTag();
                 if (tag != null && tag.getBoolean("HasCoords")) {
-                    if (!this.level.isClientSide) {
+                    if (!this.level().isClientSide) {
                         this.homeX = tag.getInt("TargetX");
                         this.homeY = tag.getInt("TargetY");
                         this.homeZ = tag.getInt("TargetZ");
@@ -113,7 +113,7 @@ public class HealerHeroEntity extends PathfinderMob implements IAlly, IAnimatabl
                         player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.misc.1", this.homeX, this.homeY, this.homeZ), true);
                         this.playSound(SoundEvents.VILLAGER_YES, 1.0F, 1.0F);
 
-                        if (this.level instanceof ServerLevel serverLevel) {
+                        if (this.level() instanceof ServerLevel serverLevel) {
                             serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.HAPPY_VILLAGER, this.getX(), this.getY(1.0D), this.getZ(), 15, 0.2D, 0.2D, 0.2D, 0.05D);
                         }
 
@@ -121,7 +121,7 @@ public class HealerHeroEntity extends PathfinderMob implements IAlly, IAnimatabl
                             heldItem.shrink(1);
                         }
                     }
-                    return InteractionResult.sidedSuccess(this.level.isClientSide);
+                    return InteractionResult.sidedSuccess(this.level().isClientSide);
                 }
             }
         }
@@ -131,7 +131,7 @@ public class HealerHeroEntity extends PathfinderMob implements IAlly, IAnimatabl
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.animationTick > 0) {
                 this.animationTick--;
                 if (this.animationTick <= 0) {
@@ -166,7 +166,7 @@ public class HealerHeroEntity extends PathfinderMob implements IAlly, IAnimatabl
 
         this.updateMaxHealthAttribute();
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             triggerUltimateStorm();
         }
     }
@@ -181,9 +181,9 @@ public class HealerHeroEntity extends PathfinderMob implements IAlly, IAnimatabl
             double dz = Math.sin(angle);
             double dy = 0.15D;
 
-            LoveProjectileEntity proj = new LoveProjectileEntity(this.level, this, this.getHeroLevel());
+            LoveProjectileEntity proj = new LoveProjectileEntity(this.level(), this, this.getHeroLevel());
             proj.setDeltaMovement(dx * 0.8D, dy, dz * 0.8D);
-            this.level.addFreshEntity(proj);
+            this.level().addFreshEntity(proj);
         }
     }
 
@@ -201,8 +201,8 @@ public class HealerHeroEntity extends PathfinderMob implements IAlly, IAnimatabl
     }
 
     public int getSummonedTurretsCount() {
-        if (this.level.isClientSide) return 0;
-        ServerLevel serverLevel = (ServerLevel) this.level;
+        if (this.level().isClientSide) return 0;
+        ServerLevel serverLevel = (ServerLevel) this.level();
         this.summonedTurretUUIDs.removeIf(uuid -> {
             net.minecraft.world.entity.Entity entity = serverLevel.getEntity(uuid);
             return entity == null || !entity.isAlive();
@@ -269,31 +269,31 @@ public class HealerHeroEntity extends PathfinderMob implements IAlly, IAnimatabl
         this.updateMaxHealthAttribute();
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private PlayState predicate(AnimationState<HealerHeroEntity> event) {
         if (this.getAnimationState() == 1) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("attackorheal"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("attackorheal"));
             return PlayState.CONTINUE;
         } else if (this.getAnimationState() == 2) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("build"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("build"));
             return PlayState.CONTINUE;
         } else if (this.getAnimationState() == 3) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("play"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("play"));
             return PlayState.CONTINUE;
         }
         if (event.isMoving()) {
-            event.getController().setAnimation(new AnimationBuilder().loop("walk"));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
             return PlayState.CONTINUE;
         }
         return PlayState.STOP;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 5, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 5, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() { return this.factory; }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 
     public static class HealerHeroStrollGoal extends WaterAvoidingRandomStrollGoal {
         private final HealerHeroEntity hero;

@@ -59,7 +59,7 @@ public class ZombieCommanderMaggotEntity extends PathfinderMob implements IZombi
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             lifeTicks--;
             if (lifeTicks <= 0) this.discard();
         }
@@ -68,9 +68,9 @@ public class ZombieCommanderMaggotEntity extends PathfinderMob implements IZombi
     @Override
     public boolean doHurtTarget(Entity target) {
         float damage = (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
-        boolean flag = target.hurt(net.minecraft.world.damagesource.DamageSource.mobAttack(this), damage);
-        if (flag && !this.level.isClientSide && ownerUUID != null) {
-            Entity owner = ((net.minecraft.server.level.ServerLevel)this.level).getEntity(ownerUUID);
+        boolean flag = target.hurt(this.damageSources().mobAttack(this), damage);
+        if (flag && !this.level().isClientSide && ownerUUID != null) {
+            Entity owner = ((net.minecraft.server.level.ServerLevel)this.level()).getEntity(ownerUUID);
             if (owner instanceof ZombieCommanderEntity commander) {
                 commander.recordAttackXP((double)damage);
             }

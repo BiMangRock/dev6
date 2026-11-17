@@ -90,7 +90,7 @@ public class ResourceVillagerEasyEntity extends PathfinderMob implements Village
     public void aiStep() {
         super.aiStep();
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.totalTicksAlive++;
 
             // 시간 경과에 따른 전투/정비 페이즈 정보 실시간 갱신 및 동기화
@@ -382,7 +382,7 @@ public class ResourceVillagerEasyEntity extends PathfinderMob implements Village
         int resolvedMax = Math.min(maxLvl, 3);
         int resolvedMin = Math.min(minLvl, resolvedMax);
 
-        List<Enchantment> enchantments = Registry.ENCHANTMENT.stream().toList();
+        List<Enchantment> enchantments = net.minecraft.core.registries.BuiltInRegistries.ENCHANTMENT.stream().toList();
         if (!enchantments.isEmpty()) {
             Enchantment randomEnch = enchantments.get(this.random.nextInt(enchantments.size()));
             int minPossible = Math.max(randomEnch.getMinLevel(), resolvedMin);
@@ -440,12 +440,12 @@ public class ResourceVillagerEasyEntity extends PathfinderMob implements Village
             double radius = 8.0D + this.random.nextDouble() * 4.0D;
             double x = this.getX() + Math.cos(angle) * radius;
             double z = this.getZ() + Math.sin(angle) * radius;
-            double y = this.level.getHeight(Heightmap.Types.WORLD_SURFACE, (int) x, (int) z);
+            double y = this.level().getHeight(Heightmap.Types.WORLD_SURFACE, (int) x, (int) z);
 
             Mob mob = createRandomZombieByLevel(level);
             if (mob != null) {
                 mob.moveTo(x, y, z, this.random.nextFloat() * 360F, 0.0F);
-                this.level.addFreshEntity(mob);
+                this.level().addFreshEntity(mob);
                 mob.setTarget(this);
 
                 this.spawnedZombies.add(mob);
@@ -459,36 +459,36 @@ public class ResourceVillagerEasyEntity extends PathfinderMob implements Village
         Zombie zombie;
 
         if (level == 1) {
-            zombie = EntityType.ZOMBIE.create(this.level);
+            zombie = EntityType.ZOMBIE.create(this.level());
         } else if (level == 2) {
             if (r < 0.30F) {
-                zombie = EntityType.HUSK.create(this.level);
+                zombie = EntityType.HUSK.create(this.level());
             } else {
-                zombie = EntityType.ZOMBIE.create(this.level);
+                zombie = EntityType.ZOMBIE.create(this.level());
             }
         } else if (level == 3) {
             if (r < 0.20F) {
-                zombie = EntityType.DROWNED.create(this.level);
+                zombie = EntityType.DROWNED.create(this.level());
             } else if (r < 0.50F) {
-                zombie = EntityType.HUSK.create(this.level);
+                zombie = EntityType.HUSK.create(this.level());
             } else {
-                zombie = EntityType.ZOMBIE.create(this.level);
+                zombie = EntityType.ZOMBIE.create(this.level());
             }
         } else if (level == 4) {
             if (r < 0.30F) {
-                zombie = EntityType.DROWNED.create(this.level);
+                zombie = EntityType.DROWNED.create(this.level());
             } else if (r < 0.60F) {
-                zombie = EntityType.HUSK.create(this.level);
+                zombie = EntityType.HUSK.create(this.level());
             } else {
-                zombie = EntityType.ZOMBIE.create(this.level);
+                zombie = EntityType.ZOMBIE.create(this.level());
             }
         } else { // Level 5 (INFINITE)
             if (r < 0.40F) {
-                zombie = EntityType.DROWNED.create(this.level);
+                zombie = EntityType.DROWNED.create(this.level());
             } else if (r < 0.70F) {
-                zombie = EntityType.HUSK.create(this.level);
+                zombie = EntityType.HUSK.create(this.level());
             } else {
-                zombie = EntityType.ZOMBIE.create(this.level);
+                zombie = EntityType.ZOMBIE.create(this.level());
             }
         }
 

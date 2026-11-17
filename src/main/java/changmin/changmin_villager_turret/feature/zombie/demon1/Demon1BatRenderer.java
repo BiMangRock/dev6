@@ -37,8 +37,8 @@ public class Demon1BatRenderer extends EntityRenderer<Demon1BatEntity> {
         float lerpPitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
 
         // 💡 1.18.2 ~ 1.19.2 기준 회전 코드
-        poseStack.mulPose(com.mojang.math.Vector3f.YP.rotationDegrees(lerpYaw));
-        poseStack.mulPose(com.mojang.math.Vector3f.ZP.rotationDegrees(lerpPitch));
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(lerpYaw));
+        poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(lerpPitch));
 
         // ※ 만약 1.19.3 이상 혹은 1.20+ 버전에서 Vector3f 컴파일 에러 발생 시, 위 두 줄을 지우고 아래 주석 코드로 변경해 주세요.
         // poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(lerpYaw));

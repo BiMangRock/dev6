@@ -7,7 +7,6 @@ import changmin.changmin_villager_turret.feature.hero.healer_hero.HealerHeroEnti
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -83,7 +82,7 @@ public class HealerTurretEntity extends AbstractTurretEntity {
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.getCurrentCooldown() > 0) {
                 this.setCurrentCooldown(this.getCurrentCooldown() - 1);
             }
@@ -107,7 +106,7 @@ public class HealerTurretEntity extends AbstractTurretEntity {
         int neededXp = this.getNeededXp();
 
         // 🆕 [경험치 공유] 이 터렛이 힐을 하여 경험치를 획득할 때, 소환사 영웅이 생존해 있다면 영웅에게도 똑같이 힐 XP를 부여합니다.
-        if (this.ownerUUID != null && this.level instanceof ServerLevel serverLevel) {
+        if (this.ownerUUID != null && this.level() instanceof ServerLevel serverLevel) {
             net.minecraft.world.entity.Entity owner = serverLevel.getEntity(this.ownerUUID);
             if (owner instanceof HealerHeroEntity hero && hero.isAlive()) {
                 hero.recordHealXP(amount);
@@ -136,7 +135,7 @@ public class HealerTurretEntity extends AbstractTurretEntity {
 
         this.playSound(SoundEvents.PLAYER_LEVELUP, 1.0F, 0.8F);
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             // 1. 하급 티켓 개수 연산 (*0.2 소수점 곱셈 연산 적용)
             int baseTickets;
             if (newLevel <= 4) {
@@ -165,7 +164,7 @@ public class HealerTurretEntity extends AbstractTurretEntity {
             this.spawnAtLocation(HealerTradeManager.getBoundToken(this, finalTickets, 0), 0.5F);
 
             // 4. 경험치병 아이템 대신 에메랄드빛 경험치 구슬 분수 연출 분출
-            if (this.level instanceof ServerLevel serverLevel) {
+            if (this.level() instanceof ServerLevel serverLevel) {
                 int xpAmount = newLevel * 50;
 
                 // 마인크래프트 공식 API를 이용해 경험치 구슬 즉시 소환
@@ -185,25 +184,25 @@ public class HealerTurretEntity extends AbstractTurretEntity {
             String upgradeType = null;
             if (heldItem.hasTag() && heldItem.getTag().contains("UpgradeType")) {
                 String allowedType = heldItem.getTag().getString("TurretType");
-                if (allowedType.equals(this.getType().getRegistryName().toString())) {
+                if (allowedType.equals(String.valueOf(net.minecraft.world.entity.EntityType.getKey(this.getType())))) {
                     upgradeType = heldItem.getTag().getString("UpgradeType");
                 }
             }
 
             if (upgradeType != null) {
-                if (!this.level.isClientSide) {
+                if (!this.level().isClientSide) {
                     HealerTradeManager.applyUpgradeDirectly(this, upgradeType);
                     if (!player.getAbilities().instabuild) heldItem.shrink(1);
                 }
-                return InteractionResult.sidedSuccess(this.level.isClientSide);
+                return InteractionResult.sidedSuccess(this.level().isClientSide);
             }
         }
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.setTradingPlayer(player);
             this.openTradingScreen(player, this.getDisplayName(), 1);
         }
-        return InteractionResult.sidedSuccess(this.level.isClientSide);
+        return InteractionResult.sidedSuccess(this.level().isClientSide);
     }
 
     // 🆕 주인 정보 게터 및 세터 선언
@@ -223,7 +222,7 @@ public class HealerTurretEntity extends AbstractTurretEntity {
     @Override
     protected void onTradeCompleted(MerchantOffer offer) {
         offer.increaseUses();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             ItemStack result = offer.getResult();
             if (result.hasTag() && result.getTag().contains("UpgradeType")) {
                 String upgradeType = result.getTag().getString("UpgradeType");

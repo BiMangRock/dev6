@@ -58,7 +58,7 @@ public class ApostleRangedAttackGoal extends Goal {
     }
 
     private void shootArrow(LivingEntity target, Vec3 startPos) {
-        AngelZombieArrow arrow = new AngelZombieArrow(entity.level, entity);
+        AngelZombieArrow arrow = new AngelZombieArrow(entity.level(), entity);
 
         // 화살의 시작 위치를 계산된 뒤쪽 위치로 강제 설정
         arrow.setPos(startPos.x, startPos.y, startPos.z);
@@ -72,6 +72,6 @@ public class ApostleRangedAttackGoal extends Goal {
         // 부정확도(inaccuracy)를 2.0F 정도로 주어 여러 발이 퍼지게 함
         arrow.shoot(d0, d1 + d3 * 0.15D, d2, 1.6F, 2.0F);
 
-        entity.level.addFreshEntity(arrow);
+        entity.level().addFreshEntity(arrow);
     }
 }

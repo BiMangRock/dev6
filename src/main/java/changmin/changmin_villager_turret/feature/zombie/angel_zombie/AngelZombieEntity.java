@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.zombie.angel_zombie;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import changmin.changmin_villager_turret.ally.IAlly;
 import net.minecraft.world.entity.EntityType;
@@ -17,20 +26,12 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 
-public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTribe, IAngelAttack {
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+public class AngelZombieEntity extends Monster implements GeoEntity, IZombieTribe, IAngelAttack {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     @Nullable
     private LivingEntity leader = null;
@@ -55,7 +56,7 @@ public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTr
     LivingEntity resolveLeader() {
         // (AI 목표는 2틱마다 호출될 수 있어 tickCount % N 대신 호출 횟수 카운터 사용)
         if (this.leader == null && this.leaderUUID != null && --this.leaderLookupCooldown <= 0
-                && this.level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                && this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
             this.leaderLookupCooldown = 10;
             net.minecraft.world.entity.Entity found = serverLevel.getEntity(this.leaderUUID);
             if (found instanceof LivingEntity living) this.leader = living;
@@ -106,14 +107,14 @@ public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTr
     }
 
     public void performDonutAttack(LivingEntity target) {
-        if (!this.level.isClientSide && target != null) {
+        if (!this.level().isClientSide && target != null) {
             Vec3 direction = target.position().subtract(this.position()).normalize();
             double speed = 0.3D;
 
-            ShockwaveEntity shockwave = new ShockwaveEntity(this.level, this,
+            ShockwaveEntity shockwave = new ShockwaveEntity(this.level(), this,
                     direction.x * speed, direction.y * speed, direction.z * speed);
 
-            this.level.addFreshEntity(shockwave);
+            this.level().addFreshEntity(shockwave);
             this.attackTimer = 15;
         }
     }
@@ -150,26 +151,26 @@ public class AngelZombieEntity extends Monster implements IAnimatable, IZombieTr
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(f));
         }
-        this.calculateEntityAnimation(this, false);
+        this.calculateEntityAnimation(false);
     }
 
     @Override
     protected PathNavigation createNavigation(Level level) { return new FlyingPathNavigation(this, level); }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private PlayState predicate(AnimationState<AngelZombieEntity> event) {
         if (this.attackTimer > 0) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("attack1"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("attack1"));
         } else {
-            event.getController().setAnimation(new AnimationBuilder().loop("fly"));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("fly"));
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 5, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 5, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() { return factory; }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 }

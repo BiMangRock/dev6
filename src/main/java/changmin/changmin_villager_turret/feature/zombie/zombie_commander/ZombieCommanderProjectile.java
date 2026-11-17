@@ -36,8 +36,8 @@ public class ZombieCommanderProjectile extends ThrowableItemProjectile {
     @Override
     protected void onHit(HitResult result) {
         super.onHit(result);
-        if (!this.level.isClientSide) {
-            ZombieCommanderMaggotEntity maggot = new ZombieCommanderMaggotEntity(ModEntityTypes.COMMANDER_MAGGOT.get(), this.level);
+        if (!this.level().isClientSide) {
+            ZombieCommanderMaggotEntity maggot = new ZombieCommanderMaggotEntity(ModEntityTypes.COMMANDER_MAGGOT.get(), this.level());
             maggot.setPos(this.getX(), this.getY(), this.getZ());
 
             // 💡 소환되는 구더기에 커맨더의 업그레이드 수치 주입
@@ -51,7 +51,7 @@ public class ZombieCommanderProjectile extends ThrowableItemProjectile {
 
             if (this.getOwner() != null) maggot.setOwner(this.getOwner().getUUID());
 
-            this.level.addFreshEntity(maggot);
+            this.level().addFreshEntity(maggot);
             this.discard();
         }
     }

@@ -579,5 +579,6 @@
   "changmin_villager_turret.packed.success": "%s recovered! It keeps its level and upgrades when placed again.",
   "changmin_villager_turret.packed.busy": "Cannot recover: another player is using its upgrade screen.",
   "changmin_villager_turret.packed.lore_level": "Recovered turret · Lv.%s",
-  "changmin_villager_turret.packed.lore_keep": "Restores its level, upgrades and health when placed"
+  "changmin_villager_turret.packed.lore_keep": "Restores its level, upgrades and health when placed",
+  "itemGroup.changmin_villager_turret": "Villager Turret"
 }

@@ -1,7 +1,8 @@
 package changmin.changmin_villager_turret.feature.turret.store;
 
+import net.minecraft.network.chat.Component;
+
 import changmin.changmin_villager_turret.registry.ModItems;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -33,7 +34,7 @@ public class TurretStoreEntity extends PathfinderMob implements Merchant {
 
     public TurretStoreEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
-        this.setCustomName(new TextComponent("상점"));
+        this.setCustomName(Component.literal("상점"));
         this.setCustomNameVisible(true);
         this.setPersistenceRequired(); // 디스폰 방지
     }
@@ -67,10 +68,10 @@ public class TurretStoreEntity extends PathfinderMob implements Merchant {
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         // 💡 [수정됨] isTrading() 대신 getTradingPlayer() == null 을 활용하여 컴파일 에러 해결
-        if (this.isAlive() && this.getTradingPlayer() == null && !this.level.isClientSide) {
+        if (this.isAlive() && this.getTradingPlayer() == null && !this.level().isClientSide) {
             this.setTradingPlayer(player);
             this.openTradingScreen(player, this.getDisplayName(), 1);
-            return InteractionResult.sidedSuccess(this.level.isClientSide);
+            return InteractionResult.sidedSuccess(this.level().isClientSide);
         }
         return super.mobInteract(player, hand);
     }
@@ -357,6 +358,6 @@ public class TurretStoreEntity extends PathfinderMob implements Merchant {
 
     @Override
     public boolean isClientSide() {
-        return this.level.isClientSide();
+        return this.level().isClientSide();
     }
 }

@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.zombie.zombie_commander;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.nbt.CompoundTag; // 🆕 추가
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -13,18 +22,10 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class ZombieCommanderEntity extends PathfinderMob implements IAnimatable, IZombieTribe {
+public class ZombieCommanderEntity extends PathfinderMob implements GeoEntity, IZombieTribe {
     private static final EntityDataAccessor<Integer> DATA_LEVEL = SynchedEntityData.defineId(ZombieCommanderEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_XP_BUFF = SynchedEntityData.defineId(ZombieCommanderEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_XP_ATTACK = SynchedEntityData.defineId(ZombieCommanderEntity.class, EntityDataSerializers.INT);
@@ -34,7 +35,7 @@ public class ZombieCommanderEntity extends PathfinderMob implements IAnimatable,
     public static final UUID AURA_HEALTH_BUFF_ID = UUID.fromString("7b5a2b3c-1d9e-4f1a-8c8b-9d5e6f7a8b9c");
     public static final UUID MAGGOT_ABSORB_ID = UUID.fromString("1a2b3c4d-5e6f-4a1b-8c8d-9e0f1a2b3c4d");
 
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private int animationTick = 0;
     private double absorbedHealthBonus = 0;
 
@@ -70,7 +71,7 @@ public class ZombieCommanderEntity extends PathfinderMob implements IAnimatable,
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.tickCount % 20 == 0 && this.getHealth() < this.getMaxHealth()) this.heal(1.0F);
             if (this.animationTick > 0) {
                 this.animationTick--;
@@ -201,25 +202,25 @@ public class ZombieCommanderEntity extends PathfinderMob implements IAnimatable,
     public void setSyncCooldown(int ticks) { this.entityData.set(DATA_COOLDOWN, ticks); }
     public int getSyncCooldown() { return this.entityData.get(DATA_COOLDOWN); }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private PlayState predicate(AnimationState<ZombieCommanderEntity> event) {
         if (this.getAnimationState() == 1 || this.getAnimationState() == 2) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("buff"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("buff"));
             return PlayState.CONTINUE;
         } else if (this.getAnimationState() == 3) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("altimate"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("altimate"));
             return PlayState.CONTINUE;
         }
         if (event.isMoving()) {
-            event.getController().setAnimation(new AnimationBuilder().loop("walk"));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
             return PlayState.CONTINUE;
         }
         return PlayState.STOP;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 5, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 5, this::predicate));
     }
     @Override
-    public AnimationFactory getFactory() { return this.factory; }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 }

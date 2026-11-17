@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.hero.healer_hero;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import changmin.changmin_villager_turret.registry.ModEntityTypes;
@@ -15,17 +24,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
-public class LoveProjectileEntity extends ThrowableProjectile implements IAnimatable { // 🆕 ThrowableProjectile 상속
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+public class LoveProjectileEntity extends ThrowableProjectile implements GeoEntity { // 🆕 ThrowableProjectile 상속
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private int lifeTicks = 0;
     private int maxLifeTicks = 200; // 초깃값 10초(200틱)
     private boolean hitBlock = false;
@@ -60,7 +61,7 @@ public class LoveProjectileEntity extends ThrowableProjectile implements IAnimat
 
         this.lifeTicks++;
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.lifeTicks >= this.maxLifeTicks) {
                 this.discard();
             }
@@ -71,16 +72,16 @@ public class LoveProjectileEntity extends ThrowableProjectile implements IAnimat
     protected void onHitEntity(EntityHitResult result) {
         super.onHitEntity(result);
         Entity hit = result.getEntity();
-        if (!this.level.isClientSide && hit instanceof LivingEntity living) {
+        if (!this.level().isClientSide && hit instanceof LivingEntity living) {
             if (IZombieTribe.isZombieTribe(living) && !(living instanceof IAlly)) {
                 // 적 타격 시 피해 유발 (6.0 고정 대미지) 및 공격 경험치 누적
                 if (this.getOwner() instanceof LivingEntity owner) {
-                    living.hurt(DamageSource.indirectMobAttack(this, owner), 6.0F);
+                    living.hurt(this.damageSources().mobProjectile(this, owner), 6.0F); // 1.19.4+: indirectMobAttack → mobProjectile
                     if (owner instanceof HealerHeroEntity hero) {
                         hero.recordAttackXP(1); // 공격 XP 1 부여
                     }
                 } else {
-                    living.hurt(DamageSource.GENERIC, 6.0F);
+                    living.hurt(this.damageSources().generic(), 6.0F);
                 }
                 this.discard(); // 생명체 타격 시 소멸
             } else if (IAlly.isAllyEntity(living)) {
@@ -91,7 +92,7 @@ public class LoveProjectileEntity extends ThrowableProjectile implements IAnimat
                     hero.recordHealXP(1); // 아군 맞춤 시 힐 XP 1 부여
                 }
 
-                if (this.level instanceof ServerLevel serverLevel) {
+                if (this.level() instanceof ServerLevel serverLevel) {
                     serverLevel.sendParticles(ParticleTypes.HEART, living.getX(), living.getY() + 0.5D, living.getZ(), 5, 0.2D, 0.2D, 0.2D, 0.02D);
                 }
                 this.discard(); // 아군 타격 시 소멸
@@ -127,16 +128,16 @@ public class LoveProjectileEntity extends ThrowableProjectile implements IAnimat
         this.hitBlock = tag.getBoolean("HitBlock");
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
-        event.getController().setAnimation(new AnimationBuilder().loop("play"));
+    private PlayState predicate(AnimationState<LoveProjectileEntity> event) {
+        event.getController().setAnimation(RawAnimation.begin().thenLoop("play"));
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 0, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 0, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() { return this.factory; }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 }

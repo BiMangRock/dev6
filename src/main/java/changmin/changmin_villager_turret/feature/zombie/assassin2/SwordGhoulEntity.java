@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.zombie.assassin2;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.registry.ModEntityTypes;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.util.Mth;
@@ -10,19 +19,11 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
 import java.util.List;
 
-public class SwordGhoulEntity extends Projectile implements IAnimatable {
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+public class SwordGhoulEntity extends Projectile implements GeoEntity {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private int ageTicks = 0;
 
     public SwordGhoulEntity(EntityType<? extends Projectile> type, Level level) {
@@ -52,15 +53,15 @@ public class SwordGhoulEntity extends Projectile implements IAnimatable {
         // 💡 화살처럼 날아가는 방향을 바라보게 함
         this.updateRotation();
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             // 시간이 지날수록 모델 크기에 맞춰 판정 범위 확장 (최대 4배)
             double scale = Math.min(4.0D, 1.0D + (ageTicks * 0.15D));
             AABB area = this.getBoundingBox().inflate(scale, 0.5D, scale);
-            List<LivingEntity> targets = this.level.getEntitiesOfClass(LivingEntity.class, area);
+            List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, area);
 
             for (LivingEntity target : targets) {
                 if (target != this.getOwner() && !IZombieTribe.isZombieTribe(target)) {
-                    target.hurt(DamageSource.mobAttack((LivingEntity) this.getOwner()), 6.0F);
+                    target.hurt(this.damageSources().mobAttack((LivingEntity) this.getOwner()), 6.0F);
                 }
             }
 
@@ -87,18 +88,16 @@ public class SwordGhoulEntity extends Projectile implements IAnimatable {
 
     @Override protected void defineSynchedData() {}
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
-        event.getController().setAnimation(new AnimationBuilder().loop("fly"));
+    private PlayState predicate(AnimationState<SwordGhoulEntity> event) {
+        event.getController().setAnimation(RawAnimation.begin().thenLoop("fly"));
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 0, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 0, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return factory;
-    }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 }

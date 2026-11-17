@@ -84,15 +84,15 @@ public class CreakingAttackGoal extends Goal {
 
                 // 💡 [클라이언트 동기화]: 서버에서 클라이언트로 "공격 애니메이션을 시작해라" 라는 이벤트를 즉시 전송합니다.
                 // 바닐라 철골렘이 공격 애니메이션을 보낼 때 쓰는 규격 패킷입니다.
-                entity.level.broadcastEntityEvent(entity, (byte) 4);
+                entity.level().broadcastEntityEvent(entity, (byte) 4);
             }
         }
     }
 
     private void shootArrow(LivingEntity target) {
-        if (entity.level.isClientSide) return;
+        if (entity.level().isClientSide) return;
 
-        AngelZombieArrow arrow = new AngelZombieArrow(entity.level, entity);
+        AngelZombieArrow arrow = new AngelZombieArrow(entity.level(), entity);
         arrow.setPos(entity.getX(), entity.getEyeY() - 0.1D, entity.getZ());
 
         double d0 = target.getX() - entity.getX();
@@ -101,6 +101,6 @@ public class CreakingAttackGoal extends Goal {
         double d3 = Math.sqrt(d0 * d0 + d2 * d2);
 
         arrow.shoot(d0, d1 + d3 * 0.18D, d2, 1.8F, 1.5F);
-        entity.level.addFreshEntity(arrow);
+        entity.level().addFreshEntity(arrow);
     }
 }

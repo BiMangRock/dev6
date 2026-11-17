@@ -2,7 +2,7 @@ package changmin.changmin_villager_turret.feature.turret.resource_villager1;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.VillagerModel;
@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.VillagerProfessionLayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 
 public class ResourceVillagerRenderer extends MobRenderer<ResourceVillagerEntity, VillagerModel<ResourceVillagerEntity>> {
@@ -50,17 +49,17 @@ public class ResourceVillagerRenderer extends MobRenderer<ResourceVillagerEntity
             // 이름은 언어 파일(entity.changmin_villager_turret.*)을 따릅니다. 게임 언어가 한국어면 한국어로 표시
             Component nameComponent = entity.getType().getDescription();
             float nameWidth = (float)font.width(nameComponent);
-            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -32.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -32.0F, -1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             // 1. 레벨 정보 텍스트 (Y축: -22.0F)
             int levelValue = entity.getTurretLevel();
             String levelText = (levelValue >= 5) ? "Lv. INFINITE" : String.format("Lv. %d", levelValue);
-            Component textComponent = new TextComponent(levelText);
+            Component textComponent = Component.literal(levelText);
             float textWidth = (float)font.width(textComponent);
             float textX = -textWidth / 2.0F;
             float lvlTextY = -22.0F;
 
-            font.drawInBatch(textComponent, textX, lvlTextY, -1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(textComponent, textX, lvlTextY, -1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             // 2. [수정] 전투 상태 및 실시간 MM:SS 카운트다운 출력 (Y축: -12.0F)
             boolean isCombat = entity.isCombatPhase();
@@ -79,12 +78,12 @@ public class ResourceVillagerRenderer extends MobRenderer<ResourceVillagerEntity
                 textColor = 0xFF55FF55; // 녹색 정비 대기 텍스트
             }
 
-            Component cdComponent = new TextComponent(phaseText);
+            Component cdComponent = Component.literal(phaseText);
             float cdTextWidth = (float)font.width(cdComponent);
             float cdTextX = -cdTextWidth / 2.0F;
             float cdTextY = -12.0F;
 
-            font.drawInBatch(cdComponent, cdTextX, cdTextY, textColor, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(cdComponent, cdTextX, cdTextY, textColor, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             // 게이지 바 가로폭 선언
             float barWidth = 50.0F;
@@ -115,7 +114,7 @@ public class ResourceVillagerRenderer extends MobRenderer<ResourceVillagerEntity
             String hpTextVal = String.format("%d/%d", (int)entity.getHealth(), (int)entity.getMaxHealth());
             float hpTextX = barX + barWidth + 4.0F;
             float hpTextY = hpBarY - 2.5F;
-            font.drawInBatch(new TextComponent(hpTextVal), hpTextX, hpTextY, -1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(Component.literal(hpTextVal), hpTextX, hpTextY, -1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             // ==========================================
             // 🟦 4. [수정] 가변형 프로그레스 바 렌더링 (Y축: 7.0F)
@@ -150,7 +149,7 @@ public class ResourceVillagerRenderer extends MobRenderer<ResourceVillagerEntity
             // 우측 상태 백분율 텍스트 출력
             float xpTextX = barX + barWidth + 4.0F;
             float xpTextY = xpBarY - 2.5F;
-            font.drawInBatch(new TextComponent(progressTextVal), xpTextX, xpTextY, xpColor, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(Component.literal(progressTextVal), xpTextX, xpTextY, xpColor, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             poseStack.popPose();
         }

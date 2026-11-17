@@ -1,19 +1,20 @@
 package changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie;
 
-import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib3.model.AnimatedGeoModel;
+import software.bernie.geckolib.model.GeoModel;
 
-public class RagedShockwaveModel extends AnimatedGeoModel<RagedShockwaveEntity> {
+import net.minecraft.resources.ResourceLocation;
+
+public class RagedShockwaveModel extends GeoModel<RagedShockwaveEntity> {
     @Override
-    public ResourceLocation getModelLocation(RagedShockwaveEntity object) {
+    public ResourceLocation getModelResource(RagedShockwaveEntity object) {
         return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "geo/raged_shockwave.geo.json");
     }
     @Override
-    public ResourceLocation getTextureLocation(RagedShockwaveEntity object) {
+    public ResourceLocation getTextureResource(RagedShockwaveEntity object) {
         return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "textures/entity/raged_shockwave.png");
     }
     @Override
-    public ResourceLocation getAnimationFileLocation(RagedShockwaveEntity animatable) {
+    public ResourceLocation getAnimationResource(RagedShockwaveEntity animatable) {
 
         return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "animations/raged_shockwave.animation.json");
     }

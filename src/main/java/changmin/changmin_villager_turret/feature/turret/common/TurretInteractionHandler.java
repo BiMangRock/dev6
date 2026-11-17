@@ -59,14 +59,14 @@ public final class TurretInteractionHandler {
     @SubscribeEvent
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
         Entity target = event.getTarget();
-        Player player = event.getPlayer();
+        Player player = event.getEntity();
         ItemStack held = player.getItemInHand(event.getHand());
 
         // 🚫 인증서로 터렛 우클릭 → 재적용 차단
         if (target instanceof AbstractTurretEntity && TurretTradeUtil.isUpgradeReceipt(held)) {
             event.setCanceled(true);
-            event.setCancellationResult(InteractionResult.sidedSuccess(player.level.isClientSide));
-            if (!player.level.isClientSide) {
+            event.setCancellationResult(InteractionResult.sidedSuccess(player.level().isClientSide));
+            if (!player.level().isClientSide) {
                 player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.receipt.already_applied")
                         .withStyle(ChatFormatting.RED), true);
             }
@@ -78,8 +78,8 @@ public final class TurretInteractionHandler {
         if (!isRecoverable(target) || !target.isAlive()) return;
 
         event.setCanceled(true);
-        event.setCancellationResult(InteractionResult.sidedSuccess(player.level.isClientSide));
-        if (player.level.isClientSide) return;
+        event.setCancellationResult(InteractionResult.sidedSuccess(player.level().isClientSide));
+        if (player.level().isClientSide) return;
 
         LivingEntity turret = (LivingEntity) target;
 
@@ -97,11 +97,11 @@ public final class TurretInteractionHandler {
             player.drop(egg, false);
         }
 
-        if (turret.level instanceof ServerLevel serverLevel) {
+        if (turret.level() instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(ParticleTypes.POOF, turret.getX(), turret.getY() + turret.getBbHeight() * 0.5D, turret.getZ(),
                     12, 0.3D, 0.4D, 0.3D, 0.02D);
         }
-        turret.level.playSound(null, turret.blockPosition(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 1.0F, 0.8F);
+        turret.level().playSound(null, turret.blockPosition(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 1.0F, 0.8F);
         player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.packed.success",
                 turret.getType().getDescription()).withStyle(ChatFormatting.GREEN), true);
 
@@ -133,7 +133,7 @@ public final class TurretInteractionHandler {
         for (String key : STRIP_KEYS) {
             data.remove(key);
         }
-        data.putString("id", String.valueOf(type.getRegistryName()));
+        data.putString("id", String.valueOf(net.minecraft.world.entity.EntityType.getKey(type)));
 
         ItemStack stack = new ItemStack(eggItem);
         CompoundTag tag = stack.getOrCreateTag();

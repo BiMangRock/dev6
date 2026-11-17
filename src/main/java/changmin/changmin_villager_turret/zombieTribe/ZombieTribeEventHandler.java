@@ -12,7 +12,7 @@ public class ZombieTribeEventHandler {
 
     @SubscribeEvent
     public static void onLivingHurt(LivingHurtEvent event) {
-        LivingEntity victim = event.getEntityLiving();
+        LivingEntity victim = event.getEntity();
         Entity attacker = event.getSource().getEntity();
 
         if (attacker instanceof LivingEntity livingAttacker) {
@@ -25,7 +25,7 @@ public class ZombieTribeEventHandler {
 
     @SubscribeEvent
     public static void onChangeTarget(LivingChangeTargetEvent event) {
-        LivingEntity attacker = event.getEntityLiving();
+        LivingEntity attacker = event.getEntity();
         LivingEntity newTarget = event.getNewTarget();
 
         if (IZombieTribe.isZombieTribe(attacker) && newTarget != null) {

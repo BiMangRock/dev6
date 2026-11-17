@@ -61,7 +61,7 @@ public class Assassin2IntegratedGoal extends Goal {
 
             // --- 점프 기동 ---
             // (1) 지상에서 첫 번째 점프 시도 (약 4% 확률)
-            if (assassin.isOnGround() && assassin.getRandom().nextInt(25) == 0) {
+            if (assassin.onGround() && assassin.getRandom().nextInt(25) == 0) {
                 assassin.performAssassinJump(); // Entity에 만든 public 메서드
 
                 // 점프 시 보는 방향으로 살짝 추진력 추가
@@ -81,7 +81,7 @@ public class Assassin2IntegratedGoal extends Goal {
             this.doubleJumpDelay--;
             if (this.doubleJumpDelay == 0) {
                 // 💡 조건: 공중에 떠 있어야 함 + 50% 확률(nextBoolean) 당첨 시 실행
-                if (!assassin.isOnGround() && assassin.getRandom().nextBoolean()) {
+                if (!assassin.onGround() && assassin.getRandom().nextBoolean()) {
                     assassin.performAirJump(); // 공중 도약
 
                     // 이단 점프 시 더 강력한 공중 대쉬 효과
@@ -103,8 +103,8 @@ public class Assassin2IntegratedGoal extends Goal {
         Vec3 dir = end.subtract(start).normalize();
 
         double speed = 0.9D;
-        SwordGhoulEntity ghoul = new SwordGhoulEntity(assassin.level, assassin, dir.x * speed, dir.y * speed, dir.z * speed);
-        assassin.level.addFreshEntity(ghoul);
+        SwordGhoulEntity ghoul = new SwordGhoulEntity(assassin.level(), assassin, dir.x * speed, dir.y * speed, dir.z * speed);
+        assassin.level().addFreshEntity(ghoul);
     }
 
     @Override

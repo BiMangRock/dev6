@@ -44,7 +44,7 @@ public class TurretTargetGoal<T extends LivingEntity> extends NearestAttackableT
     @Override
     protected void findTarget() {
         AABB area = this.getTargetSearchArea(this.getFollowDistance());
-        List<T> candidates = this.mob.level.getEntitiesOfClass(this.targetType, area,
+        List<T> candidates = this.mob.level().getEntitiesOfClass(this.targetType, area,
                 e -> this.targetConditions.test(this.mob, e));
 
         double expectedHit = TurretConfig.arrowDamage() + this.turret.getDamageLevel() * TurretConfig.arrowDamagePerLevel();

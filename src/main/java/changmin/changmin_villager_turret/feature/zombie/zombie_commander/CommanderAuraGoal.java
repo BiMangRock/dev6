@@ -20,17 +20,17 @@ public class CommanderAuraGoal extends Goal {
     @Override
     public void tick() {
         timer++;
-        if (!commander.level.isClientSide) {
+        if (!commander.level().isClientSide) {
             commander.setSyncCooldown(timer);
         }
 
         if (timer >= MAX_COOLDOWN) {
             timer = 0;
-            if (!commander.level.isClientSide) {
+            if (!commander.level().isClientSide) {
                 commander.triggerBuffAnimation();
-                commander.level.broadcastEntityEvent(commander, (byte) 60);
+                commander.level().broadcastEntityEvent(commander, (byte) 60);
 
-                List<LivingEntity> targets = commander.level.getEntitiesOfClass(
+                List<LivingEntity> targets = commander.level().getEntitiesOfClass(
                         LivingEntity.class,
                         commander.getBoundingBox().inflate(commander.getBuffRange()),
                         e -> IZombieTribe.isZombieTribe(e) && !e.getUUID().equals(commander.getUUID())

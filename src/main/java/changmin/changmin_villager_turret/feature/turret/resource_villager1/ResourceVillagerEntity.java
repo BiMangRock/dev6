@@ -92,7 +92,7 @@ public class ResourceVillagerEntity extends PathfinderMob implements VillagerDat
     public void aiStep() {
         super.aiStep();
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.totalTicksAlive++;
 
             // 시간 경과에 따른 전투/정비 페이즈 정보 실시간 갱신 및 동기화
@@ -334,7 +334,7 @@ public class ResourceVillagerEntity extends PathfinderMob implements VillagerDat
     }
 
     private ItemStack getRandomEnchantedBook(int minLvl, int maxLvl) {
-        List<Enchantment> enchantments = Registry.ENCHANTMENT.stream().toList();
+        List<Enchantment> enchantments = net.minecraft.core.registries.BuiltInRegistries.ENCHANTMENT.stream().toList();
         if (!enchantments.isEmpty()) {
             Enchantment randomEnch = enchantments.get(this.random.nextInt(enchantments.size()));
             int minPossible = Math.max(randomEnch.getMinLevel(), minLvl);
@@ -388,12 +388,12 @@ public class ResourceVillagerEntity extends PathfinderMob implements VillagerDat
             double radius = 8.0D + this.random.nextDouble() * 4.0D;
             double x = this.getX() + Math.cos(angle) * radius;
             double z = this.getZ() + Math.sin(angle) * radius;
-            double y = this.level.getHeight(Heightmap.Types.WORLD_SURFACE, (int) x, (int) z);
+            double y = this.level().getHeight(Heightmap.Types.WORLD_SURFACE, (int) x, (int) z);
 
             Mob mob = createRandomZombieByLevel(level);
             if (mob != null) {
                 mob.moveTo(x, y, z, this.random.nextFloat() * 360F, 0.0F);
-                this.level.addFreshEntity(mob);
+                this.level().addFreshEntity(mob);
                 mob.setTarget(this);
 
                 this.spawnedZombies.add(mob);
@@ -403,10 +403,10 @@ public class ResourceVillagerEntity extends PathfinderMob implements VillagerDat
 
     private Mob createRandomZombieByLevel(int level) {
         if (level == 1) {
-            return EntityType.ZOMBIE.create(this.level);
+            return EntityType.ZOMBIE.create(this.level());
         }
         if (level == 2) {
-            Zombie zombie = EntityType.ZOMBIE.create(this.level);
+            Zombie zombie = EntityType.ZOMBIE.create(this.level());
             if (zombie != null) {
                 applyLeatherGoldGear(zombie);
             }
@@ -414,9 +414,9 @@ public class ResourceVillagerEntity extends PathfinderMob implements VillagerDat
         }
         if (level == 3) {
             float r = this.random.nextFloat();
-            if (r < 0.15F) return ModEntityTypes.HEALER_ZOMBIE.get().create(this.level);
-            if (r < 0.30F) return ModEntityTypes.ASSASSIN2.get().create(this.level);
-            Zombie zombie = EntityType.ZOMBIE.create(this.level);
+            if (r < 0.15F) return ModEntityTypes.HEALER_ZOMBIE.get().create(this.level());
+            if (r < 0.30F) return ModEntityTypes.ASSASSIN2.get().create(this.level());
+            Zombie zombie = EntityType.ZOMBIE.create(this.level());
             if (zombie != null) {
                 applyChainmailIronGear(zombie);
             }
@@ -424,10 +424,10 @@ public class ResourceVillagerEntity extends PathfinderMob implements VillagerDat
         }
         if (level == 4) {
             float r = this.random.nextFloat();
-            if (r < 0.20F) return ModEntityTypes.ZOMBIE_COMMANDER.get().create(this.level);
-            if (r < 0.40F) return ModEntityTypes.ANGEL_ZOMBIE.get().create(this.level);
-            if (r < 0.50F) return ModEntityTypes.ZOMBIE_BOSS.get().create(this.level);
-            Zombie zombie = EntityType.ZOMBIE.create(this.level);
+            if (r < 0.20F) return ModEntityTypes.ZOMBIE_COMMANDER.get().create(this.level());
+            if (r < 0.40F) return ModEntityTypes.ANGEL_ZOMBIE.get().create(this.level());
+            if (r < 0.50F) return ModEntityTypes.ZOMBIE_BOSS.get().create(this.level());
+            Zombie zombie = EntityType.ZOMBIE.create(this.level());
             if (zombie != null) {
                 applyIronDiamondGear(zombie);
             }
@@ -437,17 +437,17 @@ public class ResourceVillagerEntity extends PathfinderMob implements VillagerDat
         int choice = this.random.nextInt(8);
         switch (choice) {
             case 0 -> {
-                Zombie zombie = EntityType.ZOMBIE.create(this.level);
+                Zombie zombie = EntityType.ZOMBIE.create(this.level());
                 if (zombie != null) applyGodGear(zombie);
                 return zombie;
             }
-            case 1 -> { return ModEntityTypes.HEALER_ZOMBIE.get().create(this.level); }
-            case 2 -> { return ModEntityTypes.ASSASSIN2.get().create(this.level); }
-            case 3 -> { return ModEntityTypes.ZOMBIE_COMMANDER.get().create(this.level); }
-            case 4 -> { return ModEntityTypes.ANGEL_ZOMBIE.get().create(this.level); }
-            case 5 -> { return ModEntityTypes.RAGED_ANGEL_ZOMBIE.get().create(this.level); }
-            case 6 -> { return ModEntityTypes.ZOMBIE_BOSS.get().create(this.level); }
-            default -> { return ModEntityTypes.APOSTLE_OF_THE_END.get().create(this.level); }
+            case 1 -> { return ModEntityTypes.HEALER_ZOMBIE.get().create(this.level()); }
+            case 2 -> { return ModEntityTypes.ASSASSIN2.get().create(this.level()); }
+            case 3 -> { return ModEntityTypes.ZOMBIE_COMMANDER.get().create(this.level()); }
+            case 4 -> { return ModEntityTypes.ANGEL_ZOMBIE.get().create(this.level()); }
+            case 5 -> { return ModEntityTypes.RAGED_ANGEL_ZOMBIE.get().create(this.level()); }
+            case 6 -> { return ModEntityTypes.ZOMBIE_BOSS.get().create(this.level()); }
+            default -> { return ModEntityTypes.APOSTLE_OF_THE_END.get().create(this.level()); }
         }
     }
 

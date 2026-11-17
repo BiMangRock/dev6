@@ -6,7 +6,6 @@ import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -106,7 +105,7 @@ public class BeeSummonerTurretEntity extends AbstractTurretEntity {
     @Override
     public boolean hurt(DamageSource source, float amount) {
         boolean result = super.hurt(source, amount);
-        if (result && !this.level.isClientSide) {
+        if (result && !this.level().isClientSide) {
             net.minecraft.world.entity.Entity attacker = source.getEntity();
             if (attacker instanceof LivingEntity livingAttacker && SummonedBeeEntity.isHostile(livingAttacker)) {
                 this.broadcastAlertToBees(livingAttacker);
@@ -126,7 +125,7 @@ public class BeeSummonerTurretEntity extends AbstractTurretEntity {
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.activeBees.removeIf(bee -> !bee.isAlive());
 
             // ⏳ 서버단에서 남은 쿨타임을 감소시키고 실시간으로 네트워크 상에 업데이트
@@ -161,14 +160,14 @@ public class BeeSummonerTurretEntity extends AbstractTurretEntity {
 
     private void dealFixedDamageToNearbyHostiles() {
         double range = 12.0D;
-        List<LivingEntity> nearbyEnemies = this.level.getEntitiesOfClass(
+        List<LivingEntity> nearbyEnemies = this.level().getEntitiesOfClass(
                 LivingEntity.class,
                 this.getBoundingBox().inflate(range),
                 SummonedBeeEntity::isHostile
         );
 
         for (LivingEntity enemy : nearbyEnemies) {
-            enemy.hurt(DamageSource.GENERIC, 1.0F);
+            enemy.hurt(this.damageSources().generic(), 1.0F);
             enemy.setLastHurtByMob(this);
             if (enemy instanceof Mob mob) {
                 mob.setTarget(this);
@@ -187,7 +186,7 @@ public class BeeSummonerTurretEntity extends AbstractTurretEntity {
             return;
         }
 
-        SummonedBeeEntity bee = new SummonedBeeEntity(SUMMONED_BEE_TYPE, this.level);
+        SummonedBeeEntity bee = new SummonedBeeEntity(SUMMONED_BEE_TYPE, this.level());
         bee.setParentTurret(this);
 
         double beeMaxHealth = 10.0D + this.getBeeHealthLevel() * 2.0D;
@@ -204,18 +203,19 @@ public class BeeSummonerTurretEntity extends AbstractTurretEntity {
         bee.setWeaknessLevel(this.getBeeWeaknessLevel());
 
         bee.moveTo(this.getX(), this.getY() + 1.2D, this.getZ(), this.getYRot(), this.getXRot());
-        this.level.addFreshEntity(bee);
+        this.level().addFreshEntity(bee);
         this.activeBees.add(bee);
 
         this.playSound(SoundEvents.BEE_LOOP_AGGRESSIVE, 1.0F, 1.2F);
     }
 
     @Override
-    public void killed(ServerLevel level, LivingEntity killedEntity) {
-        super.killed(level, killedEntity);
+    public boolean killedEntity(ServerLevel level, LivingEntity killedEntity) {
+        boolean result = super.killedEntity(level, killedEntity); // 1.20: killed → killedEntity
         if (IZombieTribe.isZombieTribe(killedEntity)) {
             this.addXp(1);
         }
+        return result;
     }
 
     public void addXp(int amount) {
@@ -242,7 +242,7 @@ public class BeeSummonerTurretEntity extends AbstractTurretEntity {
         this.playSound(SoundEvents.PLAYER_LEVELUP, 1.0F, 0.8F);
         this.heal((float)(newMaxHealth * 0.3F));
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.spawnAtLocation(BeeSummonerTradeManager.getBoundToken(this, 1), 0.5F);
         }
     }
@@ -252,18 +252,18 @@ public class BeeSummonerTurretEntity extends AbstractTurretEntity {
         ItemStack heldItem = player.getItemInHand(hand);
         if (!heldItem.isEmpty() && heldItem.hasTag() && heldItem.getTag().contains("UpgradeType")) {
             String upgradeType = heldItem.getTag().getString("UpgradeType");
-            if (!this.level.isClientSide) {
+            if (!this.level().isClientSide) {
                 BeeSummonerTradeManager.applyUpgradeDirectly(this, upgradeType);
                 if (!player.getAbilities().instabuild) heldItem.shrink(1);
             }
-            return InteractionResult.sidedSuccess(this.level.isClientSide);
+            return InteractionResult.sidedSuccess(this.level().isClientSide);
         }
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.setTradingPlayer(player);
             this.openTradingScreen(player, this.getDisplayName(), 1);
         }
-        return InteractionResult.sidedSuccess(this.level.isClientSide);
+        return InteractionResult.sidedSuccess(this.level().isClientSide);
     }
 
     public void updateFollowRange() {
@@ -316,7 +316,7 @@ public class BeeSummonerTurretEntity extends AbstractTurretEntity {
     @Override
     protected void onTradeCompleted(MerchantOffer offer) {
         offer.increaseUses();
-        if (!this.level.isClientSide && offer.getResult().hasTag()) {
+        if (!this.level().isClientSide && offer.getResult().hasTag()) {
             String upgradeType = offer.getResult().getTag().getString("UpgradeType");
             BeeSummonerTradeManager.applyUpgradeDirectly(this, upgradeType);
         }

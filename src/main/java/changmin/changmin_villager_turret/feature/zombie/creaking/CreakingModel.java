@@ -1,21 +1,22 @@
 package changmin.changmin_villager_turret.feature.zombie.creaking;
 
-import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib3.model.AnimatedGeoModel;
+import software.bernie.geckolib.model.GeoModel;
 
-public class CreakingModel extends AnimatedGeoModel<CreakingEntity> {
+import net.minecraft.resources.ResourceLocation;
+
+public class CreakingModel extends GeoModel<CreakingEntity> {
     @Override
-    public ResourceLocation getModelLocation(CreakingEntity object) {
+    public ResourceLocation getModelResource(CreakingEntity object) {
         return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "geo/creaking.geo.json");
     }
 
     @Override
-    public ResourceLocation getTextureLocation(CreakingEntity object) {
+    public ResourceLocation getTextureResource(CreakingEntity object) {
         return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "textures/entity/creaking.png");
     }
 
     @Override
-    public ResourceLocation getAnimationFileLocation(CreakingEntity animatable) {
+    public ResourceLocation getAnimationResource(CreakingEntity animatable) {
         return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "animations/creaking.animation.json");
     }
 }

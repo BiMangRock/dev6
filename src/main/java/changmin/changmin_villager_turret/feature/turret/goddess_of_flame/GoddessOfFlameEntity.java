@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.turret.goddess_of_flame;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -18,17 +27,9 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
-public class GoddessOfFlameEntity extends Monster implements IAnimatable, IAlly, IGoddessAttack {
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+public class GoddessOfFlameEntity extends Monster implements GeoEntity, IAlly, IGoddessAttack {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     // 서버-클라이언트 상태 동기화
     private static final EntityDataAccessor<Boolean> IS_ATTACKING =
@@ -69,7 +70,7 @@ public class GoddessOfFlameEntity extends Monster implements IAnimatable, IAlly,
 
     @Override
     public void startAttackSequence(LivingEntity target) {
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.attackTimer = 40; // 2초 공격 모션 타이머
         }
     }
@@ -80,8 +81,8 @@ public class GoddessOfFlameEntity extends Monster implements IAnimatable, IAlly,
     }
 
     private void spawnFireball(LivingEntity target) {
-        if (!this.level.isClientSide && target != null) {
-            GoddessFireballEntity fireball = new GoddessFireballEntity(this.level, this);
+        if (!this.level().isClientSide && target != null) {
+            GoddessFireballEntity fireball = new GoddessFireballEntity(this.level(), this);
 
             double dX = target.getX() - this.getX();
             double dY = target.getY(0.5D) - fireball.getY();
@@ -89,14 +90,14 @@ public class GoddessOfFlameEntity extends Monster implements IAnimatable, IAlly,
 
             // 불덩이 투사체 직선 발사 (속도 1.0F, 난사 흩어짐도 1.0F)
             fireball.shoot(dX, dY, dZ, 1.0F, 1.0F);
-            this.level.addFreshEntity(fireball);
+            this.level().addFreshEntity(fireball);
         }
     }
 
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.attackTimer > 0) {
                 this.attackTimer--;
                 this.entityData.set(IS_ATTACKING, true);
@@ -114,23 +115,21 @@ public class GoddessOfFlameEntity extends Monster implements IAnimatable, IAlly,
         }
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private PlayState predicate(AnimationState<GoddessOfFlameEntity> event) {
         if (this.entityData.get(IS_ATTACKING)) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("attack"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("attack"));
         } else {
             // 대기(Idle) 중일 때도 "walk" 애니메이션을 활용하여 몸체 주변 불꽃 이펙트의 팽창/수축을 상시 표현
-            event.getController().setAnimation(new AnimationBuilder().loop("walk"));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 5, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 5, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return factory;
-    }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 }

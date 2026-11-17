@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.feature.turret.common.TurretTradeUtil;
 
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.AngelZombieEntity;
@@ -8,7 +17,6 @@ import changmin.changmin_villager_turret.registry.ModEntityTypes;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import changmin.changmin_villager_turret.ally.IAlly;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -25,20 +33,12 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZombieTribe {
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+public class ApostleOfTheEndEntity extends Monster implements GeoEntity, IZombieTribe {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Integer> DATA_SUMMON_TIME = SynchedEntityData.defineId(ApostleOfTheEndEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_ANGEL_COUNT = SynchedEntityData.defineId(ApostleOfTheEndEntity.class, EntityDataSerializers.INT);
     public static final int MAX_SUMMON_COOLDOWN = 600;
@@ -98,7 +98,7 @@ public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZomb
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             summonedAngels.removeIf(angel -> !angel.isAlive());
             this.entityData.set(DATA_ANGEL_COUNT, summonedAngels.size());
 
@@ -144,9 +144,9 @@ public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZomb
 
     // 일반 천사 소환
     private void summonAngel() {
-        if (this.level instanceof ServerLevel serverLevel) {
+        if (this.level() instanceof ServerLevel serverLevel) {
             AngelZombieEntity angel = (AngelZombieEntity) ModEntityTypes.ANGEL_ZOMBIE.get().spawn(
-                    serverLevel, null, null, this.blockPosition().above(),
+                    serverLevel, (net.minecraft.world.item.ItemStack) null, null, this.blockPosition().above(),
                     MobSpawnType.MOB_SUMMONED, true, false
             );
 
@@ -160,10 +160,10 @@ public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZomb
 
     // 💡 분노한 천사(Raged Angel) 소환 신규 메서드
     private void summonRagedAngel() {
-        if (this.level instanceof ServerLevel serverLevel) {
+        if (this.level() instanceof ServerLevel serverLevel) {
             // ※ ModEntityTypes.RAGED_ANGEL_ZOMBIE 명칭이 모드 프로젝트 내 등록된 명칭과 일치하는지 확인해 주세요.
             RagedAngelZombieEntity ragedAngel = (RagedAngelZombieEntity) ModEntityTypes.RAGED_ANGEL_ZOMBIE.get().spawn(
-                    serverLevel, null, null, this.blockPosition().above(),
+                    serverLevel, (net.minecraft.world.item.ItemStack) null, null, this.blockPosition().above(),
                     MobSpawnType.MOB_SUMMONED, true, false
             );
 
@@ -177,7 +177,7 @@ public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZomb
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             // 사도가 공격받으면 모든 천사에게 공격자를 알림 (호위 모드)
             if (source.getEntity() instanceof LivingEntity attacker) {
                 for (Monster angel : summonedAngels) {
@@ -191,7 +191,7 @@ public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZomb
             if (this.getSummonedAngelsCount() > 0) {
                 if (source.getEntity() instanceof Player player) {
                     player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.misc.7"), true);
-                    this.level.playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.SHIELD_BLOCK, this.getSoundSource(), 1.0F, 1.0F);
+                    this.level().playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.SHIELD_BLOCK, this.getSoundSource(), 1.0F, 1.0F);
                 }
                 return false;
             }
@@ -202,22 +202,22 @@ public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZomb
     public int getSummonTimer() { return this.entityData.get(DATA_SUMMON_TIME); }
     public int getSummonedAngelsCount() { return this.entityData.get(DATA_ANGEL_COUNT); }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private PlayState predicate(AnimationState<ApostleOfTheEndEntity> event) {
         if (this.attackTimer > 0) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("attack"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("attack"));
         } else if (event.isMoving()) {
-            event.getController().setAnimation(new AnimationBuilder().loop("walk"));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
         } else {
-            event.getController().setAnimation(new AnimationBuilder().loop("idle"));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 2, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 2, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() { return factory; }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 }

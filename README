@@ -3,8 +3,9 @@
 터렛을 설치해 좀비 무리로부터 마을을 지키는 디펜스 모드입니다.
 터렛은 좀비를 잡으며 성장하고, 떨어뜨린 토큰으로 업그레이드할 수 있습니다.
 
-- Minecraft **1.18.2** / Forge **40.3.12** / GeckoLib **3.0.57**
+- Minecraft **1.20.1** / Forge **47.4 이상** / GeckoLib **4.4.8 이상** (1.20.1용)
 - mod id: `changmin_villager_turret`
+- 1.18.2 버전은 `mc/1.18.2` 브랜치(또는 `master`)에 있습니다.
 
 ---
 
@@ -133,6 +134,9 @@
 gradlew build        :: 빌드 (build/libs 에 jar 생성)
 gradlew runClient    :: 개발용 클라이언트 실행
 ```
+
+GitHub에 push하면 `.github/workflows/build.yml`에 따라 GitHub Actions가 자동으로 빌드합니다.
+저장소의 **Actions** 탭에서 성공/실패와 오류 위치를 확인할 수 있고, 성공하면 jar를 내려받을 수 있습니다.
 
 ### 폴더 구조 (src/main/java/changmin/changmin_villager_turret)
 | 폴더 | 내용 |

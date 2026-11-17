@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.zombie.zombie1;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import changmin.changmin_villager_turret.registry.ModItems;
@@ -22,16 +31,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.network.syncher.EntityDataAccessor;            // 동기화 변수 관리 클래스
 import net.minecraft.network.syncher.EntityDataSerializers;        // 동기화 변수 직렬화 클래스
 import net.minecraft.network.syncher.SynchedEntityData;            // 데이터 와처 클래스
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
-public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTribe {
+public class ZombieBossEntity extends Monster implements GeoEntity, IZombieTribe {
     // 렌더러와 서버 연산을 실시간으로 강제 동기화하는 데이터 감시자 변수(EntityDataAccessor) 선언 [1]
     private static final EntityDataAccessor<Integer> DATA_BOSS_LEVEL = SynchedEntityData.defineId(ZombieBossEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_CURRENT_XP = SynchedEntityData.defineId(ZombieBossEntity.class, EntityDataSerializers.INT);
@@ -39,7 +40,7 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
     private int activeAttack = 0;
     private int attackTick = 0;
 
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ZombieBossEntity(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
@@ -114,7 +115,7 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
     public void aiStep() {
         super.aiStep();
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             ZombieBossAttackHelper.handleAttackPatterns(this);
             ZombieBossAttackHelper.handlePassiveGimmick(this);
         }
@@ -197,34 +198,32 @@ public class ZombieBossEntity extends Monster implements IAnimatable, IZombieTri
     public int getAttackTick() { return this.attackTick; }
     public void setAttackTick(int attackTick) { this.attackTick = attackTick; }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private PlayState predicate(AnimationState<ZombieBossEntity> event) {
         if (this.activeAttack == 2) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("attack2"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("attack2"));
             return PlayState.CONTINUE;
         } else if (this.activeAttack == 3) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("attack3"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("attack3"));
             return PlayState.CONTINUE;
         } else if (this.activeAttack == 5) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("attack5"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("attack5"));
             return PlayState.CONTINUE;
         }
 
         if (event.isMoving()) {
-            event.getController().setAnimation(new AnimationBuilder().loop("walk"));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
             return PlayState.CONTINUE;
         }
 
-        event.getController().setAnimation(new AnimationBuilder().loop("idle"));
+        event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 5, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 5, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return this.factory;
-    }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 }

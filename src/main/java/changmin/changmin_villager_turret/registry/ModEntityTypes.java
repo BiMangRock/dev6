@@ -44,7 +44,7 @@ import changmin.changmin_villager_turret.feature.turret.plasma_wizard.*;
 
 public class ModEntityTypes {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
-            DeferredRegister.create(ForgeRegistries.ENTITIES, changmin_villager_turret.MODID);
+            DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, changmin_villager_turret.MODID);
 
     public static final RegistryObject<EntityType<VillagerTurretEntity>> VILLAGER_TURRET =
             ENTITY_TYPES.register("villager_turret",

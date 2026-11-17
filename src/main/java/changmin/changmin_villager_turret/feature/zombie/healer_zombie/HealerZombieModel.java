@@ -1,21 +1,22 @@
 package changmin.changmin_villager_turret.feature.zombie.healer_zombie;
 
-import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib3.model.AnimatedGeoModel;
+import software.bernie.geckolib.model.GeoModel;
 
-public class HealerZombieModel extends AnimatedGeoModel<HealerZombieEntity> {
+import net.minecraft.resources.ResourceLocation;
+
+public class HealerZombieModel extends GeoModel<HealerZombieEntity> {
     @Override
-    public ResourceLocation getModelLocation(HealerZombieEntity object) {
+    public ResourceLocation getModelResource(HealerZombieEntity object) {
         return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "geo/healer_zombie.geo.json");
     }
 
     @Override
-    public ResourceLocation getTextureLocation(HealerZombieEntity object) {
+    public ResourceLocation getTextureResource(HealerZombieEntity object) {
         return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "textures/entity/healer_zombie.png");
     }
 
     @Override
-    public ResourceLocation getAnimationFileLocation(HealerZombieEntity animatable) {
+    public ResourceLocation getAnimationResource(HealerZombieEntity animatable) {
         return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "animations/healer_zombie.animation.json");
     }
 }

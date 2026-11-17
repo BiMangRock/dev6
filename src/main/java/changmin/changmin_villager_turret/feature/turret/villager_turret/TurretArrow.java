@@ -36,7 +36,7 @@ public class TurretArrow extends Arrow {
     public void tick() {
         super.tick();
         // 수명 초과 시 자동 소멸 (서버 전용)
-        if (!this.level.isClientSide && this.tickCount > this.maxLifeTicks) {
+        if (!this.level().isClientSide && this.tickCount > this.maxLifeTicks) {
             this.discard();
         }
     }

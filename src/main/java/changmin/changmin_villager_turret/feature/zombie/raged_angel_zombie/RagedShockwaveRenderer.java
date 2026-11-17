@@ -1,9 +1,10 @@
 package changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie;
 
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import software.bernie.geckolib3.renderers.geo.GeoProjectilesRenderer;
+import changmin.changmin_villager_turret.client.GeoProjectileRenderer;
 
-public class RagedShockwaveRenderer extends GeoProjectilesRenderer<RagedShockwaveEntity> {
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+
+public class RagedShockwaveRenderer extends GeoProjectileRenderer<RagedShockwaveEntity> {
     public RagedShockwaveRenderer(EntityRendererProvider.Context context) {
         super(context, new RagedShockwaveModel());
     }

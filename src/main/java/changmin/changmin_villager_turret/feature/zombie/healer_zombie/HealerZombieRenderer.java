@@ -1,15 +1,16 @@
 package changmin.changmin_villager_turret.feature.zombie.healer_zombie;
 
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
 
 public class HealerZombieRenderer extends GeoEntityRenderer<HealerZombieEntity> {
     public HealerZombieRenderer(EntityRendererProvider.Context context) {
@@ -64,7 +65,7 @@ public class HealerZombieRenderer extends GeoEntityRenderer<HealerZombieEntity> 
     }
 
     private void drawInfo(Font font, Matrix4f matrix, MultiBufferSource buffer, String text, float y, int color, int packedLight) {
-        font.drawInBatch(text, -font.width(text) / 2.0F, y, color, false, matrix, buffer, false, 0, packedLight);
+        font.drawInBatch(text, -font.width(text) / 2.0F, y, color, false, matrix, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
     }
 
     private void drawSolidQuad(Matrix4f matrix, MultiBufferSource buffer, float minX, float minY, float maxX, float maxY, int color) {

@@ -5,7 +5,6 @@ import changmin.changmin_villager_turret.guide.TurretAdvancements;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -87,13 +86,13 @@ public abstract class AbstractTurretEntity extends PathfinderMob implements IAll
      * 각 터렛의 addXp()에서 레벨이 오른 직후 호출됩니다.
      */
     protected void celebrateLevelUp(int newLevel) {
-        if (!(this.level instanceof ServerLevel serverLevel)) return;
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
 
         double y = this.getY() + this.getBbHeight() * 0.6D;
         serverLevel.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, this.getX(), y, this.getZ(), 30, 0.4D, 0.6D, 0.4D, 0.3D);
         serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, this.getX(), y, this.getZ(), 12, 0.5D, 0.5D, 0.5D, 0.0D);
 
-        Component message = new TranslatableComponent("changmin_villager_turret.levelup",
+        Component message = Component.translatable("changmin_villager_turret.levelup",
                 this.getType().getDescription(), newLevel).withStyle(ChatFormatting.GOLD);
 
         double rangeSqr = LEVEL_UP_NOTIFY_RANGE * LEVEL_UP_NOTIFY_RANGE;
@@ -111,7 +110,7 @@ public abstract class AbstractTurretEntity extends PathfinderMob implements IAll
     @Override
     public final void notifyTrade(MerchantOffer offer) {
         this.onTradeCompleted(offer);
-        if (!this.level.isClientSide && this.tradingPlayer instanceof ServerPlayer serverPlayer) {
+        if (!this.level().isClientSide && this.tradingPlayer instanceof ServerPlayer serverPlayer) {
             TurretAdvancements.award(serverPlayer, TurretAdvancements.FIRST_UPGRADE);
         }
     }
@@ -124,7 +123,7 @@ public abstract class AbstractTurretEntity extends PathfinderMob implements IAll
     @Override public void overrideXp(int xp) {}
     @Override public boolean showProgressBar() { return false; }
     @Override public SoundEvent getNotifyTradeSound() { return SoundEvents.VILLAGER_YES; }
-    @Override public boolean isClientSide() { return this.level.isClientSide; }
+    @Override public boolean isClientSide() { return this.level().isClientSide; }
 
     // ── 고정형 터렛: 다른 엔티티에 밀리지 않음 ──
     @Override public boolean isPushable() { return false; }

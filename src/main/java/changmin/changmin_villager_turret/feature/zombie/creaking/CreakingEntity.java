@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.zombie.creaking;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import changmin.changmin_villager_turret.ally.IAlly;
 import net.minecraft.world.entity.EntityType;
@@ -15,17 +24,9 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
-public class CreakingEntity extends Monster implements IAnimatable, IZombieTribe {
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+public class CreakingEntity extends Monster implements GeoEntity, IZombieTribe {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     public int attackTimer = 0;
 
     public CreakingEntity(EntityType<? extends Monster> type, Level level) {
@@ -72,25 +73,23 @@ public class CreakingEntity extends Monster implements IAnimatable, IZombieTribe
         }
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private PlayState predicate(AnimationState<CreakingEntity> event) {
         if (this.attackTimer > 0) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("attack"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("attack"));
             return PlayState.CONTINUE;
         }
         if (event.isMoving()) {
-            event.getController().setAnimation(new AnimationBuilder().loop("walk"));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
             return PlayState.CONTINUE;
         }
         return PlayState.STOP;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 4, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 4, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return factory;
-    }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 }

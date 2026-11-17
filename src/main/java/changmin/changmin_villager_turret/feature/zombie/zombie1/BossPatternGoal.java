@@ -75,7 +75,7 @@ public class BossPatternGoal extends Goal {
         Player nearestPlayer = null;
         double nearestDistanceSq = range * range;
 
-        for (Player player : this.boss.level.players()) {
+        for (Player player : this.boss.level().players()) {
             if (player.isAlive() && !player.isCreative() && !player.isSpectator()) {
                 double distSq = this.boss.distanceToSqr(player);
                 if (distSq < nearestDistanceSq) {

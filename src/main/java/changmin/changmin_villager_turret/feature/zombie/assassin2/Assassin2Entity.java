@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.zombie.assassin2;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.core.particles.ParticleTypes;
@@ -20,26 +29,18 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
-public class Assassin2Entity extends Monster implements IAnimatable, IZombieTribe {
+public class Assassin2Entity extends Monster implements GeoEntity, IZombieTribe {
     private static final EntityDataAccessor<Boolean> DATA_IS_ATTACKING = SynchedEntityData.defineId(Assassin2Entity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DATA_ASSASSIN_LEVEL = SynchedEntityData.defineId(Assassin2Entity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_CURRENT_XP = SynchedEntityData.defineId(Assassin2Entity.class, EntityDataSerializers.INT);
 
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     public int attackTimer = 0;
 
     public Assassin2Entity(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
-        this.maxUpStep = 1.0F;
+        this.setMaxUpStep(1.0F); // 1.20: maxUpStep 필드가 private으로 바뀜
     }
 
     @Override
@@ -116,9 +117,9 @@ public class Assassin2Entity extends Monster implements IAnimatable, IZombieTrib
         super.aiStep();
         if (this.attackTimer > 0) {
             this.attackTimer--;
-            if (!this.level.isClientSide) this.setAttacking(true);
+            if (!this.level().isClientSide) this.setAttacking(true);
         } else {
-            if (!this.level.isClientSide) this.setAttacking(false);
+            if (!this.level().isClientSide) this.setAttacking(false);
         }
     }
 
@@ -147,25 +148,25 @@ public class Assassin2Entity extends Monster implements IAnimatable, IZombieTrib
     public int getCurrentXp() { return this.entityData.get(DATA_CURRENT_XP); }
     public void setCurrentXp(int xp) { this.entityData.set(DATA_CURRENT_XP, xp); }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private PlayState predicate(AnimationState<Assassin2Entity> event) {
         if (this.isAttacking()) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("attack"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("attack"));
             return PlayState.CONTINUE;
         }
         if (event.isMoving()) {
-            event.getController().setAnimation(new AnimationBuilder().loop("walk"));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
             return PlayState.CONTINUE;
         }
         return PlayState.STOP;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 4, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 4, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() { return this.factory; }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 
     // Assassin2Entity 클래스 안에 추가
     public void performAirJump() {
@@ -174,9 +175,9 @@ public class Assassin2Entity extends Monster implements IAnimatable, IZombieTrib
         this.setDeltaMovement(currentMove.x, 0.5D, currentMove.z);
 
         // 이단 점프 시 소리와 파티클 효과 (닌자 느낌)
-        if (!this.level.isClientSide) {
-            ((ServerLevel)this.level).sendParticles(ParticleTypes.CLOUD, this.getX(), this.getY(), this.getZ(), 5, 0.2, 0, 0.2, 0.05);
-            this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PHANTOM_FLAP, this.getSoundSource(), 1.0F, 1.5F);
+        if (!this.level().isClientSide) {
+            ((ServerLevel)this.level()).sendParticles(ParticleTypes.CLOUD, this.getX(), this.getY(), this.getZ(), 5, 0.2, 0, 0.2, 0.05);
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PHANTOM_FLAP, this.getSoundSource(), 1.0F, 1.5F);
         }
     }
 }

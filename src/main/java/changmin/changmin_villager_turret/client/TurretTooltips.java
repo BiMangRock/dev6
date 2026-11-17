@@ -5,8 +5,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -47,7 +45,7 @@ public final class TurretTooltips {
     @SubscribeEvent
     public static void onTooltip(ItemTooltipEvent event) {
         ItemStack stack = event.getItemStack();
-        ResourceLocation id = stack.getItem().getRegistryName();
+        ResourceLocation id = net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(stack.getItem());
         if (id == null || !id.getNamespace().equals(changmin_villager_turret.MODID)) return;
 
         List<Component> tooltip = event.getToolTip();
@@ -59,7 +57,7 @@ public final class TurretTooltips {
             String owner = TOKEN_OWNER.get(path.substring(0, tokenIdx));
             String tier = path.substring(tokenIdx + "_point_token_".length());
             if (owner != null) {
-                addLines(tooltip, PREFIX + "token." + tier, new TranslatableComponent(owner));
+                addLines(tooltip, PREFIX + "token." + tier, Component.translatable(owner));
             }
             return;
         }
@@ -71,7 +69,7 @@ public final class TurretTooltips {
     private static void addLines(List<Component> tooltip, String key, Object... args) {
         if (!I18n.exists(key)) return;
 
-        tooltip.add(new TranslatableComponent(key, args).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.translatable(key, args).withStyle(ChatFormatting.GRAY));
 
         String detailKey = key + ".detail";
         if (!I18n.exists(detailKey)) return;
@@ -79,10 +77,10 @@ public final class TurretTooltips {
         if (Screen.hasShiftDown()) {
             // 상세 문구에는 인자(%s)를 쓰지 않습니다. (줄바꿈을 직접 나누기 위해 문자열로 받기 때문)
             for (String line : I18n.get(detailKey).split("\n")) {
-                tooltip.add(new TextComponent(line).withStyle(ChatFormatting.DARK_AQUA));
+                tooltip.add(Component.literal(line).withStyle(ChatFormatting.DARK_AQUA));
             }
         } else {
-            tooltip.add(new TranslatableComponent(PREFIX + "hold_shift").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable(PREFIX + "hold_shift").withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 }

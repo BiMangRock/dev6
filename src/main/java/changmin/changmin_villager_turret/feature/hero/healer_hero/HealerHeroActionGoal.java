@@ -82,7 +82,7 @@ public class HealerHeroActionGoal extends Goal {
 
     private void summonHealerTurret() {
         this.hero.triggerBuildAnimation();
-        HealerTurretEntity turret = ModEntityTypes.HEALER_TURRET.get().create(this.hero.level);
+        HealerTurretEntity turret = ModEntityTypes.HEALER_TURRET.get().create(this.hero.level());
         if (turret != null) {
             double sx = this.hero.getX() + (this.hero.getRandom().nextDouble() - 0.5D) * 4.0D;
             double sz = this.hero.getZ() + (this.hero.getRandom().nextDouble() - 0.5D) * 4.0D;
@@ -90,7 +90,7 @@ public class HealerHeroActionGoal extends Goal {
 
             turret.setOwnerUUID(this.hero.getUUID());
 
-            this.hero.level.addFreshEntity(turret);
+            this.hero.level().addFreshEntity(turret);
             this.hero.trackSummonedTurret(turret.getUUID());
         }
     }
@@ -113,9 +113,9 @@ public class HealerHeroActionGoal extends Goal {
             }
 
             double speed = 0.3D; // 조율된 1/3 속도 적용
-            LoveProjectileEntity projectile = new LoveProjectileEntity(this.hero.level, this.hero, this.hero.getHeroLevel());
+            LoveProjectileEntity projectile = new LoveProjectileEntity(this.hero.level(), this.hero, this.hero.getHeroLevel());
             projectile.setDeltaMovement(dir.x * speed, dir.y * speed, dir.z * speed);
-            this.hero.level.addFreshEntity(projectile);
+            this.hero.level().addFreshEntity(projectile);
         }
     }
 }

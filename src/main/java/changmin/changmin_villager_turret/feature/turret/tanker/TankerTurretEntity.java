@@ -11,7 +11,6 @@ import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -103,7 +102,7 @@ public class TankerTurretEntity extends AbstractTurretEntity {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             // 🛡️ 1. 도발 중 피해량 감소 연산 처리
             if (this.getIsTaunting()) {
                 float reduction = 0.10F + (this.getReductionLevel() * 0.05F);
@@ -115,10 +114,10 @@ public class TankerTurretEntity extends AbstractTurretEntity {
             if (this.getThornsLevel() > 0 && source.getDirectEntity() instanceof LivingEntity attacker) {
                 // [기획 요구사항] 현재 가지고 있는 실시간 체력(Current HP)에 비례하여 (2% + 레벨당 1%) 고정 피해 반사
                 double reflectDamage = this.getHealth() * (0.02D + (this.getThornsLevel() * 0.01D));
-                attacker.hurt(DamageSource.thorns(this), (float) reflectDamage);
+                attacker.hurt(this.damageSources().thorns(this), (float) reflectDamage);
 
                 // 가시 반사 비주얼 파티클 및 쇳소리 사운드 가미
-                if (this.level instanceof ServerLevel serverLevel) {
+                if (this.level() instanceof ServerLevel serverLevel) {
                     serverLevel.sendParticles(ParticleTypes.CRIT, attacker.getX(), attacker.getY(0.5D), attacker.getZ(), 8, 0.1D, 0.1D, 0.1D, 0.15D);
                     serverLevel.sendParticles(ParticleTypes.SWEEP_ATTACK, attacker.getX(), attacker.getY(0.5D), attacker.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
                 }
@@ -138,7 +137,7 @@ public class TankerTurretEntity extends AbstractTurretEntity {
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.tauntCooldown > 0) {
                 this.tauntCooldown--;
             }
@@ -147,7 +146,7 @@ public class TankerTurretEntity extends AbstractTurretEntity {
             if (this.tauntDuration > 0) {
                 this.tauntDuration--;
 
-                if (this.tickCount % TurretConfig.scanInterval() == 0 && this.level instanceof ServerLevel serverLevel) {
+                if (this.tickCount % TurretConfig.scanInterval() == 0 && this.level() instanceof ServerLevel serverLevel) {
                     for (Mob enemy : serverLevel.getEntitiesOfClass(Mob.class, this.getBoundingBox().inflate(10.0D))) {
                         if (IZombieTribe.isZombieTribe(enemy)) {
                             enemy.setTarget(this); // 좀비의 공격 타겟을 강제로 나로 고정
@@ -166,7 +165,7 @@ public class TankerTurretEntity extends AbstractTurretEntity {
             // 📢 쿨타임 만료 시 도발 자동 시전 판단 (주변에 좀비가 없을 때 매 틱 검색하지 않도록 주기 제한)
             if (this.tauntCooldown <= 0 && this.tauntDuration <= 0 && this.tickCount % TurretConfig.scanInterval() == 0) {
                 boolean hasZombies = false;
-                for (Mob enemy : this.level.getEntitiesOfClass(Mob.class, this.getBoundingBox().inflate(10.0D))) {
+                for (Mob enemy : this.level().getEntitiesOfClass(Mob.class, this.getBoundingBox().inflate(10.0D))) {
                     if (IZombieTribe.isZombieTribe(enemy)) {
                         hasZombies = true;
                         break;
@@ -186,7 +185,7 @@ public class TankerTurretEntity extends AbstractTurretEntity {
                     this.addXp(1);
 
                     // 주황빛 마그마/불꽃 파동 충격파 링 연출
-                    if (this.level instanceof ServerLevel serverLevel) {
+                    if (this.level() instanceof ServerLevel serverLevel) {
                         for (int i = 0; i < 360; i += 15) {
                             double rad = Math.toRadians(i);
                             double px = this.getX() + Math.cos(rad) * 1.5D;
@@ -200,11 +199,12 @@ public class TankerTurretEntity extends AbstractTurretEntity {
     }
 
     @Override
-    public void killed(ServerLevel level, LivingEntity killedEntity) {
-        super.killed(level, killedEntity);
+    public boolean killedEntity(ServerLevel level, LivingEntity killedEntity) {
+        boolean result = super.killedEntity(level, killedEntity); // 1.20: killed → killedEntity
         if (IZombieTribe.isZombieTribe(killedEntity)) {
             this.addXp(1);
         }
+        return result;
     }
 
     public void addXp(int amount) {
@@ -232,7 +232,7 @@ public class TankerTurretEntity extends AbstractTurretEntity {
         this.playSound(SoundEvents.PLAYER_LEVELUP, 1.2F, 0.5F);
         this.heal((float)(newMaxHealth * 0.2F)); // 레벨업 성공 시 즉시 체력 40% 자가 복구 보너스
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.spawnAtLocation(TankerTurretTradeManager.getBoundToken(this, 1), 0.5F);
         }
     }
@@ -243,7 +243,7 @@ public class TankerTurretEntity extends AbstractTurretEntity {
 
         // 💡 [추가] 손에 에메랄드를 들고 있을 때 즉시 최대체력 직접 강화 상호작용 (현재 체력 회복 제외)
         if (heldItem.is(Items.EMERALD)) {
-            if (!this.level.isClientSide) {
+            if (!this.level().isClientSide) {
                 if (heldItem.getCount() >= 64) {
                     this.setExtraMaxHealth(this.getExtraMaxHealth() + 150.0D); // 64개 소모 ➔ 체력 +150 (하트 75개 보너스)
                     if (!player.getAbilities().instabuild) heldItem.shrink(64);
@@ -255,25 +255,25 @@ public class TankerTurretEntity extends AbstractTurretEntity {
                 }
                 this.playSound(SoundEvents.ANVIL_USE, 1.0F, 0.85F);
             }
-            return InteractionResult.sidedSuccess(this.level.isClientSide);
+            return InteractionResult.sidedSuccess(this.level().isClientSide);
         }
 
         // 업그레이드 전용 종이를 들고 있을 때 바로 소모하여 업그레이드하는 기능
         if (!heldItem.isEmpty() && heldItem.hasTag() && heldItem.getTag().contains("UpgradeType")) {
             String upgradeType = heldItem.getTag().getString("UpgradeType");
-            if (!this.level.isClientSide) {
+            if (!this.level().isClientSide) {
                 TankerTurretTradeManager.applyUpgradeDirectly(this, upgradeType);
                 if (!player.getAbilities().instabuild) heldItem.shrink(1);
             }
-            return InteractionResult.sidedSuccess(this.level.isClientSide);
+            return InteractionResult.sidedSuccess(this.level().isClientSide);
         }
 
         // 일반 손이나 일반 아이템 상태에서 우클릭 시 거래 화면을 표시
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.setTradingPlayer(player);
             this.openTradingScreen(player, this.getDisplayName(), 1);
         }
-        return InteractionResult.sidedSuccess(this.level.isClientSide);
+        return InteractionResult.sidedSuccess(this.level().isClientSide);
     }
 
     public int getTurretLevel() { return this.entityData.get(TURRET_LEVEL); }
@@ -307,7 +307,7 @@ public class TankerTurretEntity extends AbstractTurretEntity {
     @Override
     protected void onTradeCompleted(MerchantOffer offer) {
         offer.increaseUses();
-        if (!this.level.isClientSide && offer.getResult().hasTag()) {
+        if (!this.level().isClientSide && offer.getResult().hasTag()) {
             String upgradeType = offer.getResult().getTag().getString("UpgradeType");
             TankerTurretTradeManager.applyUpgradeDirectly(this, upgradeType);
         }

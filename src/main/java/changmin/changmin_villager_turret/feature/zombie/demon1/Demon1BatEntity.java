@@ -53,7 +53,7 @@ public class Demon1BatEntity extends AbstractArrow {
             this.setDeltaMovement(blended.normalize().scale(speed));
         }
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             // 성능 향상과 메모리 최적화를 위해 10초(200틱)가 지나면 자연 소멸
             if (this.tickCount >= 200) {
                 this.discard();

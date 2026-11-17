@@ -8,7 +8,6 @@ import changmin.changmin_villager_turret.registry.ModItems;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -128,7 +127,7 @@ public class VillagerTurretEntity extends AbstractTurretEntity implements Ranged
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.attackCooldown > 0) this.attackCooldown--;
             if (this.customInvulnTicks > 0) this.customInvulnTicks--;
             if (this.getHealLevel() > 0 && this.tickCount % 100 == 0) this.heal(1.0F);
@@ -204,12 +203,13 @@ public class VillagerTurretEntity extends AbstractTurretEntity implements Ranged
     }
 
     @Override
-    public void killed(ServerLevel level, LivingEntity killedEntity) {
-        super.killed(level, killedEntity);
+    public boolean killedEntity(ServerLevel level, LivingEntity killedEntity) {
+        boolean result = super.killedEntity(level, killedEntity); // 1.20: killed → killedEntity
         // [수정] 바닐라 좀비뿐만 아니라 IZombieTribe 구현 종족을 사살했을 때도 경험치를 정상 부여하도록 확장
         if (IZombieTribe.isZombieTribe(killedEntity)) {
             this.addXp(1);
         }
+        return result;
     }
 
     public void addXp(int amount) {
@@ -306,7 +306,7 @@ public class VillagerTurretEntity extends AbstractTurretEntity implements Ranged
             }
         }
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.spawnAtLocation(TurretTradeManager.getBoundToken(this, 1), 0.5F);
         }
     }
@@ -326,19 +326,19 @@ public class VillagerTurretEntity extends AbstractTurretEntity implements Ranged
             }
 
             if (upgradeType != null) {
-                if (!this.level.isClientSide) {
+                if (!this.level().isClientSide) {
                     TurretTradeManager.applyUpgradeDirectly(this, upgradeType);
                     if (!player.getAbilities().instabuild) heldItem.shrink(1);
                 }
-                return InteractionResult.sidedSuccess(this.level.isClientSide);
+                return InteractionResult.sidedSuccess(this.level().isClientSide);
             }
         }
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.setTradingPlayer(player);
             this.openTradingScreen(player, this.getDisplayName(), 1);
         }
-        return InteractionResult.sidedSuccess(this.level.isClientSide);
+        return InteractionResult.sidedSuccess(this.level().isClientSide);
     }
 
 
@@ -354,7 +354,7 @@ public class VillagerTurretEntity extends AbstractTurretEntity implements Ranged
     @Override
     protected void onTradeCompleted(MerchantOffer offer) {
         offer.increaseUses();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             ItemStack result = offer.getResult();
             if (result.hasTag() && result.getTag().contains("UpgradeType")) {
                 String upgradeType = result.getTag().getString("UpgradeType");
