@@ -4,7 +4,6 @@ import changmin.changmin_villager_turret.changmin_villager_turret;
 import changmin.changmin_villager_turret.feature.turret.common.AbstractTurretEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -25,7 +24,7 @@ import java.util.Map;
  */
 public final class TurretUpgradeHint {
 
-    public static final Component STAR = new TextComponent("★");
+    public static final Component STAR = Component.literal("★");
     public static final int STAR_COLOR = 0xFFFFD700;
 
     private static final int RECHECK_TICKS = 20;
@@ -39,7 +38,7 @@ public final class TurretUpgradeHint {
         Player player = Minecraft.getInstance().player;
         if (player == null) return false;
 
-        long now = turret.level.getGameTime();
+        long now = turret.level().getGameTime();
         Entry cached = CACHE.get(turret.getId());
         if (cached != null && now - cached.gameTime() >= 0 && now - cached.gameTime() < RECHECK_TICKS) {
             return cached.result();
@@ -77,7 +76,7 @@ public final class TurretUpgradeHint {
 
     /** 이 모드의 "*_point_token_low/mid/high" 아이템인지 */
     public static boolean isToken(Item item) {
-        ResourceLocation id = item.getRegistryName();
+        ResourceLocation id = net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(item);
         return id != null
                 && id.getNamespace().equals(changmin_villager_turret.MODID)
                 && id.getPath().contains("_point_token_");

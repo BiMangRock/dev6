@@ -81,7 +81,7 @@ public final class TargetPriority {
 
         // 주변 아군 터렛 목록은 한 번만 조회 (후보마다 검색하지 않음)
         AABB area = shooter.getBoundingBox().inflate(searchRange);
-        List<? extends Mob> allies = shooter.level.getEntitiesOfClass(turretClass, area, m -> m != shooter && m.isAlive());
+        List<? extends Mob> allies = shooter.level().getEntitiesOfClass(turretClass, area, m -> m != shooter && m.isAlive());
 
         T best = null;
         double bestScore = Double.NEGATIVE_INFINITY;

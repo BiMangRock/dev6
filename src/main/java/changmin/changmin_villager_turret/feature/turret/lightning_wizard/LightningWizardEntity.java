@@ -8,7 +8,6 @@ import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -91,7 +90,7 @@ public class LightningWizardEntity extends AbstractTurretEntity {
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             // 쿨타임 및 궁극기 연산
             int ultActive = this.getUltActiveTime();
             int ultCD = this.getUltCooldown();
@@ -130,7 +129,7 @@ public class LightningWizardEntity extends AbstractTurretEntity {
             if (ultCD <= 0 && ultActive <= 0 && this.tickCount % TurretConfig.scanInterval() == 0) {
                 double range = 4.0D + (this.getUltRangeLevel() * 1.0D);
                 boolean hasZombies = false;
-                for (LivingEntity enemy : this.level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(range))) {
+                for (LivingEntity enemy : this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(range))) {
                     if (IZombieTribe.isZombieTribe(enemy) && enemy.isAlive()) {
                         hasZombies = true;
                         break;
@@ -145,7 +144,7 @@ public class LightningWizardEntity extends AbstractTurretEntity {
                     this.setUltCooldown(1200); // 쿨타임 60초로 리셋
 // LightningWizardEntity.java 내부 수정
 //SoundSource.MOBS ➔ SoundSource.NEUTRAL로 변경합니다.
-                    this.level.playSound(null, this.blockPosition(), SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.NEUTRAL, 2.0F, 0.5F);
+                    this.level().playSound(null, this.blockPosition(), SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.NEUTRAL, 2.0F, 0.5F);
                     this.addXp(1); // 전설 기술 시전 성공으로 경험치 1 획득
                 }
             }
@@ -153,14 +152,14 @@ public class LightningWizardEntity extends AbstractTurretEntity {
     }
 
     private void shootStunBolt(LivingEntity target) {
-        LightningProjectileEntity projectile = new LightningProjectileEntity(this.level, this);
+        LightningProjectileEntity projectile = new LightningProjectileEntity(this.level(), this);
         double d0 = target.getX() - this.getX();
         double d1 = target.getY(0.3333333333333333D) - projectile.getY();
         double d2 = target.getZ() - this.getZ();
         double d3 = Math.sqrt(d0 * d0 + d2 * d2);
 
         projectile.shoot(d0, d1 + d3 * 0.18D, d2, 1.5F, 0.0F);
-        this.level.addFreshEntity(projectile);
+        this.level().addFreshEntity(projectile);
         this.playSound(SoundEvents.TRIDENT_THROW, 1.0F, 1.5F);
     }
 
@@ -169,7 +168,7 @@ public class LightningWizardEntity extends AbstractTurretEntity {
             double range = 4.0D + (this.getUltRangeLevel() * 1.0D);
             double damage = 5.0D + (this.getUltDamageLevel() * 2.5D); // 기본 5데미지 + 레벨당 2.5 증가
 
-            if (this.level instanceof ServerLevel serverLevel) {
+            if (this.level() instanceof ServerLevel serverLevel) {
                 for (LivingEntity enemy : serverLevel.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(range))) {
                     if (IZombieTribe.isZombieTribe(enemy) && enemy.isAlive()) {
                         // 1. 좀비에게 가짜 번개(Visual Only)를 내리침 (불연산 제거로 렉 방지!)
@@ -181,7 +180,7 @@ public class LightningWizardEntity extends AbstractTurretEntity {
                         }
 
                         // 2. 가짜 번개 타격 대상에게 코드로 정밀 번개 데미지 적용
-                        enemy.hurt(DamageSource.mobAttack(this), (float) damage);
+                        enemy.hurt(this.damageSources().mobAttack(this), (float) damage);
                     }
                 }
             }
@@ -197,11 +196,12 @@ public class LightningWizardEntity extends AbstractTurretEntity {
     }
 
     @Override
-    public void killed(ServerLevel level, LivingEntity killedEntity) {
-        super.killed(level, killedEntity);
+    public boolean wasKilled(ServerLevel level, LivingEntity killedEntity) {
+        boolean result = super.wasKilled(level, killedEntity); // 1.19+: killed → wasKilled
         if (IZombieTribe.isZombieTribe(killedEntity)) {
             this.addXp(1);
         }
+        return result;
     }
 
     public void addXp(int amount) {
@@ -228,7 +228,7 @@ public class LightningWizardEntity extends AbstractTurretEntity {
         this.playSound(SoundEvents.PLAYER_LEVELUP, 1.0F, 0.8F);
         this.heal((float)(newMaxHealth * 0.3F));
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.spawnAtLocation(LightningWizardTradeManager.getBoundToken(this, 1), 0.5F);
         }
     }
@@ -238,18 +238,18 @@ public class LightningWizardEntity extends AbstractTurretEntity {
         ItemStack heldItem = player.getItemInHand(hand);
         if (!heldItem.isEmpty() && heldItem.hasTag() && heldItem.getTag().contains("UpgradeType")) {
             String upgradeType = heldItem.getTag().getString("UpgradeType");
-            if (!this.level.isClientSide) {
+            if (!this.level().isClientSide) {
                 LightningWizardTradeManager.applyUpgradeDirectly(this, upgradeType);
                 if (!player.getAbilities().instabuild) heldItem.shrink(1);
             }
-            return InteractionResult.sidedSuccess(this.level.isClientSide);
+            return InteractionResult.sidedSuccess(this.level().isClientSide);
         }
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.setTradingPlayer(player);
             this.openTradingScreen(player, this.getDisplayName(), 1);
         }
-        return InteractionResult.sidedSuccess(this.level.isClientSide);
+        return InteractionResult.sidedSuccess(this.level().isClientSide);
     }
 
     public int getTurretLevel() { return this.entityData.get(TURRET_LEVEL); }
@@ -287,7 +287,7 @@ public class LightningWizardEntity extends AbstractTurretEntity {
     @Override
     protected void onTradeCompleted(MerchantOffer offer) {
         offer.increaseUses();
-        if (!this.level.isClientSide && offer.getResult().hasTag()) {
+        if (!this.level().isClientSide && offer.getResult().hasTag()) {
             String upgradeType = offer.getResult().getTag().getString("UpgradeType");
             LightningWizardTradeManager.applyUpgradeDirectly(this, upgradeType);
         }

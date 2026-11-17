@@ -32,7 +32,7 @@ public class GoddessFireballEntity extends ThrowableItemProjectile {
     @Override
     public void tick() {
         super.tick();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             // 무한 비행을 방지하기 위해 5초(100틱) 후 소멸
             if (this.tickCount >= 100) {
                 this.discard();
@@ -43,7 +43,7 @@ public class GoddessFireballEntity extends ThrowableItemProjectile {
     @Override
     protected void onHitEntity(EntityHitResult result) {
         super.onHitEntity(result);
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (result.getEntity() instanceof LivingEntity target) {
                 // 아군, 플레이어, 자신은 피해 대상에서 제외 (오사 차단)
                 if (target == this.getOwner() || IAlly.isAllyEntity(target)) {
@@ -52,7 +52,7 @@ public class GoddessFireballEntity extends ThrowableItemProjectile {
 
                 // 좀비 진형만 공격 및 화염 피해 부여
                 if (IZombieTribe.isZombieTribe(target)) {
-                    target.hurt(DamageSource.thrown(this, this.getOwner()), 5.0F); // 5 데미지 가량 타격
+                    target.hurt(this.damageSources().thrown(this, this.getOwner()), 5.0F); // 5 데미지 가량 타격
                     target.setRemainingFireTicks(60); // 3초간 화염 유발
                     this.discard();
                 }
@@ -63,7 +63,7 @@ public class GoddessFireballEntity extends ThrowableItemProjectile {
     @Override
     protected void onHit(HitResult result) {
         super.onHit(result);
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.discard(); // 블록 충돌 시 소멸
         }
     }

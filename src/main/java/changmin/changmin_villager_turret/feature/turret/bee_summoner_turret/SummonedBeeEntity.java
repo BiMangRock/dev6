@@ -79,7 +79,7 @@ public class SummonedBeeEntity extends PathfinderMob implements IAlly {
         FlyingPathNavigation flyingpathnavigation = new FlyingPathNavigation(this, level) {
             @Override
             public boolean isStableDestination(BlockPos pos) {
-                return !this.level.getBlockState(pos.below()).isAir();
+                return !this.level().getBlockState(pos.below()).isAir();
             }
         };
         flyingpathnavigation.setCanOpenDoors(false);
@@ -108,24 +108,24 @@ public class SummonedBeeEntity extends PathfinderMob implements IAlly {
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.5D));
         } else {
-            BlockPos ground = new BlockPos(this.getX(), this.getY() - 1.0D, this.getZ());
+            BlockPos ground = BlockPos.containing(this.getX(), this.getY() - 1.0D, this.getZ());
             float f = 0.91F;
-            if (this.onGround) {
-                f = this.level.getBlockState(ground).getFriction(this.level, ground, this) * 0.91F;
+            if (this.onGround()) {
+                f = this.level().getBlockState(ground).getFriction(this.level(), ground, this) * 0.91F;
             }
 
             float f1 = 0.16277137F / (f * f * f);
             f = 0.91F;
-            if (this.onGround) {
-                f = this.level.getBlockState(ground).getFriction(this.level, ground, this) * 0.91F;
+            if (this.onGround()) {
+                f = this.level().getBlockState(ground).getFriction(this.level(), ground, this) * 0.91F;
             }
 
-            this.moveRelative(this.onGround ? 0.1F * f1 : 0.02F, p_20818_);
+            this.moveRelative(this.onGround() ? 0.1F * f1 : 0.02F, p_20818_);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale((double)f));
         }
 
-        this.calculateEntityAnimation(this, false);
+        this.calculateEntityAnimation(false);
     }
 
     @Override
@@ -136,7 +136,7 @@ public class SummonedBeeEntity extends PathfinderMob implements IAlly {
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.remainingLife--;
             if (this.remainingLife <= 0) {
                 this.discard();
@@ -167,7 +167,7 @@ public class SummonedBeeEntity extends PathfinderMob implements IAlly {
     @Override
     public boolean doHurtTarget(net.minecraft.world.entity.Entity target) {
         if (target instanceof LivingEntity livingTarget) {
-            boolean hurtResult = target.hurt(DamageSource.mobAttack(this), this.attackDamage);
+            boolean hurtResult = target.hurt(this.damageSources().mobAttack(this), this.attackDamage);
             if (hurtResult) {
                 this.doEnchantDamageEffects(this, target);
 
@@ -203,7 +203,7 @@ public class SummonedBeeEntity extends PathfinderMob implements IAlly {
     }
 
     public boolean isFlying() {
-        return !this.onGround;
+        return !this.onGround();
     }
 
     @Override
@@ -300,7 +300,7 @@ public class SummonedBeeEntity extends PathfinderMob implements IAlly {
         public void start() {
             Vec3 vec = this.findPos();
             if (vec != null) {
-                SummonedBeeEntity.this.navigation.moveTo(SummonedBeeEntity.this.navigation.createPath(new BlockPos(vec), 1), 1.0D);
+                SummonedBeeEntity.this.navigation.moveTo(SummonedBeeEntity.this.navigation.createPath(BlockPos.containing(vec), 1), 1.0D);
             }
         }
 

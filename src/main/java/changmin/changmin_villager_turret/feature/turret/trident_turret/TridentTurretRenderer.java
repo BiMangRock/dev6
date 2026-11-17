@@ -2,7 +2,7 @@ package changmin.changmin_villager_turret.feature.turret.trident_turret;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.model.VillagerModel;
 import net.minecraft.client.model.geom.ModelLayers;
@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 
 public class TridentTurretRenderer extends MobRenderer<TridentTurretEntity, VillagerModel<TridentTurretEntity>> {
@@ -49,27 +48,27 @@ public class TridentTurretRenderer extends MobRenderer<TridentTurretEntity, Vill
             // 이름은 언어 파일(entity.changmin_villager_turret.*)을 따릅니다. 게임 언어가 한국어면 한국어로 표시
             Component nameComponent = entity.getType().getDescription();
             float nameWidth = (float)font.width(nameComponent);
-            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -32.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -32.0F, -1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             // ★ 업그레이드 가능 표시: 내 인벤토리 토큰으로 살 수 있는 업그레이드가 있으면 이름 위에 표시
             if (changmin.changmin_villager_turret.client.TurretUpgradeHint.canUpgrade(entity)) {
                 Component star = changmin.changmin_villager_turret.client.TurretUpgradeHint.STAR;
-                font.drawInBatch(star, -font.width(star) / 2.0F, -32.0F - 10.0F, changmin.changmin_villager_turret.client.TurretUpgradeHint.STAR_COLOR, false, matrix4f, buffer, false, 0, packedLight);
+                font.drawInBatch(star, -font.width(star) / 2.0F, -32.0F - 10.0F, changmin.changmin_villager_turret.client.TurretUpgradeHint.STAR_COLOR, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
             }
 
             // 1. 레벨 정보 및 체력 정수 출력
             String infoText = String.format("Lv. %d (%d/%d)", entity.getTurretLevel(), (int)entity.getHealth(), (int)entity.getMaxHealth());
-            Component textComponent = new TextComponent(infoText);
+            Component textComponent = Component.literal(infoText);
             float textWidth = (float)font.width(textComponent);
             float textX = -textWidth / 2.0F;
-            font.drawInBatch(textComponent, textX, -22.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(textComponent, textX, -22.0F, -1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             // 2. 경험치 출력
             String xpText = String.format("XP: %d/%d", entity.getXp(), entity.getNeededXp());
-            Component xpComponent = new TextComponent(xpText);
+            Component xpComponent = Component.literal(xpText);
             float xpTextWidth = (float)font.width(xpComponent);
             float xpTextX = -xpTextWidth / 2.0F;
-            font.drawInBatch(xpComponent, xpTextX, -12.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(xpComponent, xpTextX, -12.0F, -1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             float barWidth = 50.0F;
             float barHeight = 3.0F;

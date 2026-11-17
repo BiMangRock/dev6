@@ -70,14 +70,14 @@ public class ApostleCirclingAttackGoal extends Goal {
         int arrowCount = entity.getSummonedAngelsCount() + 1;
 
         for (int i = 0; i < arrowCount; i++) {
-            AngelZombieArrow arrow = new AngelZombieArrow(entity.level, entity);
+            AngelZombieArrow arrow = new AngelZombieArrow(entity.level(), entity);
             arrow.setPos(startPos.x, startPos.y, startPos.z);
             double d0 = target.getX() - startPos.x;
             double d1 = target.getY(0.33D) - startPos.y;
             double d2 = target.getZ() - startPos.z;
             double d3 = Math.sqrt(d0 * d0 + d2 * d2);
             arrow.shoot(d0, d1 + d3 * 0.15D, d2, 1.6F, 3.0F); // 조금 더 퍼지게
-            entity.level.addFreshEntity(arrow);
+            entity.level().addFreshEntity(arrow);
         }
     }
 }

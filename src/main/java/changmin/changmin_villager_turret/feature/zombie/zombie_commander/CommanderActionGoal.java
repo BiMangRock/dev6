@@ -22,7 +22,7 @@ public class CommanderActionGoal extends Goal {
 
     @Override
     public void tick() {
-        if (commander.level.isClientSide) return;
+        if (commander.level().isClientSide) return;
 
         // 1. 궁극기 쿨타임 (30초)
         if (ultimateTimer < 600) {
@@ -45,11 +45,11 @@ public class CommanderActionGoal extends Goal {
     }
 
     private void handleNormalActions() {
-        List<LivingEntity> allies = commander.level.getEntitiesOfClass(LivingEntity.class,
+        List<LivingEntity> allies = commander.level().getEntitiesOfClass(LivingEntity.class,
                 commander.getBoundingBox().inflate(commander.getBuffRange()),
                 e -> IZombieTribe.isZombieTribe(e) && !e.getUUID().equals(commander.getUUID()));
 
-        List<LivingEntity> enemies = commander.level.getEntitiesOfClass(LivingEntity.class,
+        List<LivingEntity> enemies = commander.level().getEntitiesOfClass(LivingEntity.class,
                 commander.getBoundingBox().inflate(15.0D), e -> e instanceof IAlly && e.isAlive());
 
         if (allies.isEmpty()) {
@@ -71,13 +71,13 @@ public class CommanderActionGoal extends Goal {
         // 일반 공격: 타겟을 향해 발사
         int count = 2 + (commander.getBossLevel() / 5);
         for (int i = 0; i < count; i++) {
-            ZombieCommanderProjectile proj = new ZombieCommanderProjectile(commander.level, commander);
+            ZombieCommanderProjectile proj = new ZombieCommanderProjectile(commander.level(), commander);
             proj.setMaggotStats(commander.getMaggotAtk(), commander.getMaggotLife(), commander.getMaggotHp());
             double d0 = target.getX() - commander.getX();
             double d1 = target.getY(0.33D) - proj.getY();
             double d2 = target.getZ() - commander.getZ();
             proj.shoot(d0, d1, d2, 1.1F, (float)(4.0F + i));
-            commander.level.addFreshEntity(proj);
+            commander.level().addFreshEntity(proj);
         }
     }
 
@@ -97,13 +97,13 @@ public class CommanderActionGoal extends Goal {
             double dz = Math.sin(angle);
             double dy = 0.2D; // 살짝 위로 포물선을 그리며 퍼지게 설정 (높이 유지)
 
-            ZombieCommanderProjectile proj = new ZombieCommanderProjectile(commander.level, commander);
+            ZombieCommanderProjectile proj = new ZombieCommanderProjectile(commander.level(), commander);
             proj.setMaggotStats(commander.getMaggotAtk(), commander.getMaggotLife(), commander.getMaggotHp());
 
             // 계산된 방향(dx, dy, dz)으로 발사합니다.
             // 속도는 0.8F로 설정하여 너무 멀리 퍼지지 않고 근처를 포위하게 했습니다.
             proj.shoot(dx, dy, dz, 0.8F, 0.0F);
-            commander.level.addFreshEntity(proj);
+            commander.level().addFreshEntity(proj);
         }
     }
 }

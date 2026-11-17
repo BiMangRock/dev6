@@ -6,7 +6,6 @@ import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -84,7 +83,7 @@ public class TridentTurretEntity extends AbstractTurretEntity implements RangedA
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.attackCooldown > 0) {
                 this.attackCooldown--;
             }
@@ -112,11 +111,12 @@ public class TridentTurretEntity extends AbstractTurretEntity implements RangedA
     }
 
     @Override
-    public void killed(ServerLevel level, LivingEntity killedEntity) {
-        super.killed(level, killedEntity);
+    public boolean wasKilled(ServerLevel level, LivingEntity killedEntity) {
+        boolean result = super.wasKilled(level, killedEntity); // 1.19+: killed → wasKilled
         if (IZombieTribe.isZombieTribe(killedEntity)) {
             this.addXp(1);
         }
+        return result;
     }
 
     public void addXp(int amount) {
@@ -143,7 +143,7 @@ public class TridentTurretEntity extends AbstractTurretEntity implements RangedA
         this.playSound(SoundEvents.PLAYER_LEVELUP, 1.0F, 0.8F);
         this.heal((float)(newMaxHealth * 0.3F));
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.spawnAtLocation(TridentTurretTradeManager.getBoundToken(this, 1), 0.5F);
         }
     }
@@ -153,18 +153,18 @@ public class TridentTurretEntity extends AbstractTurretEntity implements RangedA
         ItemStack heldItem = player.getItemInHand(hand);
         if (!heldItem.isEmpty() && heldItem.hasTag() && heldItem.getTag().contains("UpgradeType")) {
             String upgradeType = heldItem.getTag().getString("UpgradeType");
-            if (!this.level.isClientSide) {
+            if (!this.level().isClientSide) {
                 TridentTurretTradeManager.applyUpgradeDirectly(this, upgradeType);
                 if (!player.getAbilities().instabuild) heldItem.shrink(1);
             }
-            return InteractionResult.sidedSuccess(this.level.isClientSide);
+            return InteractionResult.sidedSuccess(this.level().isClientSide);
         }
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.setTradingPlayer(player);
             this.openTradingScreen(player, this.getDisplayName(), 1);
         }
-        return InteractionResult.sidedSuccess(this.level.isClientSide);
+        return InteractionResult.sidedSuccess(this.level().isClientSide);
     }
 
     public void updateFollowRange() {
@@ -208,7 +208,7 @@ public class TridentTurretEntity extends AbstractTurretEntity implements RangedA
     @Override
     protected void onTradeCompleted(MerchantOffer offer) {
         offer.increaseUses();
-        if (!this.level.isClientSide && offer.getResult().hasTag()) {
+        if (!this.level().isClientSide && offer.getResult().hasTag()) {
             String upgradeType = offer.getResult().getTag().getString("UpgradeType");
             TridentTurretTradeManager.applyUpgradeDirectly(this, upgradeType);
         }

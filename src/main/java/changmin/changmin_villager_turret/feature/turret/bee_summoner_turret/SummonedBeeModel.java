@@ -59,7 +59,7 @@ public class SummonedBeeModel extends AgeableListModel<SummonedBeeEntity> {
         this.rightAntenna.xRot = 0.0F;
         this.bone.xRot = 0.0F;
 
-        boolean flag = p_102237_.isOnGround() && p_102237_.getDeltaMovement().lengthSqr() < 1.0E-7D;
+        boolean flag = p_102237_.onGround() && p_102237_.getDeltaMovement().lengthSqr() < 1.0E-7D;
         if (flag) {
             this.rightWing.yRot = -0.2618F;
             this.rightWing.zRot = 0.0F;

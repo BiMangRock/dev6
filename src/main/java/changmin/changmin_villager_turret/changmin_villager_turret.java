@@ -38,7 +38,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
-import software.bernie.geckolib3.GeckoLib;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.Assassin2Renderer;
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.*;
 import changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End.*;
@@ -58,7 +57,7 @@ public class changmin_villager_turret {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public changmin_villager_turret() {
-        GeckoLib.initialize();
+        // GeckoLib 4는 스스로 초기화되므로 GeckoLib.initialize() 호출이 필요 없습니다.
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ModEntityTypes.register(modEventBus);

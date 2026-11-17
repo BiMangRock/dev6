@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.zombie.demon1;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import changmin.changmin_villager_turret.ally.IAlly;
 
@@ -22,14 +31,6 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomFlyingGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
@@ -38,8 +39,8 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 
-public class Demon1Entity extends Monster implements IAnimatable, IZombieTribe, IDemon1Attack {
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+public class Demon1Entity extends Monster implements GeoEntity, IZombieTribe, IDemon1Attack {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     // 💡 SyncedEntityData -> SynchedEntityData 로 철자 수정 완료
     private static final EntityDataAccessor<Boolean> IS_ATTACKING =
@@ -74,7 +75,7 @@ public class Demon1Entity extends Monster implements IAnimatable, IZombieTribe, 
     LivingEntity resolveLeader() {
         // (AI 목표는 2틱마다 호출될 수 있어 tickCount % N 대신 호출 횟수 카운터 사용)
         if (this.leader == null && this.leaderUUID != null && --this.leaderLookupCooldown <= 0
-                && this.level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                && this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
             this.leaderLookupCooldown = 10;
             net.minecraft.world.entity.Entity found = serverLevel.getEntity(this.leaderUUID);
             if (found instanceof LivingEntity living) this.leader = living;
@@ -118,7 +119,7 @@ public class Demon1Entity extends Monster implements IAnimatable, IZombieTribe, 
 
     @Override
     public void startAttackSequence(LivingEntity target) {
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.attackTimer = 40;
         }
     }
@@ -129,8 +130,8 @@ public class Demon1Entity extends Monster implements IAnimatable, IZombieTribe, 
     }
 
     private void spawnBat(LivingEntity target) {
-        if (!this.level.isClientSide && target != null) {
-            Demon1BatEntity bat = new Demon1BatEntity(this.level, this, target);
+        if (!this.level().isClientSide && target != null) {
+            Demon1BatEntity bat = new Demon1BatEntity(this.level(), this, target);
 
             double dX = target.getX() - this.getX();
             double dY = target.getY(0.5D) - bat.getY();
@@ -138,7 +139,7 @@ public class Demon1Entity extends Monster implements IAnimatable, IZombieTribe, 
 
             // 예시: 속도를 0.7F 로 감소
             bat.shoot(dX, dY, dZ, 0.7F, 1.0F);
-            this.level.addFreshEntity(bat);
+            this.level().addFreshEntity(bat);
         }
     }
 
@@ -146,7 +147,7 @@ public class Demon1Entity extends Monster implements IAnimatable, IZombieTribe, 
     public void aiStep() {
         super.aiStep();
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.attackTimer > 0) {
                 this.attackTimer--;
                 this.entityData.set(IS_ATTACKING, true);
@@ -191,7 +192,7 @@ public class Demon1Entity extends Monster implements IAnimatable, IZombieTribe, 
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(f));
         }
-        this.calculateEntityAnimation(this, false);
+        this.calculateEntityAnimation(false);
     }
 
     @Override
@@ -199,22 +200,20 @@ public class Demon1Entity extends Monster implements IAnimatable, IZombieTribe, 
         return new FlyingPathNavigation(this, level);
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private PlayState predicate(AnimationState<Demon1Entity> event) {
         if (this.entityData.get(IS_ATTACKING)) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("attack1"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("attack1"));
         } else {
-            event.getController().setAnimation(new AnimationBuilder().loop("fly"));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("fly"));
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 5, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 5, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return factory;
-    }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 }

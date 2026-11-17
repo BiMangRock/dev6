@@ -22,7 +22,7 @@ public class ZombieBossArrow extends Arrow {
         super.tick();
 
         // 서버 측에서 화살의 수명을 계산하여 지정된 수명이 되면 자동 폐기 처리합니다 [2]
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.ticksAlive++;
             if (this.ticksAlive >= this.maxLifeTicks) { // 💡 [수정] 고정값이 아닌 유동적인 변수 기준으로 작동합니다 [2]
                 this.discard();

@@ -78,7 +78,7 @@ public class TridentTurretShooter {
     // 🏹 [핵심] 삼지창 충돌 분석 및 이벤트 필터링 연산
     @SubscribeEvent
     public static void onProjectileImpact(ProjectileImpactEvent event) {
-        if (event.getProjectile() instanceof ThrownTrident trident && !trident.level.isClientSide) {
+        if (event.getProjectile() instanceof ThrownTrident trident && !trident.level().isClientSide) {
             if (trident.getTags().contains("turret_trident")) {
                 HitResult hitResult = event.getRayTraceResult();
 
@@ -115,7 +115,7 @@ public class TridentTurretShooter {
                     if (currentHitCount < maxPierce) {
                         // 수동 물리 데미지 정밀 연산 및 피해 전달
                         float baseDamage = (float) trident.getBaseDamage();
-                        DamageSource damageSource = DamageSource.trident(trident, owner == null ? trident : owner);
+                        DamageSource damageSource = trident.damageSources().trident(trident, owner == null ? trident : owner);
 
                         if (target.hurt(damageSource, baseDamage)) {
                             if (target instanceof LivingEntity livingTarget) {
@@ -127,7 +127,7 @@ public class TridentTurretShooter {
 
                             // 삼지창 전설 효과: 집뢰(벼락) 무장 개조 시 번개 소환
                             if (trident.getTags().contains("lightning_trident") && target instanceof LivingEntity) {
-                                Level level = target.level;
+                                Level level = target.level();
                                 if (level instanceof ServerLevel serverLevel) {
                                     LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(serverLevel);
                                     if (bolt != null) {
@@ -177,7 +177,7 @@ public class TridentTurretShooter {
     }
 
     private static void shootSingleTrident(TridentTurretEntity turret, LivingEntity target, float spreadOffset) {
-        Level level = turret.level;
+        Level level = turret.level();
         ItemStack tridentStack = new ItemStack(Items.TRIDENT);
         ThrownTrident trident = new ThrownTrident(level, turret, tridentStack);
 
@@ -212,8 +212,8 @@ public class TridentTurretShooter {
     public static void onLivingHurt(LivingHurtEvent event) {
         if (event.getSource().getDirectEntity() instanceof ThrownTrident trident) {
             if (trident.getTags().contains("turret_trident") && trident.getTags().contains("lightning_trident")) {
-                LivingEntity victim = event.getEntityLiving();
-                Level level = victim.level;
+                LivingEntity victim = event.getEntity();
+                Level level = victim.level();
 
                 if (level instanceof ServerLevel serverLevel) {
                     LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(serverLevel);

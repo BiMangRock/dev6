@@ -51,7 +51,7 @@ public class HealerHealGoal extends Goal {
     private LivingEntity findHealingTarget() {
         double range = 8.0D + (this.healer.getRangeLevel() * 1.0D);
         AABB box = this.healer.getBoundingBox().inflate(range);
-        List<LivingEntity> entities = this.healer.level.getEntitiesOfClass(LivingEntity.class, box);
+        List<LivingEntity> entities = this.healer.level().getEntitiesOfClass(LivingEntity.class, box);
 
         LivingEntity bestTarget = null;
         double lowestHealthPercent = 1.0D; // 1.0D는 체력 100%를 뜻하며, 이보다 낮아야(부상 상태여야) 대상이 됩니다.
@@ -89,7 +89,7 @@ public class HealerHealGoal extends Goal {
         if (restored > 0) {
             this.healer.addXp((int) restored);
 
-            if (this.healer.level instanceof ServerLevel serverLevel) {
+            if (this.healer.level() instanceof ServerLevel serverLevel) {
                 HealerEffectHelper.spawnSingleHealLineEffects(serverLevel, this.healer, target);
                 HealerEffectHelper.damageUndeadInRange(serverLevel, this.healer);
             }
@@ -100,7 +100,7 @@ public class HealerHealGoal extends Goal {
     private void performAoeHeal() {
         double range = 8.0D + (this.healer.getRangeLevel() * 1.0D);
         AABB box = this.healer.getBoundingBox().inflate(range);
-        List<LivingEntity> entities = this.healer.level.getEntitiesOfClass(LivingEntity.class, box);
+        List<LivingEntity> entities = this.healer.level().getEntitiesOfClass(LivingEntity.class, box);
 
         float totalRestored = 0.0F;
         boolean healedAtLeastOne = false;
@@ -113,7 +113,7 @@ public class HealerHealGoal extends Goal {
                     if (restored > 0) {
                         totalRestored += restored;
                         healedAtLeastOne = true;
-                        if (this.healer.level instanceof ServerLevel serverLevel) {
+                        if (this.healer.level() instanceof ServerLevel serverLevel) {
                             HealerEffectHelper.spawnHealBubbleEffects(serverLevel, entity);
                         }
                     }
@@ -123,7 +123,7 @@ public class HealerHealGoal extends Goal {
 
         if (healedAtLeastOne) {
             this.healer.addXp((int) totalRestored);
-            if (this.healer.level instanceof ServerLevel serverLevel) {
+            if (this.healer.level() instanceof ServerLevel serverLevel) {
                 HealerEffectHelper.spawnAoeRingEffects(serverLevel, this.healer);
                 HealerEffectHelper.damageUndeadInRange(serverLevel, this.healer);
             }

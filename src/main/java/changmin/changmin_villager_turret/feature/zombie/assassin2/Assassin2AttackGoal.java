@@ -49,10 +49,10 @@ public class Assassin2AttackGoal extends Goal {
         double speed = 0.8D; // 날아가는 속도
 
         // 💡 [수정] dir.y를 포함시켜 위아래로도 조준 가능하게 함
-        SwordGhoulEntity ghoul = new SwordGhoulEntity(assassin.level, assassin,
+        SwordGhoulEntity ghoul = new SwordGhoulEntity(assassin.level(), assassin,
                 dir.x * speed, dir.y * speed, dir.z * speed);
 
-        assassin.level.addFreshEntity(ghoul);
+        assassin.level().addFreshEntity(ghoul);
         assassin.attackTimer = 10; // 애니메이션 타이머
     }
 }

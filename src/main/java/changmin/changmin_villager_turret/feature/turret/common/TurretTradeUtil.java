@@ -5,7 +5,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -37,7 +36,7 @@ public final class TurretTradeUtil {
 
     /** 번역 문구. args는 문구 안의 %s 자리에 순서대로 들어갑니다. (숫자, 문자열, 다른 Component 모두 가능) */
     public static MutableComponent tr(String key, Object... args) {
-        return new TranslatableComponent(key, args);
+        return Component.translatable(key, args);
     }
 
     /** "■ 구매 즉시 이 터렛에 즉시 적용됩니다." */
@@ -60,7 +59,7 @@ public final class TurretTradeUtil {
     public static ItemStack boundToken(Item tokenItem, Entity turret, int count, Component name, int nameColor) {
         ItemStack token = new ItemStack(tokenItem, count);
         CompoundTag tag = token.getOrCreateTag();
-        tag.putString("TurretType", turret.getType().getRegistryName().toString());
+        tag.putString("TurretType", String.valueOf(net.minecraft.world.entity.EntityType.getKey(turret.getType())));
 
         CompoundTag display = new CompoundTag();
         display.putString("Name", Component.Serializer.toJson(
@@ -81,7 +80,7 @@ public final class TurretTradeUtil {
         ItemStack stack = new ItemStack(baseItem);
         CompoundTag tag = stack.getOrCreateTag();
         tag.putString("UpgradeType", type);
-        tag.putString("TurretType", turret.getType().getRegistryName().toString());
+        tag.putString("TurretType", String.valueOf(net.minecraft.world.entity.EntityType.getKey(turret.getType())));
 
         CompoundTag display = new CompoundTag();
         display.putString("Name", Component.Serializer.toJson(

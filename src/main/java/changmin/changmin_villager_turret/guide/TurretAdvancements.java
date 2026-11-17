@@ -92,7 +92,7 @@ public final class TurretAdvancements {
     // ── 터렛 스폰알 사용 감지 ──
     @SubscribeEvent
     public static void onUseSpawnEgg(PlayerInteractEvent.RightClickBlock event) {
-        if (event.getWorld().isClientSide || !(event.getPlayer() instanceof ServerPlayer player)) return;
+        if (event.getLevel().isClientSide || !(event.getEntity() instanceof ServerPlayer player)) return;
 
         ItemStack stack = event.getItemStack();
         if (!(stack.getItem() instanceof SpawnEggItem egg)) return;
@@ -108,7 +108,7 @@ public final class TurretAdvancements {
 
         CompoundTag persisted = getPersisted(player);
         ListTag placed = persisted.getList(PLACED_KEY, Tag.TAG_STRING);
-        String id = String.valueOf(type.getRegistryName());
+        String id = String.valueOf(net.minecraft.world.entity.EntityType.getKey(type));
         boolean already = false;
         for (int i = 0; i < placed.size(); i++) {
             if (placed.getString(i).equals(id)) { already = true; break; }
@@ -126,9 +126,9 @@ public final class TurretAdvancements {
     // ── 보스 처치 감지 (터렛이 잡아도 근처 플레이어 모두 인정) ──
     @SubscribeEvent
     public static void onBossDeath(LivingDeathEvent event) {
-        LivingEntity dead = event.getEntityLiving();
+        LivingEntity dead = event.getEntity();
         if (!(dead instanceof ZombieBossEntity) && !(dead instanceof ApostleOfTheEndEntity)) return;
-        if (!(dead.level instanceof ServerLevel serverLevel)) return;
+        if (!(dead.level() instanceof ServerLevel serverLevel)) return;
 
         double rangeSqr = BOSS_CREDIT_RANGE * BOSS_CREDIT_RANGE;
         for (ServerPlayer player : serverLevel.players()) {

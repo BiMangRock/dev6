@@ -35,7 +35,7 @@ public class HealerZombieActionGoal extends Goal {
         }
 
         double range = this.healer.getHealRange();
-        List<LivingEntity> targets = this.healer.level.getEntitiesOfClass(
+        List<LivingEntity> targets = this.healer.level().getEntitiesOfClass(
                 LivingEntity.class,
                 this.healer.getBoundingBox().inflate(range),
                 e -> e.isAlive() && IZombieTribe.isZombieTribe(e) && !(e instanceof IAlly)
@@ -83,7 +83,7 @@ public class HealerZombieActionGoal extends Goal {
 
         // 1.5초(30틱) 경과 시 회복 능력 주입 및 선형 광선 방출 효과
         if (this.tickCounter == 30) {
-            if (this.target != null && this.target.isAlive() && this.healer.level instanceof ServerLevel serverLevel) {
+            if (this.target != null && this.target.isAlive() && this.healer.level() instanceof ServerLevel serverLevel) {
                 float healAmount = this.healer.getHealAmount();
                 this.target.heal(healAmount);
 

@@ -1,16 +1,16 @@
 package changmin.changmin_villager_turret.feature.hero.healer_hero;
 
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
 
 public class HealerHeroRenderer extends GeoEntityRenderer<HealerHeroEntity> {
     public HealerHeroRenderer(EntityRendererProvider.Context context) {
@@ -42,21 +42,21 @@ public class HealerHeroRenderer extends GeoEntityRenderer<HealerHeroEntity> {
 
             // 1. 이름 태그 배치
             String nameText = "Healer Hero";
-            Component nameComponent = new TextComponent(nameText);
+            Component nameComponent = Component.literal(nameText);
             float nameWidth = (float) font.width(nameComponent);
-            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -37.0F, 0xFFFFB6C1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(nameComponent, -nameWidth / 2.0F, -37.0F, 0xFFFFB6C1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             // 2. 레벨 및 체력 수치 배치
             String infoText = String.format("Lv. %d (%d/%d)", entity.getHeroLevel(), (int) entity.getHealth(), (int) entity.getMaxHealth());
-            Component textComponent = new TextComponent(infoText);
+            Component textComponent = Component.literal(infoText);
             float textWidth = (float) font.width(textComponent);
-            font.drawInBatch(textComponent, -textWidth / 2.0F, -27.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(textComponent, -textWidth / 2.0F, -27.0F, -1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             // 3. XP 정보 수치 배치 (힐 XP와 공격 XP 모두 표시)
             String xpText = String.format("Heal XP: %d/%d | Atk XP: %d/%d", entity.getXpBuff(), entity.getNeededXp(), entity.getXpAttack(), entity.getNeededXp());
-            Component xpComponent = new TextComponent(xpText);
+            Component xpComponent = Component.literal(xpText);
             float xpTextWidth = (float) font.width(xpComponent);
-            font.drawInBatch(xpComponent, -xpTextWidth / 2.0F, -17.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(xpComponent, -xpTextWidth / 2.0F, -17.0F, -1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             float barWidth = 60.0F;
             float barHeight = 2.5F;

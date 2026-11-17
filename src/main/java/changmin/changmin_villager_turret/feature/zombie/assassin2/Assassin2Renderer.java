@@ -1,16 +1,16 @@
 package changmin.changmin_villager_turret.feature.zombie.assassin2;
 
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
 
 public class Assassin2Renderer extends GeoEntityRenderer<Assassin2Entity> {
 
@@ -44,21 +44,21 @@ public class Assassin2Renderer extends GeoEntityRenderer<Assassin2Entity> {
 
             // 1. 레벨 및 체력 정보 텍스트 (Y축: -22.0F)
             String infoText = String.format("Lv. %d (%d/%d)", entity.getAssassinLevel(), (int) entity.getHealth(), (int) entity.getMaxHealth());
-            Component textComponent = new TextComponent(infoText);
+            Component textComponent = Component.literal(infoText);
             float textWidth = (float) font.width(textComponent);
             float textX = -textWidth / 2.0F;
             float hpTextY = -22.0F;
 
-            font.drawInBatch(textComponent, textX, hpTextY, -1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(textComponent, textX, hpTextY, -1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             // 2. 경험치(처치 수) 정보 텍스트 (Y축: -12.0F)
             String xpText = String.format("XP: %d/%d", entity.getCurrentXp(), entity.getNeededXp());
-            Component xpComponent = new TextComponent(xpText);
+            Component xpComponent = Component.literal(xpText);
             float xpTextWidth = (float) font.width(xpComponent);
             float xpTextX = -xpTextWidth / 2.0F;
             float xpTextY = -12.0F;
 
-            font.drawInBatch(xpComponent, xpTextX, xpTextY, -1, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(xpComponent, xpTextX, xpTextY, -1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             // 그래픽 바 수치 선언
             float barWidth = 50.0F;

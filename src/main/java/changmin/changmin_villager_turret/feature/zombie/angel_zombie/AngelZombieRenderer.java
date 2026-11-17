@@ -1,7 +1,8 @@
 package changmin.changmin_villager_turret.feature.zombie.angel_zombie;
 
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
+
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
 
 public class AngelZombieRenderer extends GeoEntityRenderer<AngelZombieEntity> {
     public AngelZombieRenderer(EntityRendererProvider.Context context) {

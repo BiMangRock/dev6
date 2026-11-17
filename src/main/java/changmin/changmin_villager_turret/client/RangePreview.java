@@ -9,7 +9,7 @@ import changmin.changmin_villager_turret.feature.turret.trident_turret.TridentTu
 import changmin.changmin_villager_turret.feature.turret.villager_turret.VillagerTurretEntity;
 import changmin.changmin_villager_turret.registry.ModEntityTypes;
 import changmin.changmin_villager_turret.util.BallisticAim;
-import com.mojang.math.Vector3f;
+import org.joml.Vector3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -152,7 +152,7 @@ public final class RangePreview {
         Vec3 look = player.getViewVector(1.0F);
         Vec3 end = eye.add(look.scale(LOOK_DISTANCE));
         AABB searchBox = player.getBoundingBox().expandTowards(look.scale(LOOK_DISTANCE)).inflate(1.0D);
-        EntityHitResult hit = ProjectileUtil.getEntityHitResult(player.level, player, eye, end, searchBox,
+        EntityHitResult hit = ProjectileUtil.getEntityHitResult(player.level(), player, eye, end, searchBox,
                 e -> e instanceof AbstractTurretEntity && e.isAlive());
         return hit != null && hit.getEntity() instanceof AbstractTurretEntity turret ? turret : null;
     }

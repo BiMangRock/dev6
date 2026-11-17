@@ -1,16 +1,16 @@
 package changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End;
 
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
 
 public class ApostleOfTheEndRenderer extends GeoEntityRenderer<ApostleOfTheEndEntity> {
 
@@ -47,13 +47,13 @@ public class ApostleOfTheEndRenderer extends GeoEntityRenderer<ApostleOfTheEndEn
             if (!entity.isAlive() || entity.getHealth() <= 0) hpText = "DEAD";
             else if (entity.getSummonedAngelsCount() > 0) hpText += " [INVULNERABLE]";
 
-            Component hpComponent = new TextComponent(hpText);
-            font.drawInBatch(hpComponent, -((float)font.width(hpComponent) / 2.0F), -22.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+            Component hpComponent = Component.literal(hpText);
+            font.drawInBatch(hpComponent, -((float)font.width(hpComponent) / 2.0F), -22.0F, -1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             // 2. 소환 대기 정보 텍스트 (Y축: -12.0F)
             String summonText = String.format("Summon: %.1fs (Angels: %d/3)", (float)entity.getSummonTimer() / 20.0F, entity.getSummonedAngelsCount());
-            Component summonComponent = new TextComponent(summonText);
-            font.drawInBatch(summonComponent, -((float)font.width(summonComponent) / 2.0F), -12.0F, 0xFFFFFF00, false, matrix4f, buffer, false, 0, packedLight);
+            Component summonComponent = Component.literal(summonText);
+            font.drawInBatch(summonComponent, -((float)font.width(summonComponent) / 2.0F), -12.0F, 0xFFFFFF00, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
             float barWidth = 50.0F;
             float barHeight = 3.0F;

@@ -1,21 +1,22 @@
 package changmin.changmin_villager_turret.feature.zombie.angel_zombie;
 
-import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib3.model.AnimatedGeoModel;
+import software.bernie.geckolib.model.GeoModel;
 
-public class AngelZombieModel extends AnimatedGeoModel<AngelZombieEntity> {
+import net.minecraft.resources.ResourceLocation;
+
+public class AngelZombieModel extends GeoModel<AngelZombieEntity> {
     @Override
-    public ResourceLocation getModelLocation(AngelZombieEntity object) {
+    public ResourceLocation getModelResource(AngelZombieEntity object) {
         return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "geo/angel_zombie.geo.json");
     }
 
     @Override
-    public ResourceLocation getTextureLocation(AngelZombieEntity object) {
+    public ResourceLocation getTextureResource(AngelZombieEntity object) {
         return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "textures/entity/angel_zombie.png");
     }
 
     @Override
-    public ResourceLocation getAnimationFileLocation(AngelZombieEntity animatable) {
+    public ResourceLocation getAnimationResource(AngelZombieEntity animatable) {
         return ResourceLocation.fromNamespaceAndPath("changmin_villager_turret", "animations/angel_zombie.animation.json");
     }
 }

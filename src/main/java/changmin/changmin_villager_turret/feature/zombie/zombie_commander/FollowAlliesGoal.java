@@ -19,7 +19,7 @@ public class FollowAlliesGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        this.targetAlly = this.commander.level.getNearestEntity(
+        this.targetAlly = this.commander.level().getNearestEntity(
                 LivingEntity.class,
                 TargetingConditions.forNonCombat().range(32.0D).selector(e ->
                         IZombieTribe.isZombieTribe(e) && !e.getUUID().equals(commander.getUUID())

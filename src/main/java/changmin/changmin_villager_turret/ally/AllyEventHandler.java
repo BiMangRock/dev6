@@ -14,7 +14,7 @@ public class AllyEventHandler {
     // 🛡️ 아군끼리(혹은 플레이어와의 사이에서) 오가는 모든 피해량을 0으로 차단 및 이벤트 취소
     @SubscribeEvent
     public static void onLivingHurt(LivingHurtEvent event) {
-        LivingEntity victim = event.getEntityLiving();
+        LivingEntity victim = event.getEntity();
         Entity attacker = event.getSource().getEntity();
 
         if (attacker != null) {
@@ -39,7 +39,7 @@ public class AllyEventHandler {
     // 🎯 신형 이벤트를 이용해 아군끼리 타겟 지정을 시도할 때 원천 차단
     @SubscribeEvent
     public static void onChangeTarget(LivingChangeTargetEvent event) {
-        LivingEntity attacker = event.getEntityLiving();
+        LivingEntity attacker = event.getEntity();
         LivingEntity newTarget = event.getNewTarget(); // 새로 설정되려는 타겟팅 대상
 
         // 타겟팅을 시도하려는 주체가 아군이고, 지정하려는 대상이 있는 경우

@@ -63,7 +63,10 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     // 1. GeckoLib 저장소 추가 (기존 코드 연동 필수)
-    maven { url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
+    maven {
+        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content { includeGroup('software.bernie.geckolib') }
+    }
 }
 
 dependencies {
@@ -71,7 +74,7 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     // 2. GeckoLib 의존성 추가 (기존 코드 연동 필수)
-    implementation fg.deobf('software.bernie.geckolib:geckolib-forge-1.18:3.0.57')
+    implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
 }
 
 // 템플릿 변수 치환 설정 (mods.toml, pack.mcmeta 적용)

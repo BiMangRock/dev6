@@ -25,7 +25,7 @@ public class ZombieBossAttackHelper {
     }
 
     private static void shootPassiveTrackerArrow(ZombieBossEntity boss, LivingEntity target) {
-        ZombieBossArrow arrow = new ZombieBossArrow(boss.level, boss);
+        ZombieBossArrow arrow = new ZombieBossArrow(boss.level(), boss);
         arrow.setPos(boss.getX(), boss.getEyeY() - 0.1D, boss.getZ());
 
         double dx = target.getX() - boss.getX();
@@ -38,7 +38,7 @@ public class ZombieBossAttackHelper {
 
         arrow.setMaxLifeTicks(300); // 패시브 유도 화살만 수명을 15초(300틱)로 연장 [2]
 
-        boss.level.addFreshEntity(arrow);
+        boss.level().addFreshEntity(arrow);
     }
 
     private static void handleAttack2(ZombieBossEntity boss) {
@@ -137,16 +137,16 @@ public class ZombieBossAttackHelper {
     }
 
     private static void shootArrowInDirection(ZombieBossEntity boss, double dx, double dy, double dz, float speed, double damage) {
-        ZombieBossArrow arrow = new ZombieBossArrow(boss.level, boss);
+        ZombieBossArrow arrow = new ZombieBossArrow(boss.level(), boss);
         arrow.setPos(boss.getX(), boss.getEyeY() - 0.1D, boss.getZ());
         arrow.shoot(dx, dy, dz, speed, 0.0F);
         arrow.setNoGravity(true);
         arrow.setBaseDamage(damage);
-        boss.level.addFreshEntity(arrow);
+        boss.level().addFreshEntity(arrow);
     }
 
     private static void shootSlowNoGravityArrow(ZombieBossEntity boss, LivingEntity target) {
-        ZombieBossArrow arrow = new ZombieBossArrow(boss.level, boss);
+        ZombieBossArrow arrow = new ZombieBossArrow(boss.level(), boss);
         arrow.setPos(boss.getX(), boss.getEyeY() - 0.1D, boss.getZ());
 
         double dx = target.getX() - boss.getX();
@@ -157,7 +157,7 @@ public class ZombieBossAttackHelper {
         arrow.setNoGravity(true);
         arrow.setBaseDamage(2.0D);
 
-        boss.level.addFreshEntity(arrow);
+        boss.level().addFreshEntity(arrow);
     }
 
     private static void spawnArrowRing(ZombieBossEntity boss, int arrowCount) {
@@ -166,13 +166,13 @@ public class ZombieBossAttackHelper {
             double dx = Math.cos(angle);
             double dz = Math.sin(angle);
 
-            ZombieBossArrow arrow = new ZombieBossArrow(boss.level, boss);
+            ZombieBossArrow arrow = new ZombieBossArrow(boss.level(), boss);
             arrow.setPos(boss.getX(), boss.getY() + 0.5D, boss.getZ());
 
             arrow.shoot(dx, 0.05D, dz, 0.7F, 0.0F);
             arrow.setBaseDamage(3.0D);
 
-            boss.level.addFreshEntity(arrow);
+            boss.level().addFreshEntity(arrow);
         }
     }
 }

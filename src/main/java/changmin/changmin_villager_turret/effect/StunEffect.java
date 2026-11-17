@@ -13,7 +13,7 @@ public class StunEffect extends MobEffect {
     @Override
     public void applyEffectTick(LivingEntity entity, int amplifier) {
 // 땅 위에 있지 않을 때만(공중에 떠 있을 때만) 아래로 당깁니다.
-        if (!entity.isOnGround()) {
+        if (!entity.onGround()) {
             entity.setDeltaMovement(0, -0.2D, 0);
         } else {
             // 이미 땅 위라면 수평 이동만 막습니다.

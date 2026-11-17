@@ -11,7 +11,7 @@ import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.PotionEvent;
+import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -24,7 +24,7 @@ public class RageEffectHandler {
     // [매 틱 최적화 검사] 효과가 있을 때만 주입을 시도하므로 렉이 발생하지 않습니다.
     @SubscribeEvent
     public static void onLivingUpdate(LivingEvent.LivingUpdateEvent event) {
-        if (event.getEntityLiving() instanceof Mob mob && !mob.level.isClientSide) {
+        if (event.getEntity() instanceof Mob mob && !mob.level().isClientSide) {
             if (mob.hasEffect(ModEffects.RAGE.get())) {
                 injectRageGoals(mob);
             }
@@ -33,9 +33,9 @@ public class RageEffectHandler {
 
     // 버프 자연 만료 시 제거
     @SubscribeEvent
-    public static void onPotionExpired(PotionEvent.PotionExpiryEvent event) {
-        if (event.getPotionEffect() != null && event.getPotionEffect().getEffect() == ModEffects.RAGE.get()) {
-            if (event.getEntityLiving() instanceof Mob mob && !mob.level.isClientSide) {
+    public static void onPotionExpired(MobEffectEvent.Expired event) {
+        if (event.getEffectInstance() != null && event.getEffectInstance().getEffect() == ModEffects.RAGE.get()) {
+            if (event.getEntity() instanceof Mob mob && !mob.level().isClientSide) {
                 removeRageGoals(mob);
             }
         }
@@ -43,9 +43,9 @@ public class RageEffectHandler {
 
     // 우유 등 강제 삭제 시 제거
     @SubscribeEvent
-    public static void onPotionRemoved(PotionEvent.PotionRemoveEvent event) {
-        if (event.getPotion() == ModEffects.RAGE.get()) {
-            if (event.getEntityLiving() instanceof Mob mob && !mob.level.isClientSide) {
+    public static void onPotionRemoved(MobEffectEvent.Remove event) {
+        if (event.getEffect() == ModEffects.RAGE.get()) {
+            if (event.getEntity() instanceof Mob mob && !mob.level().isClientSide) {
                 removeRageGoals(mob);
             }
         }
@@ -123,7 +123,7 @@ public class RageEffectHandler {
 
             // 10블록 반경 내 가장 가까운 몬스터를 강제 탐색 (질문자님의 핵심 로직 활용)
             AABB area = this.mob.getBoundingBox().inflate(10.0D);
-            List<Monster> hostiles = this.mob.level.getEntitiesOfClass(Monster.class, area, target ->
+            List<Monster> hostiles = this.mob.level().getEntitiesOfClass(Monster.class, area, target ->
                     target != this.mob
                             && target.isAlive()
                             && !(target instanceof IAlly)

@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.turret.plasma_wizard;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.registry.ModEntityTypes;
 import changmin.changmin_villager_turret.registry.ModEffects;
@@ -19,20 +28,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.builder.ILoopType;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
 import java.util.List;
 
-public class PlasmaOrbEntity extends AbstractArrow implements IAnimatable {
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+public class PlasmaOrbEntity extends AbstractArrow implements GeoEntity {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     // 시각적/물리적 크기 동기화를 위한 데이터 패킷
     private static final EntityDataAccessor<Float> ORB_SCALE = SynchedEntityData.defineId(PlasmaOrbEntity.class, EntityDataSerializers.FLOAT);
@@ -66,7 +66,7 @@ public class PlasmaOrbEntity extends AbstractArrow implements IAnimatable {
         Vec3 motion = this.getDeltaMovement();
         super.tick();
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             // 무중력 상태에서 10초(200틱)가 경과하면 탄환을 소멸시켜 서버 과부하 방지
             if (this.tickCount >= 200) {
                 this.discard();
@@ -87,7 +87,7 @@ public class PlasmaOrbEntity extends AbstractArrow implements IAnimatable {
 
     @Override
     protected void onHitEntity(EntityHitResult result) {
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             Entity owner = this.getOwner();
             Entity directTarget = result.getEntity(); // 💡 레이트레이싱 기법으로 직격당한 표적 확보
 
@@ -96,7 +96,7 @@ public class PlasmaOrbEntity extends AbstractArrow implements IAnimatable {
 
             // 겹쳐 있는 범위 안의 생명체들을 가변식 ArrayList로 안전하게 수집합니다.
             List<LivingEntity> overlappingTargets = new java.util.ArrayList<>(
-                    this.level.getEntitiesOfClass(LivingEntity.class, hitBox)
+                    this.level().getEntitiesOfClass(LivingEntity.class, hitBox)
             );
 
             // 💡 [직격 표적 강제 주입 보정]: 직격당한 좀비가 프레임 오차 때문에 리스트에 수집되지 않았다면 강제로 최우선 편입합니다.
@@ -118,7 +118,7 @@ public class PlasmaOrbEntity extends AbstractArrow implements IAnimatable {
                 }
 
                 // 1. 공격자 터렛의 강화 수치에 기반한 대미지 가함
-                livingTarget.hurt(DamageSource.indirectMagic(this, owner == null ? this : owner), this.damage);
+                livingTarget.hurt(this.damageSources().indirectMagic(this, owner == null ? this : owner), this.damage);
 
                 // 2. 공격자 터렛의 강화 수치에 기반한 기절 상태이상 부여
                 livingTarget.addEffect(new MobEffectInstance(ModEffects.STUN.get(), this.stunDuration, 0));
@@ -174,18 +174,16 @@ public class PlasmaOrbEntity extends AbstractArrow implements IAnimatable {
         if (tag.contains("OrbStunDuration")) this.stunDuration = tag.getInt("OrbStunDuration");
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
-        event.getController().setAnimation(new AnimationBuilder().addAnimation("fly", ILoopType.EDefaultLoopTypes.LOOP));
+    private PlayState predicate(AnimationState<PlasmaOrbEntity> event) {
+        event.getController().setAnimation(RawAnimation.begin().thenLoop("fly"));
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 0, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 0, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return this.factory;
-    }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 }

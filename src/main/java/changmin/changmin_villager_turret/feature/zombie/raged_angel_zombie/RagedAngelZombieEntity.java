@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.AngelRangedAttackGoal;
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.IAngelAttack;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
@@ -19,20 +28,12 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 
-public class RagedAngelZombieEntity extends Monster implements IAnimatable, IZombieTribe, IAngelAttack {
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+public class RagedAngelZombieEntity extends Monster implements GeoEntity, IZombieTribe, IAngelAttack {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     @Nullable private LivingEntity leader = null;
     public int attackTimer = 0;
 
@@ -61,7 +62,7 @@ public class RagedAngelZombieEntity extends Monster implements IAnimatable, IZom
     LivingEntity resolveLeader() {
         // (AI 목표는 2틱마다 호출될 수 있어 tickCount % N 대신 호출 횟수 카운터 사용)
         if (this.leader == null && this.leaderUUID != null && --this.leaderLookupCooldown <= 0
-                && this.level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                && this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
             this.leaderLookupCooldown = 10;
             net.minecraft.world.entity.Entity found = serverLevel.getEntity(this.leaderUUID);
             if (found instanceof LivingEntity living) this.leader = living;
@@ -93,7 +94,7 @@ public class RagedAngelZombieEntity extends Monster implements IAnimatable, IZom
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             // 3연발 로직 (10틱 = 0.5초 간격)
             if (this.shotsLeft > 0 && this.currentTarget != null && this.currentTarget.isAlive()) {
                 if (this.nextShotDelay <= 0) {
@@ -111,8 +112,8 @@ public class RagedAngelZombieEntity extends Monster implements IAnimatable, IZom
     private void shootRagedShockwave(LivingEntity target) {
         Vec3 dir = target.position().subtract(this.position()).normalize();
         double speed = 0.4D;
-        RagedShockwaveEntity projectile = new RagedShockwaveEntity(this.level, this, dir.x * speed, dir.y * speed, dir.z * speed);
-        this.level.addFreshEntity(projectile);
+        RagedShockwaveEntity projectile = new RagedShockwaveEntity(this.level(), this, dir.x * speed, dir.y * speed, dir.z * speed);
+        this.level().addFreshEntity(projectile);
         this.attackTimer = 10;
     }
 
@@ -140,7 +141,7 @@ public class RagedAngelZombieEntity extends Monster implements IAnimatable, IZom
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.91F));
         }
-        this.calculateEntityAnimation(this, false);
+        this.calculateEntityAnimation(false);
     }
     @Override protected PathNavigation createNavigation(Level level) { return new FlyingPathNavigation(this, level); }
 
@@ -151,11 +152,11 @@ public class RagedAngelZombieEntity extends Monster implements IAnimatable, IZom
         @Override public void tick() { if (angel.leader != null) angel.getNavigation().moveTo(angel.leader.getX(), angel.leader.getY() + 6, angel.leader.getZ(), 1.6D); }
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
-        if (this.attackTimer > 0) event.getController().setAnimation(new AnimationBuilder().playOnce("attack1"));
-        else event.getController().setAnimation(new AnimationBuilder().loop("fly"));
+    private PlayState predicate(AnimationState<RagedAngelZombieEntity> event) {
+        if (this.attackTimer > 0) event.getController().setAnimation(RawAnimation.begin().thenPlay("attack1"));
+        else event.getController().setAnimation(RawAnimation.begin().thenLoop("fly"));
         return PlayState.CONTINUE;
     }
-    @Override public void registerControllers(AnimationData data) { data.addAnimationController(new AnimationController<>(this, "controller", 5, this::predicate)); }
-    @Override public AnimationFactory getFactory() { return factory; }
+    @Override public void registerControllers(AnimatableManager.ControllerRegistrar controllers) { controllers.add(new AnimationController<>(this, "controller", 5, this::predicate)); }
+    @Override public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 }

@@ -1,5 +1,14 @@
 package changmin.changmin_villager_turret.feature.zombie.healer_zombie;
 
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.nbt.CompoundTag; // 🆕 추가
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -13,25 +22,17 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class HealerZombieEntity extends PathfinderMob implements IAnimatable, IZombieTribe {
+public class HealerZombieEntity extends PathfinderMob implements GeoEntity, IZombieTribe {
     private static final EntityDataAccessor<Integer> DATA_LEVEL = SynchedEntityData.defineId(HealerZombieEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_XP = SynchedEntityData.defineId(HealerZombieEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_ANIMATION = SynchedEntityData.defineId(HealerZombieEntity.class, EntityDataSerializers.INT);
 
     public static final UUID HEALER_GROWTH_ID = UUID.fromString("2d3e4f5a-6b7c-8d9e-0f1a-2b3c4d5e6f7a");
 
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private int animationTick = 0;
 
     public HealerZombieEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
@@ -62,7 +63,7 @@ public class HealerZombieEntity extends PathfinderMob implements IAnimatable, IZ
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.animationTick > 0) {
                 this.animationTick--;
                 if (this.animationTick <= 0) {
@@ -140,23 +141,23 @@ public class HealerZombieEntity extends PathfinderMob implements IAnimatable, IZ
     public float getHealAmount() { return 5.0F * this.getHealerLevel(); }
     public float getHealRange() { return 10.0F + (this.getHealerLevel() * 0.5F); }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private PlayState predicate(AnimationState<HealerZombieEntity> event) {
         if (this.getAnimationState() == 1) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce("heal"));
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("heal"));
             return PlayState.CONTINUE;
         }
         if (event.isMoving()) {
-            event.getController().setAnimation(new AnimationBuilder().loop("walk"));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
             return PlayState.CONTINUE;
         }
         return PlayState.STOP;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 5, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 5, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() { return this.factory; }
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
 }

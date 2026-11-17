@@ -6,7 +6,6 @@ import changmin.changmin_villager_turret.ally.IAlly;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -81,7 +80,7 @@ public class PlasmaWizardEntity extends AbstractTurretEntity {
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.getCurrentCooldown() > 0) {
                 this.setCurrentCooldown(this.getCurrentCooldown() - 1);
             }
@@ -123,7 +122,7 @@ public class PlasmaWizardEntity extends AbstractTurretEntity {
     }
 
     private void shootRotatedOrb(LivingEntity target, double angleDegrees) {
-        PlasmaOrbEntity projectile = new PlasmaOrbEntity(this.level, this);
+        PlasmaOrbEntity projectile = new PlasmaOrbEntity(this.level(), this);
         projectile.setDamage(this.getCalculatedDamage());
         projectile.setStunDuration(this.getCalculatedStunDuration());
         projectile.setOrbScale(this.getCalculatedScale());
@@ -142,7 +141,7 @@ public class PlasmaWizardEntity extends AbstractTurretEntity {
             projectile.shoot(d0, d1, d2, 0.375F, 0.0F);
         }
 
-        this.level.addFreshEntity(projectile);
+        this.level().addFreshEntity(projectile);
     }
 
     public void addXp(int amount) {
@@ -170,7 +169,7 @@ public class PlasmaWizardEntity extends AbstractTurretEntity {
 
         this.playSound(SoundEvents.PLAYER_LEVELUP, 1.0F, 0.8F);
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             // 하급 티켓 드롭 개수 정밀 계산
             int baseTickets = newLevel <= 4 ? 1 : (newLevel <= 7 ? 2 : 4 + (int) ((newLevel - 8) * 0.2F));
             if (this.random.nextFloat() < 0.10F) { // 10% 잭팟 보너스
@@ -181,7 +180,7 @@ public class PlasmaWizardEntity extends AbstractTurretEntity {
             // 하급 철조각 토큰 드롭 (티어 코드 0 전달)
             this.spawnAtLocation(PlasmaWizardTradeManager.getBoundToken(this, baseTickets, 0), 0.5F);
 
-            if (this.level instanceof ServerLevel serverLevel) {
+            if (this.level() instanceof ServerLevel serverLevel) {
                 ExperienceOrb.award(serverLevel, this.position(), newLevel * 50);
                 serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, this.getX(), this.getY(1.0D), this.getZ(), 45, 0.5D, 0.5D, 0.5D, 0.15D);
             }
@@ -193,21 +192,21 @@ public class PlasmaWizardEntity extends AbstractTurretEntity {
         ItemStack heldItem = player.getItemInHand(hand);
         if (!heldItem.isEmpty() && heldItem.hasTag() && heldItem.getTag().contains("UpgradeType")) {
             String allowedType = heldItem.getTag().getString("TurretType");
-            if (allowedType.equals(this.getType().getRegistryName().toString())) {
+            if (allowedType.equals(String.valueOf(net.minecraft.world.entity.EntityType.getKey(this.getType())))) {
                 String upgradeType = heldItem.getTag().getString("UpgradeType");
-                if (!this.level.isClientSide) {
+                if (!this.level().isClientSide) {
                     PlasmaWizardTradeManager.applyUpgradeDirectly(this, upgradeType);
                     if (!player.getAbilities().instabuild) heldItem.shrink(1);
                 }
-                return InteractionResult.sidedSuccess(this.level.isClientSide);
+                return InteractionResult.sidedSuccess(this.level().isClientSide);
             }
         }
 
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.setTradingPlayer(player);
             this.openTradingScreen(player, this.getDisplayName(), 1);
         }
-        return InteractionResult.sidedSuccess(this.level.isClientSide);
+        return InteractionResult.sidedSuccess(this.level().isClientSide);
     }
 
     // 업그레이드 연산 관련 보정 공식들
@@ -242,7 +241,7 @@ public class PlasmaWizardEntity extends AbstractTurretEntity {
     @Override
     protected void onTradeCompleted(MerchantOffer offer) {
         offer.increaseUses();
-        if (!this.level.isClientSide && offer.getResult().hasTag() && offer.getResult().getTag().contains("UpgradeType")) {
+        if (!this.level().isClientSide && offer.getResult().hasTag() && offer.getResult().getTag().contains("UpgradeType")) {
             PlasmaWizardTradeManager.applyUpgradeDirectly(this, offer.getResult().getTag().getString("UpgradeType"));
         }
     }

@@ -37,7 +37,7 @@ public class Assassin2ShadowMoveGoal extends Goal {
         }
 
         // 2. 암살자 다운 랜덤 점프 (회피 로직)
-        if (assassin.isOnGround() && assassin.getRandom().nextInt(30) == 0) {
+        if (assassin.onGround() && assassin.getRandom().nextInt(30) == 0) {
             assassin.jumpFromGround();
             // 점프 시 공중에서 대쉬하는 듯한 속도 부여
             Vec3 look = assassin.getLookAngle();

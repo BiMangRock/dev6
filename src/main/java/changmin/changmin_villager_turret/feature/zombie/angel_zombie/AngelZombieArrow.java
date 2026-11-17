@@ -23,7 +23,7 @@ public class AngelZombieArrow extends Arrow {
     public void tick() {
         super.tick();
         // 서버 측에서 100틱(5초) 지나면 삭제
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.tickCount >= 100) {
                 this.discard();
             }

@@ -591,5 +591,6 @@
   "changmin_villager_turret.packed.success": "%s 회수 완료! 다시 설치하면 레벨과 업그레이드가 유지됩니다.",
   "changmin_villager_turret.packed.busy": "다른 플레이어가 업그레이드 화면을 사용 중이라 회수할 수 없습니다.",
   "changmin_villager_turret.packed.lore_level": "회수된 터렛 · Lv.%s",
-  "changmin_villager_turret.packed.lore_keep": "설치하면 레벨·업그레이드·체력이 그대로 복원됩니다"
+  "changmin_villager_turret.packed.lore_keep": "설치하면 레벨·업그레이드·체력이 그대로 복원됩니다",
+  "itemGroup.changmin_villager_turret": "주민 터렛"
 }

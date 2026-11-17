@@ -78,7 +78,7 @@ public class HealerEffectHelper {
 
         for (LivingEntity entity : targets) {
             if (entity.isAlive() && (entity.getMobType() == MobType.UNDEAD || IZombieTribe.isZombieTribe(entity))) {
-                entity.hurt(DamageSource.mobAttack(healer), 1.0F); // 1 고정 피해 및 도발 유도
+                entity.hurt(healer.damageSources().mobAttack(healer), 1.0F); // 1 고정 피해 및 도발 유도
 
                 // 🆕 피격 연출 (검은 연기 및 작은 불꽃)
                 level.sendParticles(ParticleTypes.LARGE_SMOKE, entity.getX(), entity.getY(0.5D), entity.getZ(), 4, 0.2D, 0.2D, 0.2D, 0.01D);

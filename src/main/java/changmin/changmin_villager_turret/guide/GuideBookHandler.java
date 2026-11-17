@@ -5,7 +5,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -31,7 +30,7 @@ public final class GuideBookHandler {
 
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (!(event.getPlayer() instanceof ServerPlayer player)) return;
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
         TurretAdvancements.award(player, TurretAdvancements.ROOT);
 
@@ -42,7 +41,7 @@ public final class GuideBookHandler {
         if (!player.getInventory().add(book)) {
             player.drop(book, false);
         }
-        player.displayClientMessage(new TranslatableComponent("guide.changmin_villager_turret.received"), false);
+        player.displayClientMessage(Component.translatable("guide.changmin_villager_turret.received"), false);
 
         persisted.putBoolean(RECEIVED_KEY, true);
         TurretAdvancements.savePersisted(player, persisted);
@@ -58,7 +57,7 @@ public final class GuideBookHandler {
 
         ListTag pages = new ListTag();
         for (int i = 1; i <= PAGE_COUNT; i++) {
-            Component page = new TranslatableComponent("guide.changmin_villager_turret.page" + i);
+            Component page = Component.translatable("guide.changmin_villager_turret.page" + i);
             pages.add(StringTag.valueOf(Component.Serializer.toJson(page)));
         }
         tag.put("pages", pages);
@@ -66,7 +65,7 @@ public final class GuideBookHandler {
         // 아이템 이름도 언어 파일을 따르도록 표시 이름을 번역 키로 지정
         CompoundTag display = new CompoundTag();
         display.putString("Name", Component.Serializer.toJson(
-                new TranslatableComponent("item.changmin_villager_turret.guide_book")
+                Component.translatable("item.changmin_villager_turret.guide_book")
                         .withStyle(style -> style.withItalic(false))));
         tag.put("display", display);
         return book;
