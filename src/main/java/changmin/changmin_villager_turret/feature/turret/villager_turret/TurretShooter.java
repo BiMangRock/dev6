@@ -11,8 +11,6 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
@@ -51,26 +49,12 @@ public class TurretShooter {
 
     // 단발 화살 격발 상세 연산
     public static void shootSingleArrow(VillagerTurretEntity turret, LivingEntity target, int mode, float spread) {
-        ItemStack arrowStack;
-        int type = turret.getArrowType();
-
-        if (type == 1) {
-            arrowStack = new ItemStack(Items.TIPPED_ARROW);
-            PotionUtils.setPotion(arrowStack, Potions.POISON);
-        } else if (type == 2) {
-            arrowStack = new ItemStack(Items.TIPPED_ARROW);
-            PotionUtils.setPotion(arrowStack, Potions.WEAKNESS);
-        } else if (type == 3) {
-            arrowStack = new ItemStack(Items.TIPPED_ARROW);
-            PotionUtils.setPotion(arrowStack, Potions.SLOWNESS);
-        } else {
-            arrowStack = new ItemStack(Items.ARROW);
-        }
-
+        // 토글형 물약 화살을 전량 폐기하고, 다중 상태이상 업그레이드를 태그로 유연 전달하도록 변경
+        ItemStack arrowStack = new ItemStack(Items.ARROW);
         AbstractArrow arrow = ProjectileUtil.getMobArrow(turret, arrowStack, 1.0F);
 
         // 공격력 정밀 계산
-        double baseDamage = VillagerTurretEntity.ARROW_DAMAGE;
+        double baseDamage = VillagerTurretEntity.ARROW_DAMAGE + (turret.getDamageLevel() * 1.0D);
         if (mode == 3) { // 넉백 모드일 시 정수 나눗셈 방지를 위해 실수형(0.1D) 곱셈으로 데미지 격감 처리 (하트 0.1칸 수준)
             baseDamage = baseDamage * 0.1D;
         }
@@ -92,6 +76,12 @@ public class TurretShooter {
             arrow.addTag("heavy_arrow");
         }
 
+        // 해금 및 주입되어 있는 4종류의 독/위더/슬로우/나약함 레벨 수치를 화살 태그에 고스란히 담아 사격
+        if (turret.getPoisonLevel() > 0) arrow.addTag("poison_" + turret.getPoisonLevel());
+        if (turret.getWitherLevel() > 0) arrow.addTag("wither_" + turret.getWitherLevel());
+        if (turret.getSlownessLevel() > 0) arrow.addTag("slowness_" + turret.getSlownessLevel());
+        if (turret.getWeaknessLevel() > 0) arrow.addTag("weakness_" + turret.getWeaknessLevel());
+
         double d0 = target.getX() - turret.getX();
         double d1 = target.getY(0.3333333333333333D) - arrow.getY();
         double d2 = target.getZ() - turret.getZ();
@@ -111,17 +101,102 @@ public class TurretShooter {
     }
 
     // ==========================================
-    // 💥 넉백 및 강공격 무적 프레임 강제 무력화 이벤트 감지 연산
+    // 💥 넉백, 강공격 무적 소거 및 독/위더 데미지 다이내믹 수치 가로채기(Method A) 적용 연산
     // ==========================================
     @SubscribeEvent
     public static void onLivingHurt(LivingHurtEvent event) {
         // getImmediateSource() 대신 환경에 맞춘 getDirectEntity() 사용
         if (event.getSource().getDirectEntity() instanceof AbstractArrow arrow) {
+            LivingEntity victim = event.getEntityLiving();
+
             // 맞춘 화살이 넉백 모드 혹은 강공격 모드 전용 화살로 검출될 경우
             if (arrow.getTags().contains("knockback_arrow") || arrow.getTags().contains("heavy_arrow")) {
-                LivingEntity victim = event.getEntityLiving();
                 // hurtResistantTime 대신 1.18.2의 실질 변수인 invulnerableTime을 0으로 강제 소거합니다.
                 victim.invulnerableTime = 0;
+            }
+
+            // 태그에서 수치 정보를 꺼내어 효과 주입 (독/위더는 서버 최적화를 위해 느린 1레벨로 걸고 레벨 태그를 몹에게 심음)
+            if (arrow.getTags().contains("turret_arrow")) {
+                for (String tag : arrow.getTags()) {
+                    if (tag.startsWith("poison_")) {
+                        try {
+                            int level = Integer.parseInt(tag.substring(7));
+                            if (level > 0) {
+                                victim.getTags().removeIf(t -> t.startsWith("turret_poison_lvl_"));
+                                victim.addTag("turret_poison_lvl_" + level);
+                                // 최적화를 위해 매 틱 데미지 주입이 아닌 일반 느린 독(독 1레벨) 주입
+                                victim.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                                        net.minecraft.world.effect.MobEffects.POISON, level * 80, 0));
+                            }
+                        } catch (NumberFormatException ignored) {}
+                    } else if (tag.startsWith("wither_")) {
+                        try {
+                            int level = Integer.parseInt(tag.substring(7));
+                            if (level > 0) {
+                                victim.getTags().removeIf(t -> t.startsWith("turret_wither_lvl_"));
+                                victim.addTag("turret_wither_lvl_" + level);
+                                // 최적화를 위해 느린 일반 위더(위더 1레벨) 주입
+                                victim.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                                        net.minecraft.world.effect.MobEffects.WITHER, level * 60, 0));
+                            }
+                        } catch (NumberFormatException ignored) {}
+                    } else if (tag.startsWith("slowness_")) {
+                        try {
+                            int level = Integer.parseInt(tag.substring(9));
+                            if (level > 0) {
+                                // 구속은 최대 5레벨 스펙에 맞춤 (표준 바닐라 적용)
+                                victim.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                                        net.minecraft.world.effect.MobEffects.MOVEMENT_SLOWDOWN, level * 100, level - 1));
+                            }
+                        } catch (NumberFormatException ignored) {}
+                    } else if (tag.startsWith("weakness_")) {
+                        try {
+                            int level = Integer.parseInt(tag.substring(9));
+                            if (level > 0) {
+                                // 나약함은 최대 5레벨 스펙에 맞춤 (표준 바닐라 적용)
+                                victim.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                                        net.minecraft.world.effect.MobEffects.WEAKNESS, level * 120, level - 1));
+                            }
+                        } catch (NumberFormatException ignored) {}
+                    }
+                }
+            }
+        }
+
+        // 🌟 [최적화 적용] 독/위더의 틱 피해 가로채기 연산 (Method A)
+        LivingEntity victim = event.getEntityLiving();
+
+        // 독 데미지는 DamageSource.MAGIC 이며 독 효과가 활성화되어 있을 때 적용
+        if (event.getSource() == DamageSource.MAGIC && victim.hasEffect(net.minecraft.world.effect.MobEffects.POISON)) {
+            for (String tag : victim.getTags()) {
+                if (tag.startsWith("turret_poison_lvl_")) {
+                    try {
+                        int level = Integer.parseInt(tag.substring(18));
+                        if (level > 0) {
+                            // 기본 1단계 독 데미지를 독 레벨 비례 뻥튀기
+                            float basePoisonDmg = event.getAmount();
+                            event.setAmount(basePoisonDmg * level);
+                        }
+                    } catch (NumberFormatException ignored) {}
+                    break;
+                }
+            }
+        }
+
+        // 위더 데미지는 DamageSource.WITHER 이며 위더 효과가 활성화되어 있을 때 적용
+        if (event.getSource() == DamageSource.WITHER && victim.hasEffect(net.minecraft.world.effect.MobEffects.WITHER)) {
+            for (String tag : victim.getTags()) {
+                if (tag.startsWith("turret_wither_lvl_")) {
+                    try {
+                        int level = Integer.parseInt(tag.substring(18));
+                        if (level > 0) {
+                            // 기본 1단계 위더 데미지를 위더 레벨 비례 뻥튀기
+                            float baseWitherDmg = event.getAmount();
+                            event.setAmount(baseWitherDmg * level);
+                        }
+                    } catch (NumberFormatException ignored) {}
+                    break;
+                }
             }
         }
     }

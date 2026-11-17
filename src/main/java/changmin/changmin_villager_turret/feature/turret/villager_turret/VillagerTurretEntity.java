@@ -2,7 +2,7 @@ package changmin.changmin_villager_turret.feature.turret.villager_turret;
 
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.registry.ModItems;
-import changmin.changmin_villager_turret.zombieTribe.IZombieTribe; // 신규 추가된 임포트 구문
+import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -29,6 +29,8 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class VillagerTurretEntity extends PathfinderMob implements RangedAttackMob, IAlly, Merchant {
 
@@ -40,7 +42,7 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
     private static final EntityDataAccessor<Integer> SPEED_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> RECHARGE_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ARROW_PATTERN = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> ARROW_TYPE = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> ARROW_TYPE = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT); // 하위 호환 보존용
     private static final EntityDataAccessor<Integer> NO_GRAVITY = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> INVULNERABILITY_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> HEAL_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
@@ -48,6 +50,15 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
     private static final EntityDataAccessor<Integer> PASS_BLOCKS = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> CAN_SEE_THROUGH_WALLS = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ARROW_COUNT = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT); // 전용 데이터 연동 키
+    private static final EntityDataAccessor<Integer> DAMAGE_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT); // 공격력 레벨 데이터
+    private static final EntityDataAccessor<Integer> MAX_HEALTH_BONUS = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT); // 최대 체력 보너스 데이터
+
+    // 신규 무제한 자동화 레벨 및 다중 중첩 디버프 스탯 데이터 연동
+    private static final EntityDataAccessor<Integer> AUTOMATION_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> POISON_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> WITHER_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> SLOWNESS_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> WEAKNESS_LEVEL = SynchedEntityData.defineId(VillagerTurretEntity.class, EntityDataSerializers.INT);
 
     private Player tradingPlayer;
     private MerchantOffers offers;
@@ -80,6 +91,15 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
         this.entityData.define(PASS_BLOCKS, 0);
         this.entityData.define(CAN_SEE_THROUGH_WALLS, 0);
         this.entityData.define(ARROW_COUNT, 1); // 기본 1발 시작
+        this.entityData.define(DAMAGE_LEVEL, 0); // 기본 공격력 강화 레벨 0
+        this.entityData.define(MAX_HEALTH_BONUS, 0); // 기본 최대 체력 보너스 0
+
+        // 신규 동기화 데이터 초기값 정의
+        this.entityData.define(AUTOMATION_LEVEL, 0);
+        this.entityData.define(POISON_LEVEL, 0);
+        this.entityData.define(WITHER_LEVEL, 0);
+        this.entityData.define(SLOWNESS_LEVEL, 0);
+        this.entityData.define(WEAKNESS_LEVEL, 0);
     }
 
     @Override
@@ -206,15 +226,80 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
         }
     }
 
+    // 🌟 [수정] 레벨업 시 무작위 자동강화 대상 리스트를 동적으로 조율 (각 스탯의 강화 한계치 보호막 장착)
     private void onLevelUp(int newLevel) {
-        double newMaxHealth = 10.0D + (newLevel - 1) * 5.0D;
-        this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMaxHealth);
+        this.updateMaxHealth(); // 업그레이드 보너스가 적용된 체력 연산 적용
+        double currentMax = this.getMaxHealth();
         this.playSound(SoundEvents.PLAYER_LEVELUP, 1.0F, 1.0F);
 
         if (this.getHealLevel() > 0) {
             float healPercent = 0.20F * this.getHealLevel();
-            float healAmount = (float) (newMaxHealth * healPercent);
+            float healAmount = (float) (currentMax * healPercent);
             this.heal(healAmount);
+        }
+
+        // 🌟 무작위 자동강화 대상 리스트를 실시간으로 조율 (각각의 정립된 만레벨 한계 초과 시 자동화 대상 풀에서 즉각 소거)
+        List<Integer> eligibleStats = new ArrayList<>();
+        if (this.getRechargeLevel() < 10) eligibleStats.add(0); // 재장전속도 만렙: 10
+        if (this.getSpeedLevel() < 15) eligibleStats.add(1); // 화살탄속 만렙: 15 (물리 관통 버그 방지 한계선)
+        eligibleStats.add(2); // invuln (무적): 무제한
+        eligibleStats.add(3); // heal (회복): 무제한
+        eligibleStats.add(4); // damage (공격력): 무제한
+        eligibleStats.add(5); // health (최대체력): 무제한
+        if (this.getPoisonLevel() < 255) eligibleStats.add(6); // 독 만렙: 255
+        if (this.getWitherLevel() < 255) eligibleStats.add(7); // 위더 만렙: 255
+        if (this.getSlownessLevel() < 5) eligibleStats.add(8); // 감속 만렙: 5
+        if (this.getWeaknessLevel() < 5) eligibleStats.add(9); // 나약함 만렙: 5
+
+        int autoLimit = this.getAutomationLevel();
+        for (int i = 0; i < autoLimit; i++) {
+            if (eligibleStats.isEmpty()) break;
+
+            int rollIndex = this.random.nextInt(eligibleStats.size());
+            int statToUpgrade = eligibleStats.get(rollIndex);
+
+            switch (statToUpgrade) {
+                case 0 -> {
+                    this.setRechargeLevel(this.getRechargeLevel() + 1);
+                    if (this.getRechargeLevel() >= 10) {
+                        eligibleStats.remove(Integer.valueOf(0));
+                    }
+                }
+                case 1 -> {
+                    this.setSpeedLevel(this.getSpeedLevel() + 1);
+                    if (this.getSpeedLevel() >= 15) {
+                        eligibleStats.remove(Integer.valueOf(1));
+                    }
+                }
+                case 2 -> this.setInvulnerabilityLevel(this.getInvulnerabilityLevel() + 1);
+                case 3 -> this.setHealLevel(this.getHealLevel() + 1);
+                case 4 -> this.setDamageLevel(this.getDamageLevel() + 1);
+                case 5 -> this.setMaxHealthBonus(this.getMaxHealthBonus() + 5);
+                case 6 -> {
+                    this.setPoisonLevel(this.getPoisonLevel() + 1);
+                    if (this.getPoisonLevel() >= 255) {
+                        eligibleStats.remove(Integer.valueOf(6));
+                    }
+                }
+                case 7 -> {
+                    this.setWitherLevel(this.getWitherLevel() + 1);
+                    if (this.getWitherLevel() >= 255) {
+                        eligibleStats.remove(Integer.valueOf(7));
+                    }
+                }
+                case 8 -> {
+                    this.setSlownessLevel(this.getSlownessLevel() + 1);
+                    if (this.getSlownessLevel() >= 5) {
+                        eligibleStats.remove(Integer.valueOf(8));
+                    }
+                }
+                case 9 -> {
+                    this.setWeaknessLevel(this.getWeaknessLevel() + 1);
+                    if (this.getWeaknessLevel() >= 5) {
+                        eligibleStats.remove(Integer.valueOf(9));
+                    }
+                }
+            }
         }
 
         if (!this.level.isClientSide) {
@@ -311,6 +396,35 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
     public int getTurretArrowCount() { return this.entityData.get(ARROW_COUNT); }
     public void setTurretArrowCount(int count) { this.entityData.set(ARROW_COUNT, count); }
 
+    // 공격력 업그레이드 연동 메소드
+    public int getDamageLevel() { return this.entityData.get(DAMAGE_LEVEL); }
+    public void setDamageLevel(int level) { this.entityData.set(DAMAGE_LEVEL, level); }
+
+    // 최대 체력 추가 보너스 데이터 핸들러 메소드
+    public int getMaxHealthBonus() { return this.entityData.get(MAX_HEALTH_BONUS); }
+    public void setMaxHealthBonus(int bonus) {
+        this.entityData.set(MAX_HEALTH_BONUS, bonus);
+        this.updateMaxHealth();
+    }
+
+    // 신규 업그레이드 스탯 게터/세터 정의
+    public int getAutomationLevel() { return this.entityData.get(AUTOMATION_LEVEL); }
+    public void setAutomationLevel(int level) { this.entityData.set(AUTOMATION_LEVEL, level); }
+    public int getPoisonLevel() { return this.entityData.get(POISON_LEVEL); }
+    public void setPoisonLevel(int level) { this.entityData.set(POISON_LEVEL, level); }
+    public int getWitherLevel() { return this.entityData.get(WITHER_LEVEL); }
+    public void setWitherLevel(int level) { this.entityData.set(WITHER_LEVEL, level); }
+    public int getSlownessLevel() { return this.entityData.get(SLOWNESS_LEVEL); }
+    public void setSlownessLevel(int level) { this.entityData.set(SLOWNESS_LEVEL, level); }
+    public int getWeaknessLevel() { return this.entityData.get(WEAKNESS_LEVEL); }
+    public void setWeaknessLevel(int level) { this.entityData.set(WEAKNESS_LEVEL, level); }
+
+    // 동적 최대 체력 재계산 공식 적용 메소드
+    public void updateMaxHealth() {
+        double calculatedMax = 10.0D + (this.getTurretLevel() - 1) * 5.0D + this.getMaxHealthBonus();
+        this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(calculatedMax);
+    }
+
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
@@ -327,6 +441,15 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
         tag.putInt("PassBlocksEnabled", this.getPassBlocksEnabled());
         tag.putInt("CanSeeThroughWalls", this.getCanSeeThroughWalls());
         tag.putInt("ArrowCount", this.getTurretArrowCount()); // 변경된 메소드 적용
+        tag.putInt("DamageLevel", this.getDamageLevel()); // 저장 추가
+        tag.putInt("MaxHealthBonus", this.getMaxHealthBonus()); // 체력 보너스 저장 추가
+
+        // 신규 데이터 세이브 파일 등록
+        tag.putInt("AutomationLevel", this.getAutomationLevel());
+        tag.putInt("PoisonLevel", this.getPoisonLevel());
+        tag.putInt("WitherLevel", this.getWitherLevel());
+        tag.putInt("SlownessLevel", this.getSlownessLevel());
+        tag.putInt("WeaknessLevel", this.getWeaknessLevel());
     }
 
     @Override
@@ -345,9 +468,17 @@ public class VillagerTurretEntity extends PathfinderMob implements RangedAttackM
         if (tag.contains("PassBlocksEnabled")) this.setPassBlocksEnabled(tag.getInt("PassBlocksEnabled"));
         if (tag.contains("CanSeeThroughWalls")) this.setCanSeeThroughWalls(tag.getInt("CanSeeThroughWalls"));
         if (tag.contains("ArrowCount")) this.setTurretArrowCount(tag.getInt("ArrowCount")); // 변경된 메소드 적용
+        if (tag.contains("DamageLevel")) this.setDamageLevel(tag.getInt("DamageLevel")); // 불러오기 추가
+        if (tag.contains("MaxHealthBonus")) this.setMaxHealthBonus(tag.getInt("MaxHealthBonus")); // 불러오기 추가
 
-        double loadedMax = 10.0D + (this.getTurretLevel() - 1) * 5.0D;
-        this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(loadedMax);
+        // 신규 데이터 세이브 로드 연동
+        if (tag.contains("AutomationLevel")) this.setAutomationLevel(tag.getInt("AutomationLevel"));
+        if (tag.contains("PoisonLevel")) this.setPoisonLevel(tag.getInt("PoisonLevel"));
+        if (tag.contains("WitherLevel")) this.setWitherLevel(tag.getInt("WitherLevel"));
+        if (tag.contains("SlownessLevel")) this.setSlownessLevel(tag.getInt("SlownessLevel"));
+        if (tag.contains("WeaknessLevel")) this.setWeaknessLevel(tag.getInt("WeaknessLevel"));
+
+        this.updateMaxHealth(); // 업그레이드 보너스가 완전 조립된 데이터로 최대 체력 갱신
     }
 
     @Override public Component getDisplayName() { return new TextComponent("주민 터렛"); }

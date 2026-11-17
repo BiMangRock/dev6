@@ -20,67 +20,40 @@ public class TurretTradeManager {
         offers.clear();
 
         MerchantOffers tokenOffers = new MerchantOffers();
-        MerchantOffers materialOffers = new MerchantOffers(); // emeraldOffers 명칭을 materialOffers로 변경하여 등급 분류 처리
+        MerchantOffers materialOffers = new MerchantOffers(); // 철, 금 등 재화용
 
         // ==========================================
-        // 🟢 1단계 업그레이드 항목 (하급 토큰 및 철 주괴 1개 사용)
+        // 🟢 9진법 및 27진법 기반 동적 가격 계산 및 만렙 달성 시 목록 말소 처리 적용
         // ==========================================
+        addDynamicOffer(turret, tokenOffers, "recharge", "터렛 강화 인증서: 재장전 속도", turret.getRechargeLevel(), "화살 발사 대기시간(쿨타임)이 0.25초 감소합니다.", 10); // 만렙 10
+        addDynamicOffer(turret, tokenOffers, "speed", "터렛 강화 인증서: 화살 비행 속도", turret.getSpeedLevel(), "화살의 날아가는 속도가 더 신속하게 증가합니다.", 15); // 탄속 만렙: 15 (물리 관통 필터 한도)
+        addDynamicOffer(turret, tokenOffers, "invuln", "터렛 방어 인증서: 피격 무적 증가", turret.getInvulnerabilityLevel(), "몹에게 공격받았을 때 발생하는 무적 시간이 1초 늘어납니다.", Integer.MAX_VALUE);
+        addDynamicOffer(turret, tokenOffers, "heal", "터렛 방어 인증서: 자가 회복력 강화", turret.getHealLevel(), "5초마다 체력 1씩 회복 및 레벨업 시 최대 체력 비례 즉시 회복을 강화합니다.", Integer.MAX_VALUE);
+        addDynamicOffer(turret, tokenOffers, "damage", "터렛 강화 인증서: 화살 공격력", turret.getDamageLevel(), "화살의 피해량이 1.0(하트 0.5칸) 증가합니다.", Integer.MAX_VALUE);
+        addDynamicOffer(turret, tokenOffers, "health", "터렛 방어 인증서: 최대 체력", turret.getMaxHealthBonus() / 5, "최대 체력이 5(하트 2.5칸) 증가합니다.", Integer.MAX_VALUE); // 스탯 레벨 환산
+        addDynamicOffer(turret, tokenOffers, "automation", "터렛 기술 인증서: 자동화 레벨업", turret.getAutomationLevel(), "레벨업 시 해당 수치만큼 수치형 스탯이 무작위 자동 강화됩니다.", Integer.MAX_VALUE);
+        addDynamicOffer(turret, tokenOffers, "poison", "터렛 연금 인증서: 독성 약화 주입", turret.getPoisonLevel(), "화살 적중 시 강력한 독 디버프를 중첩하여 부여합니다. (최종 만렙 데미지 뻥튀기)", 255); // 만렙 255
+        addDynamicOffer(turret, tokenOffers, "wither", "터렛 연금 인증서: 부패 위더 주입", turret.getWitherLevel(), "화살 적중 시 죽을 때까지 생명을 깎는 위더 디버프를 중첩 부여합니다. (최종 만렙 데미지 뻥튀기)", 255); // 만렙 255
+        addDynamicOffer(turret, tokenOffers, "slowness", "터렛 연금 인증서: 감속 제동 주입", turret.getSlownessLevel(), "화살 적중 시 이동 속도를 크게 둔화시키는 디버프를 중첩 부여합니다. (5레벨 달성 시 스턴화)", 5); // 만렙 5
+        addDynamicOffer(turret, tokenOffers, "weakness", "터렛 연금 인증서: 나약 쇠퇴 주입", turret.getWeaknessLevel(), "화살 적중 시 공격력을 대폭 영구 약화시키는 디버프를 중첩 부여합니다.", 5); // 만렙 5
 
-        // 1. 재장전 속도
-        ItemStack rechargeReceipt = createUpgradeReceipt(turret, "recharge", "터렛 강화 인증서: 재장전 속도",
-                "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                "효과: 화살 발사 대기시간(쿨타임)이 0.25초 감소합니다.",
-                "현재 강화 수준: " + turret.getRechargeLevel() + " ➔ " + (turret.getRechargeLevel() + 1));
-        // 🌟 철 주괴 1개 요구로 변경
-        materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 1), rechargeReceipt, 15, 2, 0.05F));
-        tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_LOW.get(), 1), rechargeReceipt, 15, 2, 0.05F));
 
-        // 2. 화살 비행 속도
-        ItemStack speedReceipt = createUpgradeReceipt(turret, "speed", "터렛 강화 인증서: 화살 비행 속도",
-                "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                "효과: 화살의 날아가는 속도가 더 신속하게 증가합니다.",
-                "현재 강화 수준: " + turret.getSpeedLevel() + " ➔ " + (turret.getSpeedLevel() + 1));
-        // 🌟 철 주괴 1개 요구로 변경
-        materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 1), speedReceipt, 15, 2, 0.05F));
-        tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_LOW.get(), 1), speedReceipt, 15, 2, 0.05F));
-
-        // 3. 피격 후 무적 시간
-        int currentInvuln = turret.getInvulnerabilityLevel();
-        ItemStack invulnReceipt = createUpgradeReceipt(turret, "invuln", "터렛 방어 인증서: 피격 무적 증가",
-                "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                "효과: 몹에게 공격받았을 때 발생하는 무적 시간이 1초 늘어납니다.",
-                "현재 무적 수준: " + currentInvuln + "초 ➔ " + (currentInvuln + 1) + "초 (필요 하급 토큰: 1개)");
-        // 🌟 철 주괴 1개 요구로 변경
-        materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 1), invulnReceipt, 15, 2, 0.05F));
-        tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_LOW.get(), 1), invulnReceipt, 15, 2, 0.05F));
-
-        // 4. 자가 회복력
-        int currentHeal = turret.getHealLevel();
-        ItemStack healReceipt = createUpgradeReceipt(turret, "heal", "터렛 방어 인증서: 자가 회복력 강화",
-                "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                "효과: 5초마다 체력 1씩 회복 및 레벨업 시 최대 체력 비례 즉시 회복을 강화합니다.",
-                "현재 회복 수준: +" + currentHeal + " ➔ +" + (currentHeal + 1) + " (필요 하급 토큰: 1개)");
-        // 🌟 철 주괴 1개 요구로 변경
-        materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 1), healReceipt, 15, 2, 0.05F));
-        tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_LOW.get(), 1), healReceipt, 15, 2, 0.05F));
-
-        // 5. 경험치 50% 할인
+        // ==========================================
+        // ⚙️ 경험치 할인 (고정가)
+        // ==========================================
         int currentNeededXp = turret.getNeededXp();
         int discountedXp = (currentNeededXp + 1) / 2;
         ItemStack xpDiscountReceipt = createUpgradeReceipt(turret, "xp_discount", "터렛 학습 인증서: 속성 훈련(50% 할인)",
                 "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
                 "효과: 레벨업에 필요한 총 요구 경험치가 절반(소수점 올림)으로 감소합니다.",
                 "현재 요구 경험치: " + currentNeededXp + " ➔ " + discountedXp + " (필요 하급 토큰: 1개)");
-        // 🌟 철 주괴 1개 요구로 변경
         materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 1), xpDiscountReceipt, 15, 2, 0.05F));
         tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_LOW.get(), 1), xpDiscountReceipt, 15, 2, 0.05F));
 
 
         // ==========================================
-        // ⚙️ 2단계 업그레이드 항목 (중급 토큰 및 금 주괴 1개 사용)
+        // ⚙️ 2단계 개조 항목 (중급 토큰 및 금 주괴 사용)
         // ==========================================
-
-        // 6. 화살 발사 개수 강화 품목 및 상한선(10개) 잠금 장치
         int currentArrowCount = turret.getTurretArrowCount();
         ItemStack arrowCountReceipt;
         MerchantOffer arrowCountEmeraldOffer;
@@ -92,7 +65,6 @@ public class TurretTradeManager {
                     "효과: 한 번에 격발되는 총 화살 수가 1개 증가합니다.",
                     "현재 사격 수: " + currentArrowCount + "개 ➔ " + (currentArrowCount + 1) + "개 (최대 10개, 필요 중급 토큰: 2개)");
 
-            // 🌟 금 주괴 1개 요구로 변경
             arrowCountEmeraldOffer = new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), arrowCountReceipt, 15, 2, 0.05F);
             arrowCountTokenOffer = new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 2), arrowCountReceipt, 15, 2, 0.05F);
         } else {
@@ -101,7 +73,6 @@ public class TurretTradeManager {
                     "효과: 최대 격발 수 한계 도달 (10개)",
                     "현재 사격 수: 10개 (더 이상 업그레이드할 수 없습니다)");
 
-            // 🌟 금 주괴 1개 요구로 변경
             arrowCountEmeraldOffer = new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), arrowCountReceipt, 15, 2, 0.05F);
             arrowCountEmeraldOffer.setToOutOfStock();
 
@@ -111,13 +82,12 @@ public class TurretTradeManager {
         materialOffers.add(arrowCountEmeraldOffer);
         tokenOffers.add(arrowCountTokenOffer);
 
-        // 7. 발사 형태 5개 모드로 확장 개조
+        // 발사 형태 5개 모드로 확장 개조
         if (turret.getArrowPattern() != 0) {
             ItemStack normalPatternReceipt = createUpgradeReceipt(turret, "normal_pattern", "터렛 기술 인증서: 단발 패턴 복원",
                     "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
                     "효과: 정밀하게 조준된 안전한 단발 사격 형태로 모드를 전환합니다.",
                     "현재 패턴 ➔ 일반 패턴 복구 (필요 중급 토큰: 1개)");
-            // 🌟 금 주괴 1개 요구로 변경
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), normalPatternReceipt, 15, 2, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 1), normalPatternReceipt, 15, 2, 0.05F));
         }
@@ -126,7 +96,6 @@ public class TurretTradeManager {
                     "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
                     "효과: 업그레이드된 화살 수 만큼 넓은 범위로 부채꼴 광범위 사격을 가합니다.",
                     "현재 패턴 ➔ 부채꼴 확산 패턴 (필요 중급 토큰: 2개)");
-            // 🌟 금 주괴 1개 요구로 변경
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), fanReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 2), fanReceipt, 5, 5, 0.05F));
         }
@@ -135,7 +104,6 @@ public class TurretTradeManager {
                     "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
                     "효과: 0.1초 연사 간격으로 화살을 일직선 점사로 뿜어냅니다.",
                     "현재 패턴 ➔ 일직선 점사 패턴 (필요 중급 토큰: 2개)");
-            // 🌟 금 주괴 1개 요구로 변경
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), burstReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 2), burstReceipt, 5, 5, 0.05F));
         }
@@ -144,7 +112,6 @@ public class TurretTradeManager {
                     "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
                     "효과: 데미지는 1/10로 줄어들지만, 몹의 무적 시간을 리셋하며 파괴적인 연속 밀치기를 가합니다.",
                     "현재 패턴 ➔ 넉백 특화 모드 (필요 중급 토큰: 3개)");
-            // 🌟 금 주괴 1개 요구로 변경
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), knockbackReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 3), knockbackReceipt, 5, 5, 0.05F));
         }
@@ -153,7 +120,6 @@ public class TurretTradeManager {
                     "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
                     "효과: 모든 화살을 완전 동시(0초)에 격발해 무적 프레임을 무시하는 한 방 극딜을 쏟아냅니다.",
                     "현재 패턴 ➔ 동시 강공격 모드 (필요 중급 토큰: 4개)");
-            // 🌟 금 주괴 1개 요구로 변경
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), heavyReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 4), heavyReceipt, 5, 5, 0.05F));
         }
@@ -164,7 +130,6 @@ public class TurretTradeManager {
                     "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
                     "효과: 무중력을 리셋하고, 투사체가 마찰과 중력의 보정을 받아 낙하 포물선 궤적으로 발사됩니다.",
                     "현재 상태: 무중력 ➔ 일반 중력 전환 (필요 중급 토큰: 1개)");
-            // 🌟 금 주괴 1개 요구로 변경
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), normalGravityReceipt, 15, 2, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 1), normalGravityReceipt, 15, 2, 0.05F));
         } else {
@@ -172,52 +137,13 @@ public class TurretTradeManager {
                     "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
                     "효과: 중력을 배제하여 투사체가 낙하 없이 영구적 일직선으로 비행합니다.",
                     "현재 상태: 일반 중력 ➔ 무중력 전환 (필요 중급 토큰: 2개)");
-            // 🌟 금 주괴 1개 요구로 변경
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), vacuumReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 2), vacuumReceipt, 5, 5, 0.05F));
         }
 
-        // [연금 화살 종류 토글 변경]
-        if (turret.getArrowType() != 0) {
-            ItemStack normalArrowReceipt = createUpgradeReceipt(turret, "normal_arrow", "터렛 연금 인증서: 일반 화살 무장 전환",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 모든 상태이상 약물 효과를 초기화하고 깨끗한 표준 무효과 화살로 교체합니다.",
-                    "현재 장착: " + getArrowTypeName(turret) + " ➔ 일반 화살 (필요 중급 토큰: 1개)");
-            // 🌟 금 주괴 1개 요구로 변경
-            materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), normalArrowReceipt, 15, 2, 0.05F));
-            tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 1), normalArrowReceipt, 15, 2, 0.05F));
-        }
-        if (turret.getArrowType() != 1) {
-            ItemStack poisonReceipt = createUpgradeReceipt(turret, "poison", "터렛 연금 인증서: 치명적인 독 화살",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 모든 발사체 화살에 강력한 치명상 독을 묻힙니다.",
-                    "현재 장착: " + getArrowTypeName(turret) + " ➔ 독 화살 (필요 중급 토큰: 3개)");
-            // 🌟 금 주괴 1개 요구로 변경
-            materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), poisonReceipt, 5, 10, 0.05F));
-            tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 3), poisonReceipt, 5, 10, 0.05F));
-        }
-        if (turret.getArrowType() != 2) {
-            ItemStack weaknessReceipt = createUpgradeReceipt(turret, "weakness", "터렛 연금 인증서: 나약함의 쇠퇴 화살",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 타격한 몹의 공격력을 대폭 영구 약화시킵니다.",
-                    "현재 장착: " + getArrowTypeName(turret) + " ➔ 나약함 화살 (필요 중급 토큰: 3개)");
-            // 🌟 금 주괴 1개 요구로 변경
-            materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), weaknessReceipt, 5, 10, 0.05F));
-            tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 3), weaknessReceipt, 5, 10, 0.05F));
-        }
-        if (turret.getArrowType() != 3) {
-            ItemStack slownessReceipt = createUpgradeReceipt(turret, "slowness", "터렛 연금 인증서: 감속의 제동 화살",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 타격한 몹의 이동 속도를 크게 둔화시켜 저격 타임을 확보합니다.",
-                    "현재 장착: " + getArrowTypeName(turret) + " ➔ 감속 화살 (필요 중급 토큰: 2개)");
-            // 🌟 금 주괴 1개 요구로 변경
-            materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), slownessReceipt, 5, 5, 0.05F));
-            tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 2), slownessReceipt, 5, 5, 0.05F));
-        }
-
 
         // ==========================================
-        // 🔮 3단계 업그레이드 항목 (상급 토큰 및 에메랄드 1개 사용)
+        // 🔮 3단계 개조 항목 (상급 토큰 및 에메랄드 사용)
         // ==========================================
 
         // [구조물 관통 제어 토글 변경]
@@ -226,7 +152,6 @@ public class TurretTradeManager {
                     "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
                     "효과: 관통 기능을 끄고 화살이 벽이나 블록 등의 장애물 구조물에 정상적으로 충돌해 박히도록 합니다.",
                     "현재 상태: 구조물 관통 ➔ 충돌 활성 (필요 상급 토큰: 1개)");
-            // 🌟 에메랄드 1개 요구로 변경
             materialOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 1), normalBlocksReceipt, 15, 2, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_HIGH.get(), 1), normalBlocksReceipt, 15, 2, 0.05F));
         } else {
@@ -234,7 +159,6 @@ public class TurretTradeManager {
                     "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
                     "효과: 화살이 벽이나 지형 블록 등의 구조물 방해를 받지 않고 그대로 뚫고 통과하여 적에게 도달합니다.",
                     "현재 상태: 충돌 활성 ➔ 구조물 관통 (필요 상급 토큰: 5개)");
-            // 🌟 에메랄드 1개 요구로 변경
             materialOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 1), passBlocksReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_HIGH.get(), 5), passBlocksReceipt, 5, 5, 0.05F));
         }
@@ -245,7 +169,6 @@ public class TurretTradeManager {
                     "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
                     "효과: 투시 능력을 해제하고, 터렛 앞에 표적이 가려짐 없이 직접 노출되어 보일 때만 추적 및 공격하도록 합니다.",
                     "현재 상태: 투시 감지 ➔ 표준 시야 (필요 상급 토큰: 1개)");
-            // 🌟 에메랄드 1개 요구로 변경
             materialOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 1), normalSightReceipt, 15, 2, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_HIGH.get(), 1), normalSightReceipt, 15, 2, 0.05F));
         } else {
@@ -253,7 +176,6 @@ public class TurretTradeManager {
                     "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
                     "효과: 장애물이나 장벽 너머 보이지 않는 구역에 대기 중인 적을 감지하여 월핵처럼 표적을 정확히 조준합니다.",
                     "현재 상태: 표준 시야 ➔ 투시 감지 (필요 상급 토큰: 3개)");
-            // 🌟 에메랄드 1개 요구로 변경
             materialOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 1), canSeeThroughWallsReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_HIGH.get(), 3), canSeeThroughWallsReceipt, 5, 5, 0.05F));
         }
@@ -262,12 +184,55 @@ public class TurretTradeManager {
         offers.addAll(materialOffers);
     }
 
-    private static String getArrowTypeName(VillagerTurretEntity turret) {
-        switch(turret.getArrowType()) {
-            case 1: return "독 화살";
-            case 2: return "나약함 화살";
-            case 3: return "감속 화살";
-            default: return "일반 화살";
+    // 9진법 및 27진법 가격 자동 계산 및 만렙 달성 시 상인 거래 목록에서 완벽 영구 제외 기법 적용
+    private static void addDynamicOffer(VillagerTurretEntity turret, MerchantOffers offers, String type, String title, int currentLevel, String descEffect, int maxLimit) {
+        // 🌟 지정한 최대 한계 레벨 도달 시 거래 목록에서 아예 출력되지 않도록 영구 배제
+        if (currentLevel >= maxLimit) {
+            return;
+        }
+
+        int totalLow = 1 + currentLevel;
+        ItemStack receipt = createUpgradeReceipt(turret, type, title,
+                "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
+                "효과: " + descEffect,
+                "현재 강화 수준: " + currentLevel + " ➔ " + (currentLevel + 1));
+
+        if (totalLow < 27) {
+            int midNeeded = totalLow / 9;
+            int lowNeeded = totalLow % 9;
+
+            if (midNeeded > 0 && lowNeeded > 0) {
+                // 중급 토큰 + 하급 토큰 2슬롯 혼합 요구
+                offers.add(new MerchantOffer(
+                        new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), midNeeded),
+                        new ItemStack(ModItems.TURRET_POINT_TOKEN_LOW.get(), lowNeeded),
+                        receipt, 15, 2, 0.05F));
+            } else if (midNeeded > 0) {
+                // 중급 단독 요구 (9 배수 도달 시)
+                offers.add(new MerchantOffer(
+                        new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), midNeeded),
+                        receipt, 15, 2, 0.05F));
+            } else {
+                // 하급 단독 요구 (초기 구간)
+                offers.add(new MerchantOffer(
+                        new ItemStack(ModItems.TURRET_POINT_TOKEN_LOW.get(), lowNeeded),
+                        receipt, 15, 2, 0.05F));
+            }
+        } else {
+            // 자릿수 올림 시프트 작동 (상급 + 중급 요구)
+            int highNeeded = totalLow / 27;
+            int midNeeded = (totalLow % 27) / 9;
+
+            if (highNeeded > 0 && midNeeded > 0) {
+                offers.add(new MerchantOffer(
+                        new ItemStack(ModItems.TURRET_POINT_TOKEN_HIGH.get(), highNeeded),
+                        new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), midNeeded),
+                        receipt, 15, 2, 0.05F));
+            } else {
+                offers.add(new MerchantOffer(
+                        new ItemStack(ModItems.TURRET_POINT_TOKEN_HIGH.get(), highNeeded),
+                        receipt, 15, 2, 0.05F));
+            }
         }
     }
 
@@ -320,14 +285,18 @@ public class TurretTradeManager {
         Player tradingPlayer = turret.getTradingPlayer();
 
         if (type.equals("recharge")) {
-            turret.setRechargeLevel(turret.getRechargeLevel() + 1);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("재장전 속도 업그레이드 완료! (현재: " + turret.getRechargeLevel() + "레벨)"), true);
+            if (turret.getRechargeLevel() < 10) { // 🌟 재장전 속도 최대 상한 10레벨 제한 보호막
+                turret.setRechargeLevel(turret.getRechargeLevel() + 1);
+                if (tradingPlayer != null) {
+                    tradingPlayer.displayClientMessage(new TextComponent("재장전 속도 업그레이드 완료! (현재: " + turret.getRechargeLevel() + "레벨)"), true);
+                }
             }
         } else if (type.equals("speed")) {
-            turret.setSpeedLevel(turret.getSpeedLevel() + 1);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("화살 비행 속도 업그레이드 완료! (현재: " + turret.getSpeedLevel() + "레벨)"), true);
+            if (turret.getSpeedLevel() < 15) { // 🌟 화살 비행 속도 최대 상한 15레벨 제한 보호막 (물리 관통 버그 원천 방지)
+                turret.setSpeedLevel(turret.getSpeedLevel() + 1);
+                if (tradingPlayer != null) {
+                    tradingPlayer.displayClientMessage(new TextComponent("화살 비행 속도 업그레이드 완료! (현재: " + turret.getSpeedLevel() + "레벨)"), true);
+                }
             }
         } else if (type.equals("invuln")) {
             turret.setInvulnerabilityLevel(turret.getInvulnerabilityLevel() + 1);
@@ -338,6 +307,50 @@ public class TurretTradeManager {
             turret.setHealLevel(turret.getHealLevel() + 1);
             if (tradingPlayer != null) {
                 tradingPlayer.displayClientMessage(new TextComponent("자가 회복력 업그레이드 완료! (현재: 5초당 +1 치유 / 레벨업 시 최대 체력의 " + (turret.getHealLevel() * 20) + "% 회복)"), true);
+            }
+        } else if (type.equals("damage")) {
+            turret.setDamageLevel(turret.getDamageLevel() + 1);
+            if (tradingPlayer != null) {
+                tradingPlayer.displayClientMessage(new TextComponent("화살 공격력 업그레이드 완료! (현재: " + turret.getDamageLevel() + "레벨)"), true);
+            }
+        } else if (type.equals("health")) {
+            turret.setMaxHealthBonus(turret.getMaxHealthBonus() + 5);
+            turret.heal(5.0F);
+            if (tradingPlayer != null) {
+                tradingPlayer.displayClientMessage(new TextComponent("최대 체력 업그레이드 완료! (+5 HP, 현재 최대 체력: " + (int)turret.getMaxHealth() + " HP)"), true);
+            }
+        } else if (type.equals("automation")) {
+            turret.setAutomationLevel(turret.getAutomationLevel() + 1);
+            if (tradingPlayer != null) {
+                tradingPlayer.displayClientMessage(new TextComponent("자동화 레벨업 업그레이드 완료! (현재: " + turret.getAutomationLevel() + "레벨)"), true);
+            }
+        } else if (type.equals("poison")) {
+            if (turret.getPoisonLevel() < 255) { // 🌟 독성 주입 최대 255레벨 제한 보호막
+                turret.setPoisonLevel(turret.getPoisonLevel() + 1);
+                if (tradingPlayer != null) {
+                    tradingPlayer.displayClientMessage(new TextComponent("독성 약화 주입 완료! (현재: " + turret.getPoisonLevel() + "레벨)"), true);
+                }
+            }
+        } else if (type.equals("wither")) {
+            if (turret.getWitherLevel() < 255) { // 🌟 위더 부패 최대 255레벨 제한 보호막
+                turret.setWitherLevel(turret.getWitherLevel() + 1);
+                if (tradingPlayer != null) {
+                    tradingPlayer.displayClientMessage(new TextComponent("부패 위더 주입 완료! (현재: " + turret.getWitherLevel() + "레벨)"), true);
+                }
+            }
+        } else if (type.equals("slowness")) {
+            if (turret.getSlownessLevel() < 5) { // 🌟 감속 제동 최대 5레벨 스펙 제한 보호막
+                turret.setSlownessLevel(turret.getSlownessLevel() + 1);
+                if (tradingPlayer != null) {
+                    tradingPlayer.displayClientMessage(new TextComponent("감속 제동 주입 완료! (현재: " + turret.getSlownessLevel() + "레벨)"), true);
+                }
+            }
+        } else if (type.equals("weakness")) {
+            if (turret.getWeaknessLevel() < 5) { // 🌟 나약 쇠퇴 최대 5레벨 스펙 제한 보호막
+                turret.setWeaknessLevel(turret.getWeaknessLevel() + 1);
+                if (tradingPlayer != null) {
+                    tradingPlayer.displayClientMessage(new TextComponent("나약 쇠퇴 주입 완료! (현재: " + turret.getWeaknessLevel() + "레벨)"), true);
+                }
             }
         } else if (type.equals("xp_discount")) {
             int previousNeeded = turret.getNeededXp();
@@ -414,26 +427,6 @@ public class TurretTradeManager {
             turret.setCanSeeThroughWalls(1);
             if (tradingPlayer != null) {
                 tradingPlayer.displayClientMessage(new TextComponent("투시 감지 세팅 완료! 벽 너머에 가려진 몹까지 포착합니다."), true);
-            }
-        } else if (type.equals("normal_arrow")) {
-            turret.setArrowType(0);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("특수 포션 세팅 초기화 완료: 일반 표준 화살 장착"), true);
-            }
-        } else if (type.equals("poison")) {
-            turret.setArrowType(1);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("화살 특성 변경 완료: 치명적인 독 화살 탑재"), true);
-            }
-        } else if (type.equals("weakness")) {
-            turret.setArrowType(2);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("화살 특성 변경 완료: 나약함의 쇠퇴 화살 탑재"), true);
-            }
-        } else if (type.equals("slowness")) {
-            turret.setArrowType(3);
-            if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("화살 특성 변경 완료: 감속의 제동 화살 탑재"), true);
             }
         }
 

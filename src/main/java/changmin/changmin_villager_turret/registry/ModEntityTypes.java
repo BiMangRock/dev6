@@ -8,6 +8,7 @@ import changmin.changmin_villager_turret.feature.turret.bee_summoner_turret.Summ
 import changmin.changmin_villager_turret.feature.turret.goddess_of_flame.GoddessFireballEntity;
 import changmin.changmin_villager_turret.feature.turret.goddess_of_flame.GoddessOfFlameEntity;
 import changmin.changmin_villager_turret.feature.turret.healer.HealerTurretEntity;
+import changmin.changmin_villager_turret.feature.turret.store.TurretStoreEntity;
 import changmin.changmin_villager_turret.feature.turret.tanker.TankerTurretEntity;
 import changmin.changmin_villager_turret.feature.turret.trident_turret.TridentTurretEntity;
 import changmin.changmin_villager_turret.feature.turret.villager_turret.VillagerTurretEntity;
@@ -237,6 +238,20 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.<LoveProjectileEntity>of(LoveProjectileEntity::new, MobCategory.MISC)
                             .sized(0.5F, 0.5F)
                             .build("love_projectile"));
+
+    // 🆕 상점 주민 엔티티 등록
+    public static final RegistryObject<EntityType<TurretStoreEntity>> TURRET_STORE =
+            ENTITY_TYPES.register("turret_store",
+                    () -> EntityType.Builder.of(TurretStoreEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 1.95F)
+                            .build("turret_store"));
+
+    public static final RegistryObject<EntityType<changmin.changmin_villager_turret.feature.turret.resource_easy.ResourceVillagerEasyEntity>> RESOURCE_VILLAGER_EASY =
+            ENTITY_TYPES.register("resource_villager_easy",
+                    () -> EntityType.Builder.of(changmin.changmin_villager_turret.feature.turret.resource_easy.ResourceVillagerEasyEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 1.95F)
+                            .build("resource_villager_easy"));
+
 
 
     public static final RegistryObject<EntityType<Assassin2Entity>> ASSASSIN2 = ENTITY_TYPES.register("assassin2", () ->

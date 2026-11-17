@@ -46,14 +46,15 @@ public class ResourceVillagerRenderer extends MobRenderer<ResourceVillagerEntity
 
             Font font = this.getFont();
 
-            // 🆕 0. 영문 이름표 추가 (Y축: -32.0F)
+            // 0. 이름표 렌더링 (Y축: -32.0F)
             String nameText = "Resource Villager";
             Component nameComponent = new TextComponent(nameText);
             float nameWidth = (float)font.width(nameComponent);
             font.drawInBatch(nameComponent, -nameWidth / 2.0F, -32.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
 
             // 1. 레벨 정보 텍스트 (Y축: -22.0F)
-            String levelText = String.format("Lv. %d", entity.getTurretLevel());
+            int levelValue = entity.getTurretLevel();
+            String levelText = (levelValue >= 5) ? "Lv. INFINITE" : String.format("Lv. %d", levelValue);
             Component textComponent = new TextComponent(levelText);
             float textWidth = (float)font.width(textComponent);
             float textX = -textWidth / 2.0F;
@@ -61,23 +62,37 @@ public class ResourceVillagerRenderer extends MobRenderer<ResourceVillagerEntity
 
             font.drawInBatch(textComponent, textX, lvlTextY, -1, false, matrix4f, buffer, false, 0, packedLight);
 
-            // 2. 자원 수확 남은시간 쿨타임 정보 텍스트 (Y축: -12.0F)
-            int secondsLeft = entity.getResourceTimer() / 20;
-            String cooldownText = String.format("Next Drop: %ds", secondsLeft);
-            Component cdComponent = new TextComponent(cooldownText);
+            // 2. [수정] 전투 상태 및 실시간 MM:SS 카운트다운 출력 (Y축: -12.0F)
+            boolean isCombat = entity.isCombatPhase();
+            int phaseTicksLeft = entity.getPhaseTimer();
+            int totalSecs = phaseTicksLeft / 20;
+            int mins = totalSecs / 60;
+            int secs = totalSecs % 60;
+
+            String phaseText;
+            int textColor;
+            if (isCombat) {
+                phaseText = String.format("[COMBAT] Remaining: %02d:%02d", mins, secs);
+                textColor = 0xFFFF4444; // 붉은색 전투 텍스트
+            } else {
+                phaseText = String.format("[PREP] Next Wave: %02d:%02d", mins, secs);
+                textColor = 0xFF55FF55; // 녹색 정비 대기 텍스트
+            }
+
+            Component cdComponent = new TextComponent(phaseText);
             float cdTextWidth = (float)font.width(cdComponent);
             float cdTextX = -cdTextWidth / 2.0F;
             float cdTextY = -12.0F;
 
-            font.drawInBatch(cdComponent, cdTextX, cdTextY, 0xFFFFAA00, false, matrix4f, buffer, false, 0, packedLight);
+            font.drawInBatch(cdComponent, cdTextX, cdTextY, textColor, false, matrix4f, buffer, false, 0, packedLight);
 
-            // 가로 50px 고정형 그래픽 바 위치 및 크기 선언
+            // 게이지 바 가로폭 선언
             float barWidth = 50.0F;
             float barHeight = 3.0F;
             float barX = -barWidth / 2.0F;
 
             // ==========================================
-            // 🟩 3. HP 바 및 우측 체력 수치 렌더링 (위치 Y: 2.0F)
+            // 🟩 3. HP 바 및 우측 체력 수치 렌더링 (Y축: 2.0F)
             // ==========================================
             float hpBarY = 2.0F;
             float hpRatio = (float)entity.getHealth() / (float)entity.getMaxHealth();
@@ -87,7 +102,7 @@ public class ResourceVillagerRenderer extends MobRenderer<ResourceVillagerEntity
             // HP 바 배경
             drawSolidQuad(matrix4f, buffer, barX, hpBarY, barX + barWidth, hpBarY + barHeight, 0x80505050);
 
-            // HP 바 색상 결정
+            // HP 바 전경 색상 결정
             int healthColor = 0xFF00FF00;
             if (hpRatio < 0.25F) {
                 healthColor = 0xFFFF0000;
@@ -96,32 +111,46 @@ public class ResourceVillagerRenderer extends MobRenderer<ResourceVillagerEntity
             }
             drawSolidQuad(matrix4f, buffer, barX, hpBarY, barX + currentHpWidth, hpBarY + barHeight, healthColor);
 
-            // HP 바 우측 수치 텍스트 (X축 오프셋 적용)
+            // HP 수치 출력
             String hpTextVal = String.format("%d/%d", (int)entity.getHealth(), (int)entity.getMaxHealth());
             float hpTextX = barX + barWidth + 4.0F;
-            float hpTextY = hpBarY - 2.5F; // 폰트 중심 정렬을 위한 조정
+            float hpTextY = hpBarY - 2.5F;
             font.drawInBatch(new TextComponent(hpTextVal), hpTextX, hpTextY, -1, false, matrix4f, buffer, false, 0, packedLight);
 
             // ==========================================
-            // 🟦 4. XP 바 및 우측 경험치 수치 렌더링 (위치 Y: 7.0F)
+            // 🟦 4. [수정] 가변형 프로그레스 바 렌더링 (Y축: 7.0F)
             // ==========================================
             float xpBarY = 7.0F;
-            float xpRatio = (float)entity.getXp() / (float)entity.getNeededXp();
+            float xpRatio;
+            String progressTextVal;
+
+            if (isCombat) {
+                // 전투 상태: 15초 자원 드롭 쿨타임 % 표시
+                xpRatio = (float)entity.getXp() / (float)entity.getNeededXp();
+                progressTextVal = String.format("Drop: %d%%", (entity.getXp() * 100) / entity.getNeededXp());
+            } else {
+                // 대기 상태: 4분(4800틱) 정비 시간 충전 % 표시
+                int totalPrepTicks = 4800;
+                int elapsedPrep = totalPrepTicks - entity.getPhaseTimer();
+                xpRatio = (float)elapsedPrep / totalPrepTicks;
+                progressTextVal = String.format("Prep: %d%%", (int)(xpRatio * 100));
+            }
+
             if (xpRatio > 1.0F) xpRatio = 1.0F;
+            if (xpRatio < 0.0F) xpRatio = 0.0F;
             float currentXpWidth = barWidth * xpRatio;
 
-            // XP 바 배경
+            // 프로그레스 바 배경
             drawSolidQuad(matrix4f, buffer, barX, xpBarY, barX + barWidth, xpBarY + barHeight, 0x80505050);
 
-            // XP 바 전경
-            int xpColor = 0xFF33CCFF;
+            // 프로그레스 바 전경
+            int xpColor = isCombat ? 0xFF33CCFF : 0xFF55FF55; // 전투 시 파란색, 정비 시 연두색으로 유연 변경
             drawSolidQuad(matrix4f, buffer, barX, xpBarY, barX + currentXpWidth, xpBarY + barHeight, xpColor);
 
-            // XP 바 우측 수치 텍스트 (X축 오프셋 적용)
-            String xpTextVal = String.format("%d/%d", entity.getXp(), entity.getNeededXp());
+            // 우측 상태 백분율 텍스트 출력
             float xpTextX = barX + barWidth + 4.0F;
-            float xpTextY = xpBarY - 2.5F; // 폰트 중심 정렬을 위한 조정
-            font.drawInBatch(new TextComponent(xpTextVal), xpTextX, xpTextY, 0xFF33CCFF, false, matrix4f, buffer, false, 0, packedLight);
+            float xpTextY = xpBarY - 2.5F;
+            font.drawInBatch(new TextComponent(progressTextVal), xpTextX, xpTextY, xpColor, false, matrix4f, buffer, false, 0, packedLight);
 
             poseStack.popPose();
         }

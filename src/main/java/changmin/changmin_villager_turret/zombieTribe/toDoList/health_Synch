@@ -13,7 +13,19 @@
 해결 방법
 이 현상을 해결하려면 엔티티 클래스 내부에 NBT 저장 및 로드 처리를 명시해 주어야 합니다. ZombieCommanderEntity와 이전에 제작했던 HealerZombieEntity 둘 다 동일한 문제를 겪게 되므로 각각 아래 코드를 클래스 내부에 삽입해 주시면 됩니다.
 ① ZombieCommanderEntity.java에 추가할 코드
+
+
+
+
+
+
+
+
+
+
+
 클래스 내부 하단 적절한 위치에 아래 메서드들을 넣어주세요.
+
 code
 Java
 @Override

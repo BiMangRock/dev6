@@ -38,34 +38,33 @@ public class HealerHealGoal extends Goal {
         }
     }
 
+    // 💡 [수정됨] 거리 기준이 아닌, 범위 내에서 체력 퍼센트가 가장 낮은 아군을 탐색하는 로직
     private LivingEntity findHealingTarget() {
         double range = 8.0D + (this.healer.getRangeLevel() * 1.0D);
         AABB box = this.healer.getBoundingBox().inflate(range);
         List<LivingEntity> entities = this.healer.level.getEntitiesOfClass(LivingEntity.class, box);
 
         LivingEntity bestTarget = null;
-        double closestDist = Double.MAX_VALUE;
+        double lowestHealthPercent = 1.0D; // 1.0D는 체력 100%를 뜻하며, 이보다 낮아야(부상 상태여야) 대상이 됩니다.
 
-        // 1순위: 주변 플레이어 중 가장 체력이 낮은 대상
         for (LivingEntity entity : entities) {
-            if (entity instanceof Player && entity.isAlive() && entity.getHealth() < entity.getMaxHealth()) {
-                double dist = this.healer.distanceToSqr(entity);
-                if (dist < closestDist) {
-                    closestDist = dist;
-                    bestTarget = entity;
-                }
-            }
-        }
+            // 생존해 있으며 플레이어이거나, 자기 자신(healer)이거나, 등록된 아군인 경우
+            if (entity.isAlive() && (entity instanceof Player || entity == this.healer || this.healer.isAllyWith(entity))) {
+                double maxHealth = entity.getMaxHealth();
+                double currentHealth = entity.getHealth();
 
-        // 2순위: 🆕 자기 자신(healer)을 포함한 아군 중 가장 가까운 대상 (거리가 0이므로 자가 치유를 최우선으로 진행함)
-        if (bestTarget == null) {
-            closestDist = Double.MAX_VALUE;
-            for (LivingEntity entity : entities) {
-                if (entity.isAlive() && (entity == this.healer || this.healer.isAllyWith(entity))) {
-                    if (entity.getHealth() < entity.getMaxHealth()) {
-                        double dist = this.healer.distanceToSqr(entity);
-                        if (dist < closestDist) {
-                            closestDist = dist;
+                // 부상당한 대상인 경우
+                if (currentHealth < maxHealth) {
+                    double healthPercent = currentHealth / maxHealth; // 절대적인 양이 아닌 퍼센트 비율 계산
+
+                    // 1순위: 체력 비율(%)이 더 낮은 대상이 최우선이 됩니다.
+                    if (healthPercent < lowestHealthPercent) {
+                        lowestHealthPercent = healthPercent;
+                        bestTarget = entity;
+                    }
+                    // 2순위: 체력 비율(%)이 완전히 동일하다면, 더 가까이 있는 대상을 선택합니다 (타이브레이커)
+                    else if (Math.abs(healthPercent - lowestHealthPercent) < 0.0001D && bestTarget != null) {
+                        if (this.healer.distanceToSqr(entity) < this.healer.distanceToSqr(bestTarget)) {
                             bestTarget = entity;
                         }
                     }
@@ -98,7 +97,7 @@ public class HealerHealGoal extends Goal {
         boolean healedAtLeastOne = false;
 
         for (LivingEntity entity : entities) {
-            // 🆕 광역 치유 연산에서도 본인(healer)을 포함시켜 동시 치유
+            // 광역 치유 연산에서도 본인(healer)을 포함시켜 동시 치유
             if (entity.isAlive() && (entity == this.healer || entity instanceof Player || this.healer.isAllyWith(entity))) {
                 if (entity.getHealth() < entity.getMaxHealth()) {
                     float restored = healEntity(entity, true); // 광역 50% 치유 패널티 적용
@@ -129,7 +128,7 @@ public class HealerHealGoal extends Goal {
 
         float healAmount = this.healer.getHealAmount();
         if (isAoe) {
-            healAmount *= 0.5F; // 🆕 광역 치유 패널티(힐량 50% 감소)
+            healAmount *= 0.5F; // 광역 치유 패널티(힐량 50% 감소)
         }
 
         float neededHeal = maxHealth - currentHealth;
@@ -138,7 +137,7 @@ public class HealerHealGoal extends Goal {
         if (actualHealed > 0) {
             entity.heal(actualHealed);
 
-            // 🆕 초과 치유량 보호막(흡수 하트) 전환 로직
+            // 초과 치유량 보호막(흡수 하트) 전환 로직
             float excess = healAmount - neededHeal;
             if (excess > 0 && this.healer.getShieldLevel() > 0) {
                 float currentAbsorption = entity.getAbsorptionAmount();

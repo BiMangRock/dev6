@@ -43,7 +43,7 @@ import changmin.changmin_villager_turret.feature.zombie.assassin2.Assassin2Rende
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.*;
 import changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End.*;
 import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.*;
-
+import changmin.changmin_villager_turret.feature.turret.store.*;
 import changmin.changmin_villager_turret.feature.zombie.assassin2.*;
 
 import changmin.changmin_villager_turret.feature.zombie.creaking.*;
@@ -144,7 +144,9 @@ public class changmin_villager_turret {
         EntityRenderers.register(ModEntityTypes.HEALER_HERO.get(), HealerHeroRenderer::new);
         EntityRenderers.register(ModEntityTypes.LOVE_PROJECTILE.get(), LoveProjectileRenderer::new);
 
+        EntityRenderers.register(ModEntityTypes.TURRET_STORE.get(), TurretStoreRenderer::new);
 
+        EntityRenderers.register(ModEntityTypes.RESOURCE_VILLAGER_EASY.get(), changmin.changmin_villager_turret.feature.turret.resource_easy.ResourceVillagerEasyRenderer::new);
 
 
     }
@@ -187,6 +189,13 @@ public class changmin_villager_turret {
             event.put(ModEntityTypes.HEALER_ZOMBIE.get(), HealerZombieEntity.createAttributes().build());
 
             event.put(ModEntityTypes.HEALER_HERO.get(), HealerHeroEntity.createAttributes().build());
+
+            event.put(ModEntityTypes.TURRET_STORE.get(), TurretStoreEntity.createAttributes().build());
+
+            event.put(ModEntityTypes.RESOURCE_VILLAGER_EASY.get(),
+                    changmin.changmin_villager_turret.feature.turret.resource_easy.
+                            ResourceVillagerEasyEntity.createAttributes().build());
+
         }
     }
 }

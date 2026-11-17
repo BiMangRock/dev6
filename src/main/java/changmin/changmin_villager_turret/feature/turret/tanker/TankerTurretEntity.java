@@ -23,6 +23,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.Merchant;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
@@ -48,6 +49,9 @@ public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant
 
     private int tauntCooldown = 0;
     private int tauntDuration = 0;
+
+    // 💡 [해결 핵심] 에메랄드 강화를 통한 보너스 최대 체력 보존용 변수
+    private double extraMaxHealth = 0.0D;
 
     public TankerTurretEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -80,6 +84,17 @@ public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant
                 .add(Attributes.MOVEMENT_SPEED, 0.0D)
                 .add(Attributes.FOLLOW_RANGE, 12.0D) // 도발 범위에 맞춰 조준 시야를 12블록으로 지정
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1.0D); // 넉백에 완전히 면역
+    }
+
+    // 💡 보너스 최대체력을 관리하고 업데이트하는 메서드 (치유는 진행하지 않음)
+    public double getExtraMaxHealth() {
+        return this.extraMaxHealth;
+    }
+
+    public void setExtraMaxHealth(double extra) {
+        this.extraMaxHealth = extra;
+        double baseMax = 20.0D + (this.getTurretLevel() - 1) * 5.0D + this.extraMaxHealth;
+        this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(baseMax);
     }
 
     @Override
@@ -208,21 +223,37 @@ public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant
     }
 
     private void onLevelUp(int newLevel) {
-        // [기획 요구사항] 다른 주민 터렛과 동일하게 레벨업 시 최대 체력이 5씩 증가하도록 적용
-        double newMaxHealth = 20.0D + (newLevel - 1) * 5.0D;
+        // [기획 요구사항] 다른 주민 터렛과 동일하게 레벨업 시 최대 체력이 5씩 증가하도록 적용 (강화 체력 수치 합산 보존)
+        double newMaxHealth = 20.0D + (newLevel - 1) * 5.0D + this.extraMaxHealth;
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMaxHealth);
         this.playSound(SoundEvents.PLAYER_LEVELUP, 1.2F, 0.5F);
-        this.heal((float)(newMaxHealth * 0.4F)); // 레벨업 성공 시 즉시 체력 40% 자가 복구 보너스
+        this.heal((float)(newMaxHealth * 0.2F)); // 레벨업 성공 시 즉시 체력 40% 자가 복구 보너스
 
         if (!this.level.isClientSide) {
             this.spawnAtLocation(TankerTurretTradeManager.getBoundToken(this, 1), 0.5F);
         }
     }
 
-    // 🆕 [추가된 부분] 플레이어가 엔티티를 우클릭했을 때 발생하는 상호작용 처리 메서드
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack heldItem = player.getItemInHand(hand);
+
+        // 💡 [추가] 손에 에메랄드를 들고 있을 때 즉시 최대체력 직접 강화 상호작용 (현재 체력 회복 제외)
+        if (heldItem.is(Items.EMERALD)) {
+            if (!this.level.isClientSide) {
+                if (heldItem.getCount() >= 64) {
+                    this.setExtraMaxHealth(this.getExtraMaxHealth() + 150.0D); // 64개 소모 ➔ 체력 +150 (하트 75개 보너스)
+                    if (!player.getAbilities().instabuild) heldItem.shrink(64);
+                    player.displayClientMessage(new TextComponent("전설적인 체력 강화 완료! (최대 체력 +150.0 보너스 적용)"), true);
+                } else {
+                    this.setExtraMaxHealth(this.getExtraMaxHealth() + 4.0D); // 1개 소모 ➔ 체력 +4.0 (하트 2개)
+                    if (!player.getAbilities().instabuild) heldItem.shrink(1);
+                    player.displayClientMessage(new TextComponent("기초 체력 보강 완료! (최대 체력 +4.0)"), true);
+                }
+                this.playSound(SoundEvents.ANVIL_USE, 1.0F, 0.85F);
+            }
+            return InteractionResult.sidedSuccess(this.level.isClientSide);
+        }
 
         // 업그레이드 전용 종이를 들고 있을 때 바로 소모하여 업그레이드하는 기능
         if (!heldItem.isEmpty() && heldItem.hasTag() && heldItem.getTag().contains("UpgradeType")) {
@@ -299,6 +330,9 @@ public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant
         tag.putInt("ThornsLevel", this.getThornsLevel());
         tag.putInt("RechargeLevel", this.getRechargeLevel());
         tag.putBoolean("IsTaunting", this.getIsTaunting());
+
+        // 💡 [세이브 추가] 강화된 누적 보너스 체력 영구 보존
+        tag.putDouble("ExtraMaxHealth", this.getExtraMaxHealth());
     }
 
     @Override
@@ -313,7 +347,13 @@ public class TankerTurretEntity extends PathfinderMob implements IAlly, Merchant
         if (tag.contains("RechargeLevel")) this.setRechargeLevel(tag.getInt("RechargeLevel"));
         if (tag.contains("IsTaunting")) this.setIsTaunting(tag.getBoolean("IsTaunting"));
 
-        double loadedMax = 20.0D + (this.getTurretLevel() - 1) * 5.0D;
+        // 💡 [로드 추가] 강화된 누적 보너스 체력 복구
+        if (tag.contains("ExtraMaxHealth")) {
+            this.extraMaxHealth = tag.getDouble("ExtraMaxHealth");
+        }
+
+        // 월드 복구 시 누적 데이터 수치가 깨지지 않도록 총합 연산 후 속성 값 재반영
+        double loadedMax = 20.0D + (this.getTurretLevel() - 1) * 5.0D + this.extraMaxHealth;
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(loadedMax);
     }
 

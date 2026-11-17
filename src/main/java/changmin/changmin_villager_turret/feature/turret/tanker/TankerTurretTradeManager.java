@@ -63,12 +63,22 @@ public class TankerTurretTradeManager {
             emeraldOffers.add(maxOffer);
         }
 
+        // 🛡️ 🆕 5. 에메랄드 직접 최대체력 업그레이드 거래 항목 추가
+        ItemStack hp1Receipt = createUpgradeReceipt(turret, "hp_1", "탱커 특성: 기초 체력 보강",
+                "효과: 에메랄드 1개를 사용하여 터렛의 최대 체력을 4.0(하트 2개)만큼 증가시킵니다.",
+                "현재 추가된 최대 체력: +" + turret.getExtraMaxHealth());
+        emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 1), hp1Receipt, 999, 2, 0.05F));
+
+        ItemStack hp64Receipt = createUpgradeReceipt(turret, "hp_64", "탱커 특성: 전설적인 심장 이식 (보너스!)",
+                "효과: 에메랄드 64개를 대량 사용하여 최대 체력을 150.0(하트 75개 분량)만큼 대폭 증가시킵니다.",
+                "현재 추가된 최대 체력: +" + turret.getExtraMaxHealth());
+        emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 64), hp64Receipt, 999, 2, 0.05F));
+
         offers.addAll(tokenOffers);
         offers.addAll(emeraldOffers);
     }
 
     public static ItemStack getBoundToken(TankerTurretEntity turret, int count) {
-        // 하급 토큰 획득 시에도 새롭게 등록한 탱커 전용 하급 토큰을 반환합니다.
         ItemStack token = new ItemStack(ModItems.TANKER_POINT_TOKEN_LOW.get(), count);
         CompoundTag tag = token.getOrCreateTag();
         tag.putString("TurretType", turret.getType().getRegistryName().toString());
@@ -123,6 +133,14 @@ public class TankerTurretTradeManager {
                 int finalRed = 10 + turret.getReductionLevel() * 5;
                 if (player != null) player.displayClientMessage(new TextComponent("강철 방어 태세 연마 완료! (도발 중 피해 감쇄: " + finalRed + "%)"), true);
             }
+        }
+        // 💡 [추가] 최대 체력 강화 적용 시 기획 요구에 맞춰 자가 치유(heal) 관련 연산은 배제하고 한계치만 확장합니다.
+        else if (type.equals("hp_1")) {
+            turret.setExtraMaxHealth(turret.getExtraMaxHealth() + 4.0D); // 4 HP = 2 Hearts
+            if (player != null) player.displayClientMessage(new TextComponent("기초 체력 보강 완료! (최대 체력 +4.0)"), true);
+        } else if (type.equals("hp_64")) {
+            turret.setExtraMaxHealth(turret.getExtraMaxHealth() + 150.0D); // 150 HP = 75 Hearts (보너스 적용)
+            if (player != null) player.displayClientMessage(new TextComponent("전설적인 심장 이식 완료! (최대 체력 +150.0 보너스 적용)"), true);
         }
 
         turret.playSound(SoundEvents.ANVIL_USE, 1.0F, 0.85F);
