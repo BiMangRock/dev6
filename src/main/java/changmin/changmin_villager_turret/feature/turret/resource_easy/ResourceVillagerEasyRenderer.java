@@ -47,8 +47,8 @@ public class ResourceVillagerEasyRenderer extends MobRenderer<ResourceVillagerEa
             Font font = this.getFont();
 
             // 0. 이름표 렌더링 (Y축: -32.0F) - 🌟 [수정] Easy 문구 적용
-            String nameText = "Resource Villager (Easy)";
-            Component nameComponent = new TextComponent(nameText);
+            // 이름은 언어 파일(entity.changmin_villager_turret.*)을 따릅니다. 게임 언어가 한국어면 한국어로 표시
+            Component nameComponent = entity.getType().getDescription();
             float nameWidth = (float)font.width(nameComponent);
             font.drawInBatch(nameComponent, -nameWidth / 2.0F, -32.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
 

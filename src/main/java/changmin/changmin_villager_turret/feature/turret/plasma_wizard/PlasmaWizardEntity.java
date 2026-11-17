@@ -157,6 +157,7 @@ public class PlasmaWizardEntity extends AbstractTurretEntity {
             this.entityData.set(XP, currentXp);
             this.setNeededXp(20 + (currentLvl - 1) * 10);
             this.onLevelUp(currentLvl);
+            this.celebrateLevelUp(currentLvl); // 🎉 파티클 + 주변 플레이어 레벨업 문구
         } else {
             this.entityData.set(XP, currentXp);
         }
@@ -239,7 +240,7 @@ public class PlasmaWizardEntity extends AbstractTurretEntity {
     }
 
     @Override
-    public void notifyTrade(MerchantOffer offer) {
+    protected void onTradeCompleted(MerchantOffer offer) {
         offer.increaseUses();
         if (!this.level.isClientSide && offer.getResult().hasTag() && offer.getResult().getTag().contains("UpgradeType")) {
             PlasmaWizardTradeManager.applyUpgradeDirectly(this, offer.getResult().getTag().getString("UpgradeType"));

@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "item": "changmin_villager_turret:villager_turret_spawn_egg"
+    },
+    "title": {
+      "translate": "advancements.changmin_villager_turret.root.title"
+    },
+    "description": {
+      "translate": "advancements.changmin_villager_turret.root.description"
+    },
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false,
+    "background": "minecraft:textures/block/emerald_block.png"
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

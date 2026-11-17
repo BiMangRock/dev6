@@ -224,6 +224,7 @@ public class VillagerTurretEntity extends AbstractTurretEntity implements Ranged
             this.entityData.set(XP, currentXp);
             this.setNeededXp(neededXp + 1);
             this.onLevelUp(currentLvl);
+            this.celebrateLevelUp(currentLvl); // 🎉 파티클 + 주변 플레이어 레벨업 문구
         } else {
             this.entityData.set(XP, currentXp);
         }
@@ -351,7 +352,7 @@ public class VillagerTurretEntity extends AbstractTurretEntity implements Ranged
     }
 
     @Override
-    public void notifyTrade(MerchantOffer offer) {
+    protected void onTradeCompleted(MerchantOffer offer) {
         offer.increaseUses();
         if (!this.level.isClientSide) {
             ItemStack result = offer.getResult();

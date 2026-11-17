@@ -123,6 +123,7 @@ public class HealerTurretEntity extends AbstractTurretEntity {
             int nextNeededHearts = 10 + (currentLvl - 1) * 5;
             this.setNeededXp(nextNeededHearts * 2);
             this.onLevelUp(currentLvl);
+            this.celebrateLevelUp(currentLvl); // 🎉 파티클 + 주변 플레이어 레벨업 문구
         } else {
             this.entityData.set(XP, currentXp);
         }
@@ -220,7 +221,7 @@ public class HealerTurretEntity extends AbstractTurretEntity {
     }
 
     @Override
-    public void notifyTrade(MerchantOffer offer) {
+    protected void onTradeCompleted(MerchantOffer offer) {
         offer.increaseUses();
         if (!this.level.isClientSide) {
             ItemStack result = offer.getResult();

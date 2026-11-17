@@ -1,0 +1,23 @@
+{
+  "parent": "changmin_villager_turret:guide/first_turret",
+  "display": {
+    "icon": {
+      "item": "minecraft:emerald_block"
+    },
+    "title": {
+      "translate": "advancements.changmin_villager_turret.all_turrets.title"
+    },
+    "description": {
+      "translate": "advancements.changmin_villager_turret.all_turrets.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

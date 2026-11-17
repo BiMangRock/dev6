@@ -45,11 +45,17 @@ public class TankerTurretRenderer extends MobRenderer<TankerTurretEntity, Villag
 
             Font font = this.getFont();
 
-            // 🆕 0. 영문 이름표 추가 (Y축: -32.0F)
-            String nameText = "Tanker Turret";
-            Component nameComponent = new TextComponent(nameText);
+            // 0. 이름표 (Y축: -32.0F)
+            // 이름은 언어 파일(entity.changmin_villager_turret.*)을 따릅니다. 게임 언어가 한국어면 한국어로 표시
+            Component nameComponent = entity.getType().getDescription();
             float nameWidth = (float)font.width(nameComponent);
             font.drawInBatch(nameComponent, -nameWidth / 2.0F, -32.0F, -1, false, matrix4f, buffer, false, 0, packedLight);
+
+            // ★ 업그레이드 가능 표시: 내 인벤토리 토큰으로 살 수 있는 업그레이드가 있으면 이름 위에 표시
+            if (changmin.changmin_villager_turret.client.TurretUpgradeHint.canUpgrade(entity)) {
+                Component star = changmin.changmin_villager_turret.client.TurretUpgradeHint.STAR;
+                font.drawInBatch(star, -font.width(star) / 2.0F, -32.0F - 10.0F, changmin.changmin_villager_turret.client.TurretUpgradeHint.STAR_COLOR, false, matrix4f, buffer, false, 0, packedLight);
+            }
 
             // 1. 레벨 정보 텍스트
             String infoText = String.format("Lv. %d (%d/%d)", entity.getTurretLevel(), (int)entity.getHealth(), (int)entity.getMaxHealth());

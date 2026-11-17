@@ -1,0 +1,23 @@
+{
+  "parent": "changmin_villager_turret:guide/first_upgrade",
+  "display": {
+    "icon": {
+      "item": "changmin_villager_turret:turret_point_token_high"
+    },
+    "title": {
+      "translate": "advancements.changmin_villager_turret.veteran_turret.title"
+    },
+    "description": {
+      "translate": "advancements.changmin_villager_turret.veteran_turret.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

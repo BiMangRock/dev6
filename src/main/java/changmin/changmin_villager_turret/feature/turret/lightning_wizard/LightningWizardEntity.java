@@ -216,6 +216,7 @@ public class LightningWizardEntity extends AbstractTurretEntity {
             this.entityData.set(XP, currentXp);
             this.setNeededXp(neededXp + 1);
             this.onLevelUp(currentLvl);
+            this.celebrateLevelUp(currentLvl); // 🎉 파티클 + 주변 플레이어 레벨업 문구
         } else {
             this.entityData.set(XP, currentXp);
         }
@@ -284,7 +285,7 @@ public class LightningWizardEntity extends AbstractTurretEntity {
     }
 
     @Override
-    public void notifyTrade(MerchantOffer offer) {
+    protected void onTradeCompleted(MerchantOffer offer) {
         offer.increaseUses();
         if (!this.level.isClientSide && offer.getResult().hasTag()) {
             String upgradeType = offer.getResult().getTag().getString("UpgradeType");

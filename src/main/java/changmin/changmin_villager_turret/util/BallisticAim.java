@@ -131,6 +131,38 @@ public final class BallisticAim {
         return y - dy;
     }
 
+    private static final java.util.Map<Long, Double> MAX_RANGE_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * 평지에서 이 속도로 쏠 수 있는 최대 수평 사거리(블록). 실제 틱 단위 물리를 그대로 시뮬레이션합니다.
+     * 사거리 미리보기 원을 그릴 때 사용하며, 속도별로 결과를 캐시합니다.
+     */
+    public static double maxFlatRange(double speed, double gravity, double drag) {
+        if (gravity <= 0.0D) return Double.POSITIVE_INFINITY;
+        long key = Math.round(speed * 1000.0D) * 31L + Math.round(gravity * 1000.0D);
+        return MAX_RANGE_CACHE.computeIfAbsent(key, k -> {
+            double best = 0.0D;
+            for (int deg = 5; deg <= 45; deg++) {
+                double pitch = Math.toRadians(deg);
+                double x = 0.0D, y = 0.0D;
+                double vx = speed * Math.cos(pitch), vy = speed * Math.sin(pitch);
+                for (int t = 0; t < 1200; t++) {
+                    double nx = x + vx, ny = y + vy;
+                    if (ny < 0.0D && vy < 0.0D) {
+                        x = x + (nx - x) * (y / (y - ny)); // 지면(y=0)과 만나는 지점 보간
+                        break;
+                    }
+                    x = nx;
+                    y = ny;
+                    vx *= drag;
+                    vy = vy * drag - gravity;
+                }
+                best = Math.max(best, x);
+            }
+            return best;
+        });
+    }
+
     /** 공기저항 drag가 있을 때 초기속도 v로 distance만큼 가는 데 걸리는 틱 수. 도달 불가면 +무한대 */
     static double ticksToTravel(double distance, double v, double drag) {
         if (distance <= 0.0D) return 0.0D;
