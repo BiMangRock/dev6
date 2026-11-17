@@ -1,5 +1,5 @@
 # GitHub Actions 자동 빌드
-# - 어느 브랜치든 push하면 GitHub 서버가 `gradlew build`를 실행합니다.
+# - 어느 브랜치든 push하면 GitHub 서버가 `gradlew build`와 자동 테스트(`gradlew runGameTestServer`)를 실행합니다.
 # - 결과: 저장소의 Actions 탭에서 ✅/❌ 확인. 실패하면 로그에서 오류 파일·줄 번호를 볼 수 있습니다.
 # - 성공하면 빌드된 jar를 Actions 실행 화면 아래 "Artifacts"에서 내려받을 수 있습니다.
 name: Build
@@ -29,6 +29,17 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew build --stacktrace
+
+      - name: 자동 테스트 (GameTest)
+        # 터렛 고정·공격·치유·인증서·회수·소환·언어 파일 검사. 하나라도 실패하면 ❌
+        run: ./gradlew runGameTestServer --stacktrace
+
+      - name: 테스트 로그 업로드 (실패 시)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gametest-log-${{ github.run_number }}
+          path: run/logs/latest.log
 
       - name: jar 업로드
         if: success()

@@ -138,6 +138,23 @@ gradlew runClient    :: 개발용 클라이언트 실행
 GitHub에 push하면 `.github/workflows/build.yml`에 따라 GitHub Actions가 자동으로 빌드합니다.
 저장소의 **Actions** 탭에서 성공/실패와 오류 위치를 확인할 수 있고, 성공하면 jar를 내려받을 수 있습니다.
 
+### 자동 테스트 (GameTest)
+`gametest/TurretGameTests.java`에 게임 안에서 직접 돌려보는 테스트가 있습니다. 빈 돌 바닥(`structures/empty.nbt`) 위에 엔티티를 소환해서 확인합니다.
+
+| 테스트 | 확인 내용 |
+|---|---|
+| `stays_in_place_*` | 터렛·자원 주민이 맞거나 시간이 지나도 0.5칸 이상 움직이지 않는지 |
+| `attacks_zombie_*` | 터렛이 5칸 앞 좀비를 공격하는지 |
+| `healer_heals_ally` | 치유 터렛이 다친 아군을 회복시키는지 |
+| `receipt_cannot_be_reused` | 업그레이드 인증서를 다시 써도 강화되지 않는지 |
+| `pickup_keeps_level_and_health` | 회수 후 재설치 시 레벨·경험치·체력·강화가 유지되는지 |
+| `spawns_*` | 모드의 모든 생명체가 오류 없이 소환되는지 |
+| `lang_files_match` | ko_kr / en_us 키와 `%s` 개수가 같은지 |
+
+- 실행: `gradlew runGameTestServer` (전부 통과하면 정상 종료, 실패하면 실패 목록이 출력됨)
+- 게임 안에서: `gradlew runClient` → 월드 접속 → `/test runall` (실패한 곳에 빨간 표시가 생김)
+- push하면 Actions에서도 자동으로 실행됩니다. 실패 시 Artifacts의 `gametest-log`에서 로그를 받을 수 있습니다.
+
 ### 폴더 구조 (src/main/java/changmin/changmin_villager_turret)
 | 폴더 | 내용 |
 |---|---|
