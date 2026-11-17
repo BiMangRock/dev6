@@ -1,5 +1,7 @@
 package changmin.changmin_villager_turret.feature.zombie.Apostle_of_the_End;
 
+import changmin.changmin_villager_turret.feature.turret.common.TurretTradeUtil;
+
 import changmin.changmin_villager_turret.feature.zombie.angel_zombie.AngelZombieEntity;
 import changmin.changmin_villager_turret.feature.zombie.raged_angel_zombie.RagedAngelZombieEntity;
 import changmin.changmin_villager_turret.registry.ModEntityTypes;
@@ -188,7 +190,7 @@ public class ApostleOfTheEndEntity extends Monster implements IAnimatable, IZomb
             // 무적 상태 체크
             if (this.getSummonedAngelsCount() > 0) {
                 if (source.getEntity() instanceof Player player) {
-                    player.displayClientMessage(new TextComponent("§e[경고] §f천사가 보호하고 있어 §c무적§f 상태입니다!"), true);
+                    player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.misc.7"), true);
                     this.level.playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.SHIELD_BLOCK, this.getSoundSource(), 1.0F, 1.0F);
                 }
                 return false;

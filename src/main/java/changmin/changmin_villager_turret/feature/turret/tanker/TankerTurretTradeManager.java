@@ -25,55 +25,55 @@ public class TankerTurretTradeManager {
 
         // 🛡️ 1. 도발 지속 시간 강화 (탱커 전용 하급 토큰 소요)
         int durationLvl = turret.getTauntDurationLevel();
-        ItemStack durationReceipt = createUpgradeReceipt(turret, "duration", "탱커 특성: 도발 주파수 증폭",
-                "효과: 도발 스킬의 어그로 유지 시간이 1초씩 늘어납니다.",
-                "현재 상태: " + (4 + durationLvl) + "초 ➔ " + (5 + durationLvl) + "초");
+        ItemStack durationReceipt = createUpgradeReceipt(turret, "duration", TurretTradeUtil.tr("changmin_villager_turret.text.tanker.1"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.tanker.2"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.bee.3", (4 + durationLvl), (5 + durationLvl)));
         emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 16), durationReceipt, 15, 2, 0.05F));
         tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TANKER_POINT_TOKEN_LOW.get(), 1), durationReceipt, 15, 2, 0.05F));
 
         // 🛡️ 2. 도발 재장전 쿨타임 단축 (탱커 전용 하급 토큰 소요)
         int rechargeLvl = turret.getRechargeLevel();
-        ItemStack rechargeReceipt = createUpgradeReceipt(turret, "recharge", "탱커 특성: 신속 재도발",
-                "효과: 도발을 다시 시전하는 대기 쿨타임이 0.5초 단축됩니다.",
-                "현재 쿨타임: " + (10.0F - rechargeLvl * 0.5F) + "초 ➔ " + (9.5F - rechargeLvl * 0.5F) + "초 (최소 5초)");
+        ItemStack rechargeReceipt = createUpgradeReceipt(turret, "recharge", TurretTradeUtil.tr("changmin_villager_turret.text.tanker.3"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.tanker.4"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.tanker.5", (10.0F - rechargeLvl * 0.5F), (9.5F - rechargeLvl * 0.5F)));
         emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 12), rechargeReceipt, 15, 2, 0.05F));
         tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TANKER_POINT_TOKEN_LOW.get(), 1), rechargeReceipt, 15, 2, 0.05F));
 
         // 🛡️ 3. 가시 반사 데미지 연마 (탱커 전용 중급 토큰 소요)
         int thornsLvl = turret.getThornsLevel();
-        ItemStack thornsReceipt = createUpgradeReceipt(turret, "thorns", "탱커 특성: 보복용 가시 갑옷",
-                "효과: 타격받을 때마다 공격한 적에게 현재 체력에 비례한 가시 반사 피해를 줍니다.",
-                "현재 강도: 현재 체력의 " + (2 + thornsLvl) + "% 반사 ➔ " + (3 + thornsLvl) + "% 반사");
+        ItemStack thornsReceipt = createUpgradeReceipt(turret, "thorns", TurretTradeUtil.tr("changmin_villager_turret.text.tanker.6"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.tanker.7"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.tanker.8", (2 + thornsLvl), (3 + thornsLvl)));
         emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 24), thornsReceipt, 10, 2, 0.05F));
         tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TANKER_POINT_TOKEN_MID.get(), 1), thornsReceipt, 10, 2, 0.05F));
 
         // 🛡️ 4. 도발 중 피해 감쇄 업그레이드 (최대 12단계 / 70% 제한 적용, 탱커 전용 상급 토큰 소요)
         int reductionLvl = turret.getReductionLevel();
         if (reductionLvl < 12) {
-            ItemStack reductionReceipt = createUpgradeReceipt(turret, "reduction", "탱커 전설: 강철 방어 태세",
-                    "효과: 도발 중 전개되는 본체의 상시 물리 피해 감쇄율이 5%씩 늘어납니다.",
-                    "현재 감쇄율: " + (10 + reductionLvl * 5) + "% ➔ " + (15 + reductionLvl * 5) + "% (최대 70%)");
+            ItemStack reductionReceipt = createUpgradeReceipt(turret, "reduction", TurretTradeUtil.tr("changmin_villager_turret.text.tanker.9"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.tanker.10"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.tanker.11", (10 + reductionLvl * 5), (15 + reductionLvl * 5)));
 
             emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 32), reductionReceipt, 15, 2, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TANKER_POINT_TOKEN_HIGH.get(), 1), reductionReceipt, 15, 2, 0.05F));
         } else {
-            ItemStack maxReceipt = createUpgradeReceipt(turret, "reduction", "[최대 한계] 강철 방어 태세",
-                    "효과: 밸런스 상한선인 70% 물리 피해 감쇄에 도달했습니다.",
-                    "더 이상 강화할 수 없습니다.");
+            ItemStack maxReceipt = createUpgradeReceipt(turret, "reduction", TurretTradeUtil.tr("changmin_villager_turret.text.tanker.12"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.tanker.13"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.lightning.15"));
             MerchantOffer maxOffer = new MerchantOffer(new ItemStack(Items.EMERALD, 64), maxReceipt, 15, 2, 0.05F);
             maxOffer.setToOutOfStock();
             emeraldOffers.add(maxOffer);
         }
 
         // 🛡️ 🆕 5. 에메랄드 직접 최대체력 업그레이드 거래 항목 추가
-        ItemStack hp1Receipt = createUpgradeReceipt(turret, "hp_1", "탱커 특성: 기초 체력 보강",
-                "효과: 에메랄드 1개를 사용하여 터렛의 최대 체력을 4.0(하트 2개)만큼 증가시킵니다.",
-                "현재 추가된 최대 체력: +" + turret.getExtraMaxHealth());
+        ItemStack hp1Receipt = createUpgradeReceipt(turret, "hp_1", TurretTradeUtil.tr("changmin_villager_turret.text.tanker.14"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.tanker.15"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.tanker.16", turret.getExtraMaxHealth()));
         emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 1), hp1Receipt, 999, 2, 0.05F));
 
-        ItemStack hp64Receipt = createUpgradeReceipt(turret, "hp_64", "탱커 특성: 전설적인 심장 이식 (보너스!)",
-                "효과: 에메랄드 64개를 대량 사용하여 최대 체력을 150.0(하트 75개 분량)만큼 대폭 증가시킵니다.",
-                "현재 추가된 최대 체력: +" + turret.getExtraMaxHealth());
+        ItemStack hp64Receipt = createUpgradeReceipt(turret, "hp_64", TurretTradeUtil.tr("changmin_villager_turret.text.tanker.17"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.tanker.18"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.tanker.16", turret.getExtraMaxHealth()));
         emeraldOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 64), hp64Receipt, 999, 2, 0.05F));
 
         offers.addAll(tokenOffers);
@@ -81,12 +81,12 @@ public class TankerTurretTradeManager {
     }
 
     public static ItemStack getBoundToken(TankerTurretEntity turret, int count) {
-        return TurretTradeUtil.boundToken(ModItems.TANKER_POINT_TOKEN_LOW.get(), turret, count, "탱커 터렛 포인트 토큰 (하급)", 0xAAAAAA);
+        return TurretTradeUtil.boundToken(ModItems.TANKER_POINT_TOKEN_LOW.get(), turret, count, TurretTradeUtil.tr("changmin_villager_turret.text.tanker.19"), 0xAAAAAA);
     }
 
-    private static ItemStack createUpgradeReceipt(TankerTurretEntity turret, String type, String title, String desc1, String desc2) {
+    private static ItemStack createUpgradeReceipt(TankerTurretEntity turret, String type, Component title, Component desc1, Component desc2) {
         return TurretTradeUtil.upgradeReceipt(Items.PAPER, turret, type, title, 0xFF8822,
-                TurretTradeUtil.line(TurretTradeUtil.APPLY_NOW, TurretTradeUtil.GREEN),
+                TurretTradeUtil.line(TurretTradeUtil.applyNow(), TurretTradeUtil.GREEN),
                 TurretTradeUtil.line(desc1, TurretTradeUtil.YELLOW),
                 TurretTradeUtil.line(desc2, TurretTradeUtil.CYAN));
     }
@@ -96,27 +96,27 @@ public class TankerTurretTradeManager {
 
         if (type.equals("duration")) {
             turret.setTauntDurationLevel(turret.getTauntDurationLevel() + 1);
-            if (player != null) player.displayClientMessage(new TextComponent("도발 주파수 증폭 완료! (도발 시간: " + (4 + turret.getTauntDurationLevel()) + "초)"), true);
+            if (player != null) player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.tanker.20", (4 + turret.getTauntDurationLevel())), true);
         } else if (type.equals("recharge")) {
             turret.setRechargeLevel(turret.getRechargeLevel() + 1);
-            if (player != null) player.displayClientMessage(new TextComponent("신속 재도발 개조 완료!"), true);
+            if (player != null) player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.tanker.21"), true);
         } else if (type.equals("thorns")) {
             turret.setThornsLevel(turret.getThornsLevel() + 1);
-            if (player != null) player.displayClientMessage(new TextComponent("보복용 가시 갑옷 장착 완료! (반사강도: 현재 체력의 " + (2 + turret.getThornsLevel()) + "%)"), true);
+            if (player != null) player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.tanker.22", (2 + turret.getThornsLevel())), true);
         } else if (type.equals("reduction")) {
             if (turret.getReductionLevel() < 12) {
                 turret.setReductionLevel(turret.getReductionLevel() + 1);
                 int finalRed = 10 + turret.getReductionLevel() * 5;
-                if (player != null) player.displayClientMessage(new TextComponent("강철 방어 태세 연마 완료! (도발 중 피해 감쇄: " + finalRed + "%)"), true);
+                if (player != null) player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.tanker.23", finalRed), true);
             }
         }
         // 💡 [추가] 최대 체력 강화 적용 시 기획 요구에 맞춰 자가 치유(heal) 관련 연산은 배제하고 한계치만 확장합니다.
         else if (type.equals("hp_1")) {
             turret.setExtraMaxHealth(turret.getExtraMaxHealth() + 4.0D); // 4 HP = 2 Hearts
-            if (player != null) player.displayClientMessage(new TextComponent("기초 체력 보강 완료! (최대 체력 +4.0)"), true);
+            if (player != null) player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.tanker.24"), true);
         } else if (type.equals("hp_64")) {
             turret.setExtraMaxHealth(turret.getExtraMaxHealth() + 150.0D); // 150 HP = 75 Hearts (보너스 적용)
-            if (player != null) player.displayClientMessage(new TextComponent("전설적인 심장 이식 완료! (최대 체력 +150.0 보너스 적용)"), true);
+            if (player != null) player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.tanker.25"), true);
         }
 
         turret.playSound(SoundEvents.ANVIL_USE, 1.0F, 0.85F);

@@ -1,5 +1,7 @@
 package changmin.changmin_villager_turret.feature.turret.tanker;
 
+import changmin.changmin_villager_turret.feature.turret.common.TurretTradeUtil;
+
 import changmin.changmin_villager_turret.feature.turret.common.AbstractTurretEntity;
 
 import changmin.changmin_villager_turret.config.TurretConfig;
@@ -245,11 +247,11 @@ public class TankerTurretEntity extends AbstractTurretEntity {
                 if (heldItem.getCount() >= 64) {
                     this.setExtraMaxHealth(this.getExtraMaxHealth() + 150.0D); // 64개 소모 ➔ 체력 +150 (하트 75개 보너스)
                     if (!player.getAbilities().instabuild) heldItem.shrink(64);
-                    player.displayClientMessage(new TextComponent("전설적인 체력 강화 완료! (최대 체력 +150.0 보너스 적용)"), true);
+                    player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.misc.5"), true);
                 } else {
                     this.setExtraMaxHealth(this.getExtraMaxHealth() + 4.0D); // 1개 소모 ➔ 체력 +4.0 (하트 2개)
                     if (!player.getAbilities().instabuild) heldItem.shrink(1);
-                    player.displayClientMessage(new TextComponent("기초 체력 보강 완료! (최대 체력 +4.0)"), true);
+                    player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.misc.6"), true);
                 }
                 this.playSound(SoundEvents.ANVIL_USE, 1.0F, 0.85F);
             }
@@ -349,5 +351,5 @@ public class TankerTurretEntity extends AbstractTurretEntity {
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(loadedMax);
     }
 
-    @Override public Component getDisplayName() { return new TextComponent("탱커 주민 터렛"); }
+    @Override public Component getDisplayName() { return this.getType().getDescription(); } // 언어 파일을 따름
 }

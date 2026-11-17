@@ -33,10 +33,10 @@ public class HealerTradeManager {
         float currentSec = turret.getCalculatedCooldown() / 20.0F;
         if (currentCooldownLvl < 18) {
             float nextSec = Math.max(20, 200 - (currentCooldownLvl + 1) * 10) / 20.0F;
-            ItemStack cooldownReceipt = createUpgradeReceipt(turret, "cooldown", "터렛 기술 인증서: 쿨타임 감소",
-                    "■ 적용 즉시 해당 터렛의 성능이 강화됩니다.",
-                    "효과: 치유 시전 대기시간이 0.5초 감소합니다. (최대 1초 대기시간까지 단축 가능)",
-                    "현재 상태: " + currentSec + "초 ➔ " + nextSec + "초");
+            ItemStack cooldownReceipt = createUpgradeReceipt(turret, "cooldown", TurretTradeUtil.tr("changmin_villager_turret.text.healer.1"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.healer.2"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.healer.3"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.bee.3", currentSec, nextSec));
             // 🌟 철 주괴 1개 요구로 변경
             materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 1), cooldownReceipt, 15, 2, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_LOW.get(), 1), cooldownReceipt, 15, 2, 0.05F));
@@ -44,10 +44,10 @@ public class HealerTradeManager {
 
         // 2. 사거리 확장
         int currentRangeLvl = turret.getRangeLevel();
-        ItemStack rangeReceipt = createUpgradeReceipt(turret, "range", "터렛 기술 인증서: 사거리 확장",
-                "■ 적용 즉시 해당 터렛의 성능이 강화됩니다.",
-                "효과: 대상을 인지하여 치유할 수 있는 작동 반경이 1블록 상승합니다.",
-                "현재 상태: " + (8 + currentRangeLvl) + "블록 ➔ " + (8 + currentRangeLvl + 1) + "블록");
+        ItemStack rangeReceipt = createUpgradeReceipt(turret, "range", TurretTradeUtil.tr("changmin_villager_turret.text.healer.4"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.2"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.5"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.6", (8 + currentRangeLvl), (8 + currentRangeLvl + 1)));
         // 🌟 철 주괴 1개 요구로 변경
         materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 1), rangeReceipt, 15, 2, 0.05F));
         tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_LOW.get(), 1), rangeReceipt, 15, 2, 0.05F));
@@ -59,19 +59,19 @@ public class HealerTradeManager {
 
         // 3. 치유량 강화
         float currentHeal = turret.getHealAmount();
-        ItemStack healReceipt = createUpgradeReceipt(turret, "heal_amount", "터렛 기술 인증서: 치유량 강화",
-                "■ 적용 즉시 해당 터렛의 성능이 강화됩니다.",
-                "효과: 1회당 대상 치유 수치가 하트 0.5개(+1 HP) 상승합니다.",
-                "현재 상태: " + (currentHeal / 2.0F) + " 하트 ➔ " + ((currentHeal + 1.0F) / 2.0F) + " 하트");
+        ItemStack healReceipt = createUpgradeReceipt(turret, "heal_amount", TurretTradeUtil.tr("changmin_villager_turret.text.healer.7"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.2"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.8"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.9", (currentHeal / 2.0F), ((currentHeal + 1.0F) / 2.0F)));
         // 🌟 금 주괴 1개 요구로 변경
         materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), healReceipt, 15, 2, 0.05F));
         tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_MID.get(), 1), healReceipt, 15, 2, 0.05F));
 
         // 4. 과치유 보호막 해금
-        ItemStack shieldReceipt = createUpgradeReceipt(turret, "shield", "터렛 연금 비서: 과치유 보호막",
-                "■ 구매 즉시 영구 해금되는 일회성 특수 기술입니다.",
-                "효과: 치유 시 대상의 최대 체력을 초과하여 오버치유된 분량을 노란색 보호막 하트(흡수 수치)로 누적 전환합니다.",
-                "현재 상태: " + (turret.getShieldLevel() > 0 ? "★ 기능 활성화 완료" : "보호막 비활성화 ➔ 영구 보호막 기능 해금"));
+        ItemStack shieldReceipt = createUpgradeReceipt(turret, "shield", TurretTradeUtil.tr("changmin_villager_turret.text.healer.10"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.11"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.12"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.13", (turret.getShieldLevel() > 0 ? TurretTradeUtil.tr("changmin_villager_turret.text.status.active") : TurretTradeUtil.tr("changmin_villager_turret.text.status.shield_unlock"))));
 
         tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_MID.get(), 1), shieldReceipt, 1, 5, 0.05F));
         // 🌟 금 주괴 1개 요구로 변경
@@ -88,10 +88,10 @@ public class HealerTradeManager {
         // ==========================================
 
         // 5. 광역 치유 비기 해금
-        ItemStack aoeReceipt = createUpgradeReceipt(turret, "aoe_heal", "터렛 비기 전수: 광역의 대지",
-                "■ 필요 터렛 레벨: 3레벨 이상 일회성 특수 기술입니다.",
-                "효과: 범위 안의 모든 아군을 동시 치유합니다. (단, 치유량 -50%, 쿨타임 +50% 패널티 발생)",
-                "현재 상태: " + (turret.getAoeHealEnabled() > 0 ? "★ 기능 활성화 완료" : "단일 정밀 치유 ➔ 광역 동시 치유"));
+        ItemStack aoeReceipt = createUpgradeReceipt(turret, "aoe_heal", TurretTradeUtil.tr("changmin_villager_turret.text.healer.14"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.15"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.16"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.13", (turret.getAoeHealEnabled() > 0 ? TurretTradeUtil.tr("changmin_villager_turret.text.status.active") : TurretTradeUtil.tr("changmin_villager_turret.text.status.aoe_unlock"))));
 
         MerchantOffer aoeTokenOffer = new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_HIGH.get(), 1), aoeReceipt, 1, 5, 0.05F);
         // 🌟 에메랄드 1개 요구로 변경
@@ -109,10 +109,10 @@ public class HealerTradeManager {
         materialOffers.add(aoeMaterialOffer);
 
         // 6. 상태이상 정화 마법 해금
-        ItemStack cleanseReceipt = createUpgradeReceipt(turret, "cleanse", "터렛 연금 비서: 정화의 원천",
-                "■ 필요 터렛 레벨: 5레벨 이상 일회성 특수 기술입니다.",
-                "효과: 치유 시 대상의 독, 위더, 감속, 나약함 등 핵심 해로운 상태이상을 즉시 소거합니다.",
-                "현재 상태: " + (turret.getCleanseEnabled() > 0 ? "★ 기능 활성화 완료" : "기본 체력 회복 ➔ 정화 효과 도입"));
+        ItemStack cleanseReceipt = createUpgradeReceipt(turret, "cleanse", TurretTradeUtil.tr("changmin_villager_turret.text.healer.17"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.18"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.19"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.healer.13", (turret.getCleanseEnabled() > 0 ? TurretTradeUtil.tr("changmin_villager_turret.text.status.active") : TurretTradeUtil.tr("changmin_villager_turret.text.status.cleanse_unlock"))));
 
         MerchantOffer cleanseTokenOffer = new MerchantOffer(new ItemStack(ModItems.HEALER_POINT_TOKEN_HIGH.get(), 1), cleanseReceipt, 1, 5, 0.05F);
         // 🌟 에메랄드 1개 요구로 변경
@@ -136,14 +136,14 @@ public class HealerTradeManager {
     public static ItemStack getBoundToken(HealerTurretEntity turret, int count, int tier) {
         // tier: 0 하급(골드), 1 중급(녹색), 2 상급(자주)
         if (tier == 1) {
-            return TurretTradeUtil.boundToken(ModItems.HEALER_POINT_TOKEN_MID.get(), turret, count, "치유 터렛 포인트 토큰 (중급)", 0x55FF55);
+            return TurretTradeUtil.boundToken(ModItems.HEALER_POINT_TOKEN_MID.get(), turret, count, TurretTradeUtil.tr("changmin_villager_turret.text.healer.20"), 0x55FF55);
         } else if (tier == 2) {
-            return TurretTradeUtil.boundToken(ModItems.HEALER_POINT_TOKEN_HIGH.get(), turret, count, "치유 터렛 포인트 토큰 (상급)", 0xFF55FF);
+            return TurretTradeUtil.boundToken(ModItems.HEALER_POINT_TOKEN_HIGH.get(), turret, count, TurretTradeUtil.tr("changmin_villager_turret.text.healer.21"), 0xFF55FF);
         }
-        return TurretTradeUtil.boundToken(ModItems.HEALER_POINT_TOKEN_LOW.get(), turret, count, "치유 터렛 포인트 토큰 (하급)", 0xFFD700);
+        return TurretTradeUtil.boundToken(ModItems.HEALER_POINT_TOKEN_LOW.get(), turret, count, TurretTradeUtil.tr("changmin_villager_turret.text.healer.22"), 0xFFD700);
     }
 
-    public static ItemStack createUpgradeReceipt(HealerTurretEntity turret, String type, String title, String desc1, String desc2, String currentLvlInfo) {
+    public static ItemStack createUpgradeReceipt(HealerTurretEntity turret, String type, Component title, Component desc1, Component desc2, Component currentLvlInfo) {
         return TurretTradeUtil.upgradeReceipt(Items.PAPER, turret, type, title, 0x55FFFF,
                 TurretTradeUtil.line(desc1, TurretTradeUtil.GREEN),
                 TurretTradeUtil.line(desc2, TurretTradeUtil.YELLOW),
@@ -156,35 +156,35 @@ public class HealerTradeManager {
         if (type.equals("heal_amount")) {
             turret.setHealAmount(turret.getHealAmount() + 1.0F);
             if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("치유 성능 업그레이드 완료! (현재 치유량: 하트 " + (turret.getHealAmount() / 2.0F) + "개)"), true);
+                tradingPlayer.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.healer.23", (turret.getHealAmount() / 2.0F)), true);
             }
         } else if (type.equals("cooldown")) {
             if (turret.getCooldownLevel() < 18) {
                 turret.setCooldownLevel(turret.getCooldownLevel() + 1);
                 if (tradingPlayer != null) {
                     float sec = turret.getCalculatedCooldown() / 20.0F;
-                    tradingPlayer.displayClientMessage(new TextComponent("치유 대기시간 단축 완료! (현재 대기시간: " + sec + "초)"), true);
+                    tradingPlayer.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.healer.24", sec), true);
                 }
             }
         } else if (type.equals("range")) {
             turret.setRangeLevel(turret.getRangeLevel() + 1);
             if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("치유 작동 범위 확장 완료! (현재 반경: " + (8 + turret.getRangeLevel()) + "블록)"), true);
+                tradingPlayer.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.healer.25", (8 + turret.getRangeLevel())), true);
             }
         } else if (type.equals("aoe_heal")) {
             turret.setAoeHealEnabled(1);
             if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("비기 습득 완료: 광역 치유 파동을 방출합니다! (힐량 50% 반감, 쿨타임 50% 증가 패널티 적용)"), true);
+                tradingPlayer.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.healer.26"), true);
             }
         } else if (type.equals("cleanse")) {
             turret.setCleanseEnabled(1);
             if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("정화 마법 적용 완료: 아군의 해로운 약물 및 질병 디버프를 강제 정화합니다!"), true);
+                tradingPlayer.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.healer.27"), true);
             }
         } else if (type.equals("shield")) {
             turret.setShieldLevel(1);
             if (tradingPlayer != null) {
-                tradingPlayer.displayClientMessage(new TextComponent("과치유 보호막 해금 완료! 초과 치유량이 흡수 하트(보호막)로 영구 누적됩니다."), true);
+                tradingPlayer.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.healer.28"), true);
             }
         }
 

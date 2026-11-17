@@ -33,21 +33,21 @@ public class TurretTradeManager {
     //   maxedMessage: null이 아니면, 적용 불가 시 이 메시지만 띄우고 효과음·화면 갱신 없이 종료
     // ==========================================
     private record Upgrade(Predicate<VillagerTurretEntity> canApply,
-                           Function<VillagerTurretEntity, String> apply,
-                           @Nullable String maxedMessage) {}
+                           Function<VillagerTurretEntity, Component> apply,
+                           @Nullable Component maxedMessage) {}
 
     private static final Map<String, Upgrade> UPGRADES = new HashMap<>();
 
-    private static void register(String id, Predicate<VillagerTurretEntity> canApply, Function<VillagerTurretEntity, String> apply) {
+    private static void register(String id, Predicate<VillagerTurretEntity> canApply, Function<VillagerTurretEntity, Component> apply) {
         UPGRADES.put(id, new Upgrade(canApply, apply, null));
     }
 
-    private static void register(String id, Function<VillagerTurretEntity, String> apply) {
+    private static void register(String id, Function<VillagerTurretEntity, Component> apply) {
         register(id, t -> true, apply);
     }
 
     /** 사격 패턴 변경 (0 일반, 1 부채꼴, 2 점사, 3 넉백, 4 강공격) */
-    private static void registerPattern(String id, int pattern, String message) {
+    private static void registerPattern(String id, int pattern, Component message) {
         register(id, t -> { t.setArrowPattern(pattern); return message; });
     }
 
@@ -55,50 +55,50 @@ public class TurretTradeManager {
         // ── 수치형 강화 ──
         register("recharge", t -> t.getRechargeLevel() < TurretConfig.maxRechargeLevel(), t -> {
             t.setRechargeLevel(t.getRechargeLevel() + 1);
-            return "재장전 속도 업그레이드 완료! (현재: " + t.getRechargeLevel() + "레벨)";
+            return TurretTradeUtil.tr("changmin_villager_turret.text.villager.1", t.getRechargeLevel());
         });
         register("speed", t -> t.getSpeedLevel() < TurretConfig.maxSpeedLevel(), t -> {
             t.setSpeedLevel(t.getSpeedLevel() + 1);
-            return "화살 비행 속도 업그레이드 완료! (현재: " + t.getSpeedLevel() + "레벨)";
+            return TurretTradeUtil.tr("changmin_villager_turret.text.villager.2", t.getSpeedLevel());
         });
         register("invuln", t -> {
             t.setInvulnerabilityLevel(t.getInvulnerabilityLevel() + 1);
-            return "무적 시간 업그레이드 완료! (현재 피격 시: " + t.getInvulnerabilityLevel() + "초 무적)";
+            return TurretTradeUtil.tr("changmin_villager_turret.text.villager.3", t.getInvulnerabilityLevel());
         });
         register("heal", t -> {
             t.setHealLevel(t.getHealLevel() + 1);
-            return "자가 회복력 업그레이드 완료! (현재: 5초당 +1 치유 / 레벨업 시 최대 체력의 " + (t.getHealLevel() * 20) + "% 회복)";
+            return TurretTradeUtil.tr("changmin_villager_turret.text.villager.4", (t.getHealLevel() * 20));
         });
         register("damage", t -> {
             t.setDamageLevel(t.getDamageLevel() + 1);
-            return "화살 공격력 업그레이드 완료! (현재: " + t.getDamageLevel() + "레벨)";
+            return TurretTradeUtil.tr("changmin_villager_turret.text.villager.5", t.getDamageLevel());
         });
         register("health", t -> {
             t.setMaxHealthBonus(t.getMaxHealthBonus() + 5);
             t.heal(5.0F);
-            return "최대 체력 업그레이드 완료! (+5 HP, 현재 최대 체력: " + (int) t.getMaxHealth() + " HP)";
+            return TurretTradeUtil.tr("changmin_villager_turret.text.villager.6", (int) t.getMaxHealth());
         });
         register("automation", t -> {
             t.setAutomationLevel(t.getAutomationLevel() + 1);
-            return "자동화 레벨업 업그레이드 완료! (현재: " + t.getAutomationLevel() + "레벨)";
+            return TurretTradeUtil.tr("changmin_villager_turret.text.villager.7", t.getAutomationLevel());
         });
 
         // ── 상태이상 화살 ──
         register("poison", t -> t.getPoisonLevel() < 255, t -> {
             t.setPoisonLevel(t.getPoisonLevel() + 1);
-            return "독성 약화 주입 완료! (현재: " + t.getPoisonLevel() + "레벨)";
+            return TurretTradeUtil.tr("changmin_villager_turret.text.villager.8", t.getPoisonLevel());
         });
         register("wither", t -> t.getWitherLevel() < 255, t -> {
             t.setWitherLevel(t.getWitherLevel() + 1);
-            return "부패 위더 주입 완료! (현재: " + t.getWitherLevel() + "레벨)";
+            return TurretTradeUtil.tr("changmin_villager_turret.text.villager.9", t.getWitherLevel());
         });
         register("slowness", t -> t.getSlownessLevel() < 5, t -> {
             t.setSlownessLevel(t.getSlownessLevel() + 1);
-            return "감속 제동 주입 완료! (현재: " + t.getSlownessLevel() + "레벨)";
+            return TurretTradeUtil.tr("changmin_villager_turret.text.villager.10", t.getSlownessLevel());
         });
         register("weakness", t -> t.getWeaknessLevel() < 5, t -> {
             t.setWeaknessLevel(t.getWeaknessLevel() + 1);
-            return "나약 쇠퇴 주입 완료! (현재: " + t.getWeaknessLevel() + "레벨)";
+            return TurretTradeUtil.tr("changmin_villager_turret.text.villager.11", t.getWeaknessLevel());
         });
 
         // ── 경험치 할인 ──
@@ -107,7 +107,7 @@ public class TurretTradeManager {
             int discounted = (previousNeeded + 1) / 2;
             t.setNeededXp(discounted);
             t.addXp(0);
-            return "경험치 속성 훈련 완료! (레벨업 요구량: " + previousNeeded + " ➔ " + discounted + ")";
+            return TurretTradeUtil.tr("changmin_villager_turret.text.villager.12", previousNeeded, discounted);
         });
 
         // ── 화살 개수 (최대 10, 최대치면 안내 후 종료) ──
@@ -115,24 +115,24 @@ public class TurretTradeManager {
                 t -> t.getTurretArrowCount() < 10,
                 t -> {
                     t.setTurretArrowCount(t.getTurretArrowCount() + 1);
-                    return "화살 발사 개수 업그레이드 완료! (현재: " + t.getTurretArrowCount() + "개 격발)";
+                    return TurretTradeUtil.tr("changmin_villager_turret.text.villager.13", t.getTurretArrowCount());
                 },
-                "이미 최대 업그레이드 상태입니다!"));
+                TurretTradeUtil.tr("changmin_villager_turret.text.villager.14")));
 
         // ── 사격 패턴 ──
-        registerPattern("normal_pattern", 0, "사격 패턴 리셋 완료: 표준 정밀 사격 장착");
-        registerPattern("fan", 1, "발사 패턴 변경 완료: 부채꼴 확산형");
-        registerPattern("burst", 2, "발사 패턴 변경 완료: 일직선 속사(점사)");
-        registerPattern("knockback_mode", 3, "발사 패턴 변경 완료: 넉백 특화 모드(연사 및 넉백 최대화)");
-        registerPattern("heavy_mode", 4, "발사 패턴 변경 완료: 동시 강공격 격발 모드 장착!");
+        registerPattern("normal_pattern", 0, TurretTradeUtil.tr("changmin_villager_turret.text.villager.15"));
+        registerPattern("fan", 1, TurretTradeUtil.tr("changmin_villager_turret.text.villager.16"));
+        registerPattern("burst", 2, TurretTradeUtil.tr("changmin_villager_turret.text.villager.17"));
+        registerPattern("knockback_mode", 3, TurretTradeUtil.tr("changmin_villager_turret.text.villager.18"));
+        registerPattern("heavy_mode", 4, TurretTradeUtil.tr("changmin_villager_turret.text.villager.19"));
 
         // ── 토글형 기술 ──
-        register("normal_gravity", t -> { t.setNoGravityEnabled(0); return "중력 복구 완료: 마찰 및 곡사 낙하 비행 활성화"; });
-        register("vacuum", t -> { t.setNoGravityEnabled(1); return "진공 환경 제어 장치 장착 완료: 무중력 투사체 적용!"; });
-        register("normal_blocks", t -> { t.setPassBlocksEnabled(0); return "물질 충돌 활성화 완료: 화살이 블록에 부딪혀 고정됩니다."; });
-        register("pass_blocks", t -> { t.setPassBlocksEnabled(1); return "물질 통과 제어 완료! 화살이 구조물 벽을 뚫고 통과합니다."; });
-        register("normal_sight", t -> { t.setCanSeeThroughWalls(0); return "시야 제어 정상화 완료: 표준 탐색 및 조준 적용"; });
-        register("can_see_through_walls", t -> { t.setCanSeeThroughWalls(1); return "투시 감지 세팅 완료! 벽 너머에 가려진 몹까지 포착합니다."; });
+        register("normal_gravity", t -> { t.setNoGravityEnabled(0); return TurretTradeUtil.tr("changmin_villager_turret.text.villager.20"); });
+        register("vacuum", t -> { t.setNoGravityEnabled(1); return TurretTradeUtil.tr("changmin_villager_turret.text.villager.21"); });
+        register("normal_blocks", t -> { t.setPassBlocksEnabled(0); return TurretTradeUtil.tr("changmin_villager_turret.text.villager.22"); });
+        register("pass_blocks", t -> { t.setPassBlocksEnabled(1); return TurretTradeUtil.tr("changmin_villager_turret.text.villager.23"); });
+        register("normal_sight", t -> { t.setCanSeeThroughWalls(0); return TurretTradeUtil.tr("changmin_villager_turret.text.villager.24"); });
+        register("can_see_through_walls", t -> { t.setCanSeeThroughWalls(1); return TurretTradeUtil.tr("changmin_villager_turret.text.villager.25"); });
     }
 
     public static void populateOffers(VillagerTurretEntity turret, MerchantOffers offers) {
@@ -144,17 +144,17 @@ public class TurretTradeManager {
         // ==========================================
         // 🟢 9진법 및 27진법 기반 동적 가격 계산 및 만렙 달성 시 목록 말소 처리 적용
         // ==========================================
-        addDynamicOffer(turret, tokenOffers, "recharge", "터렛 강화 인증서: 재장전 속도", turret.getRechargeLevel(), "화살 발사 대기시간(쿨타임)이 0.25초 감소합니다.", TurretConfig.maxRechargeLevel()); // 만렙 (config, 기본 10)
-        addDynamicOffer(turret, tokenOffers, "speed", "터렛 강화 인증서: 화살 비행 속도", turret.getSpeedLevel(), "화살의 날아가는 속도가 더 신속하게 증가합니다.", TurretConfig.maxSpeedLevel()); // 탄속 만렙 (config, 기본 15)
-        addDynamicOffer(turret, tokenOffers, "invuln", "터렛 방어 인증서: 피격 무적 증가", turret.getInvulnerabilityLevel(), "몹에게 공격받았을 때 발생하는 무적 시간이 1초 늘어납니다.", Integer.MAX_VALUE);
-        addDynamicOffer(turret, tokenOffers, "heal", "터렛 방어 인증서: 자가 회복력 강화", turret.getHealLevel(), "5초마다 체력 1씩 회복 및 레벨업 시 최대 체력 비례 즉시 회복을 강화합니다.", Integer.MAX_VALUE);
-        addDynamicOffer(turret, tokenOffers, "damage", "터렛 강화 인증서: 화살 공격력", turret.getDamageLevel(), "화살의 피해량이 1.0(하트 0.5칸) 증가합니다.", Integer.MAX_VALUE);
-        addDynamicOffer(turret, tokenOffers, "health", "터렛 방어 인증서: 최대 체력", turret.getMaxHealthBonus() / 5, "최대 체력이 5(하트 2.5칸) 증가합니다.", Integer.MAX_VALUE); // 스탯 레벨 환산
-        addDynamicOffer(turret, tokenOffers, "automation", "터렛 기술 인증서: 자동화 레벨업", turret.getAutomationLevel(), "레벨업 시 해당 수치만큼 수치형 스탯이 무작위 자동 강화됩니다.", Integer.MAX_VALUE);
-        addDynamicOffer(turret, tokenOffers, "poison", "터렛 연금 인증서: 독성 약화 주입", turret.getPoisonLevel(), "화살 적중 시 강력한 독 디버프를 중첩하여 부여합니다. (최종 만렙 데미지 뻥튀기)", 255); // 만렙 255
-        addDynamicOffer(turret, tokenOffers, "wither", "터렛 연금 인증서: 부패 위더 주입", turret.getWitherLevel(), "화살 적중 시 죽을 때까지 생명을 깎는 위더 디버프를 중첩 부여합니다. (최종 만렙 데미지 뻥튀기)", 255); // 만렙 255
-        addDynamicOffer(turret, tokenOffers, "slowness", "터렛 연금 인증서: 감속 제동 주입", turret.getSlownessLevel(), "화살 적중 시 이동 속도를 크게 둔화시키는 디버프를 중첩 부여합니다. (5레벨 달성 시 스턴화)", 5); // 만렙 5
-        addDynamicOffer(turret, tokenOffers, "weakness", "터렛 연금 인증서: 나약 쇠퇴 주입", turret.getWeaknessLevel(), "화살 적중 시 공격력을 대폭 영구 약화시키는 디버프를 중첩 부여합니다.", 5); // 만렙 5
+        addDynamicOffer(turret, tokenOffers, "recharge", TurretTradeUtil.tr("changmin_villager_turret.text.villager.26"), turret.getRechargeLevel(), TurretTradeUtil.tr("changmin_villager_turret.text.villager.27"), TurretConfig.maxRechargeLevel()); // 만렙 (config, 기본 10)
+        addDynamicOffer(turret, tokenOffers, "speed", TurretTradeUtil.tr("changmin_villager_turret.text.villager.28"), turret.getSpeedLevel(), TurretTradeUtil.tr("changmin_villager_turret.text.villager.29"), TurretConfig.maxSpeedLevel()); // 탄속 만렙 (config, 기본 15)
+        addDynamicOffer(turret, tokenOffers, "invuln", TurretTradeUtil.tr("changmin_villager_turret.text.villager.30"), turret.getInvulnerabilityLevel(), TurretTradeUtil.tr("changmin_villager_turret.text.villager.31"), Integer.MAX_VALUE);
+        addDynamicOffer(turret, tokenOffers, "heal", TurretTradeUtil.tr("changmin_villager_turret.text.villager.32"), turret.getHealLevel(), TurretTradeUtil.tr("changmin_villager_turret.text.villager.33"), Integer.MAX_VALUE);
+        addDynamicOffer(turret, tokenOffers, "damage", TurretTradeUtil.tr("changmin_villager_turret.text.villager.34"), turret.getDamageLevel(), TurretTradeUtil.tr("changmin_villager_turret.text.villager.35"), Integer.MAX_VALUE);
+        addDynamicOffer(turret, tokenOffers, "health", TurretTradeUtil.tr("changmin_villager_turret.text.villager.36"), turret.getMaxHealthBonus() / 5, TurretTradeUtil.tr("changmin_villager_turret.text.villager.37"), Integer.MAX_VALUE); // 스탯 레벨 환산
+        addDynamicOffer(turret, tokenOffers, "automation", TurretTradeUtil.tr("changmin_villager_turret.text.villager.38"), turret.getAutomationLevel(), TurretTradeUtil.tr("changmin_villager_turret.text.villager.39"), Integer.MAX_VALUE);
+        addDynamicOffer(turret, tokenOffers, "poison", TurretTradeUtil.tr("changmin_villager_turret.text.villager.40"), turret.getPoisonLevel(), TurretTradeUtil.tr("changmin_villager_turret.text.villager.41"), 255); // 만렙 255
+        addDynamicOffer(turret, tokenOffers, "wither", TurretTradeUtil.tr("changmin_villager_turret.text.villager.42"), turret.getWitherLevel(), TurretTradeUtil.tr("changmin_villager_turret.text.villager.43"), 255); // 만렙 255
+        addDynamicOffer(turret, tokenOffers, "slowness", TurretTradeUtil.tr("changmin_villager_turret.text.villager.44"), turret.getSlownessLevel(), TurretTradeUtil.tr("changmin_villager_turret.text.villager.45"), 5); // 만렙 5
+        addDynamicOffer(turret, tokenOffers, "weakness", TurretTradeUtil.tr("changmin_villager_turret.text.villager.46"), turret.getWeaknessLevel(), TurretTradeUtil.tr("changmin_villager_turret.text.villager.47"), 5); // 만렙 5
 
 
         // ==========================================
@@ -162,10 +162,10 @@ public class TurretTradeManager {
         // ==========================================
         int currentNeededXp = turret.getNeededXp();
         int discountedXp = (currentNeededXp + 1) / 2;
-        ItemStack xpDiscountReceipt = createUpgradeReceipt(turret, "xp_discount", "터렛 학습 인증서: 속성 훈련(50% 할인)",
-                "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                "효과: 레벨업에 필요한 총 요구 경험치가 절반(소수점 올림)으로 감소합니다.",
-                "현재 요구 경험치: " + currentNeededXp + " ➔ " + discountedXp + " (필요 하급 토큰: 1개)");
+        ItemStack xpDiscountReceipt = createUpgradeReceipt(turret, "xp_discount", TurretTradeUtil.tr("changmin_villager_turret.text.villager.48"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.villager.50"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.villager.51", currentNeededXp, discountedXp));
         materialOffers.add(new MerchantOffer(new ItemStack(Items.IRON_INGOT, 1), xpDiscountReceipt, 15, 2, 0.05F));
         tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_LOW.get(), 1), xpDiscountReceipt, 15, 2, 0.05F));
 
@@ -179,18 +179,18 @@ public class TurretTradeManager {
         MerchantOffer arrowCountTokenOffer;
 
         if (currentArrowCount < 10) {
-            arrowCountReceipt = createUpgradeReceipt(turret, "arrow_count", "터렛 기술 인증서: 화살 발사 개수",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 한 번에 격발되는 총 화살 수가 1개 증가합니다.",
-                    "현재 사격 수: " + currentArrowCount + "개 ➔ " + (currentArrowCount + 1) + "개 (최대 10개, 필요 중급 토큰: 2개)");
+            arrowCountReceipt = createUpgradeReceipt(turret, "arrow_count", TurretTradeUtil.tr("changmin_villager_turret.text.villager.52"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.53"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.54", currentArrowCount, (currentArrowCount + 1)));
 
             arrowCountEmeraldOffer = new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), arrowCountReceipt, 15, 2, 0.05F);
             arrowCountTokenOffer = new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 2), arrowCountReceipt, 15, 2, 0.05F);
         } else {
-            arrowCountReceipt = createUpgradeReceipt(turret, "arrow_count", "[최대 강화 완료] 터렛 기술 인증서",
-                    "■ 터렛이 한계 용량까지 개조되었습니다.",
-                    "효과: 최대 격발 수 한계 도달 (10개)",
-                    "현재 사격 수: 10개 (더 이상 업그레이드할 수 없습니다)");
+            arrowCountReceipt = createUpgradeReceipt(turret, "arrow_count", TurretTradeUtil.tr("changmin_villager_turret.text.villager.55"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.56"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.57"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.58"));
 
             arrowCountEmeraldOffer = new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), arrowCountReceipt, 15, 2, 0.05F);
             arrowCountEmeraldOffer.setToOutOfStock();
@@ -203,59 +203,59 @@ public class TurretTradeManager {
 
         // 발사 형태 5개 모드로 확장 개조
         if (turret.getArrowPattern() != 0) {
-            ItemStack normalPatternReceipt = createUpgradeReceipt(turret, "normal_pattern", "터렛 기술 인증서: 단발 패턴 복원",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 정밀하게 조준된 안전한 단발 사격 형태로 모드를 전환합니다.",
-                    "현재 패턴 ➔ 일반 패턴 복구 (필요 중급 토큰: 1개)");
+            ItemStack normalPatternReceipt = createUpgradeReceipt(turret, "normal_pattern", TurretTradeUtil.tr("changmin_villager_turret.text.villager.59"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.60"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.61"));
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), normalPatternReceipt, 15, 2, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 1), normalPatternReceipt, 15, 2, 0.05F));
         }
         if (turret.getArrowPattern() != 1) {
-            ItemStack fanReceipt = createUpgradeReceipt(turret, "fan", "터렛 기술 인증서: 부채꼴 확산",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 업그레이드된 화살 수 만큼 넓은 범위로 부채꼴 광범위 사격을 가합니다.",
-                    "현재 패턴 ➔ 부채꼴 확산 패턴 (필요 중급 토큰: 2개)");
+            ItemStack fanReceipt = createUpgradeReceipt(turret, "fan", TurretTradeUtil.tr("changmin_villager_turret.text.villager.62"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.63"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.64"));
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), fanReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 2), fanReceipt, 5, 5, 0.05F));
         }
         if (turret.getArrowPattern() != 2) {
-            ItemStack burstReceipt = createUpgradeReceipt(turret, "burst", "터렛 기술 인증서: 일직선 속사(점사)",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 0.1초 연사 간격으로 화살을 일직선 점사로 뿜어냅니다.",
-                    "현재 패턴 ➔ 일직선 점사 패턴 (필요 중급 토큰: 2개)");
+            ItemStack burstReceipt = createUpgradeReceipt(turret, "burst", TurretTradeUtil.tr("changmin_villager_turret.text.villager.65"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.66"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.67"));
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), burstReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 2), burstReceipt, 5, 5, 0.05F));
         }
         if (turret.getArrowPattern() != 3) {
-            ItemStack knockbackReceipt = createUpgradeReceipt(turret, "knockback_mode", "터렛 기술 인증서: 넉백 전용 속사",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 데미지는 1/10로 줄어들지만, 몹의 무적 시간을 리셋하며 파괴적인 연속 밀치기를 가합니다.",
-                    "현재 패턴 ➔ 넉백 특화 모드 (필요 중급 토큰: 3개)");
+            ItemStack knockbackReceipt = createUpgradeReceipt(turret, "knockback_mode", TurretTradeUtil.tr("changmin_villager_turret.text.villager.68"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.69"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.70"));
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), knockbackReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 3), knockbackReceipt, 5, 5, 0.05F));
         }
         if (turret.getArrowPattern() != 4) {
-            ItemStack heavyReceipt = createUpgradeReceipt(turret, "heavy_mode", "터렛 기술 인증서: 동시 강공격 격발",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 모든 화살을 완전 동시(0초)에 격발해 무적 프레임을 무시하는 한 방 극딜을 쏟아냅니다.",
-                    "현재 패턴 ➔ 동시 강공격 모드 (필요 중급 토큰: 4개)");
+            ItemStack heavyReceipt = createUpgradeReceipt(turret, "heavy_mode", TurretTradeUtil.tr("changmin_villager_turret.text.villager.71"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.72"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.73"));
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), heavyReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 4), heavyReceipt, 5, 5, 0.05F));
         }
 
         // [진공 제어 토글 변경]
         if (turret.getNoGravityEnabled() == 1) {
-            ItemStack normalGravityReceipt = createUpgradeReceipt(turret, "normal_gravity", "터렛 기술 인증서: 일반 중력 환경 복원",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 무중력을 리셋하고, 투사체가 마찰과 중력의 보정을 받아 낙하 포물선 궤적으로 발사됩니다.",
-                    "현재 상태: 무중력 ➔ 일반 중력 전환 (필요 중급 토큰: 1개)");
+            ItemStack normalGravityReceipt = createUpgradeReceipt(turret, "normal_gravity", TurretTradeUtil.tr("changmin_villager_turret.text.villager.74"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.75"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.76"));
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), normalGravityReceipt, 15, 2, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 1), normalGravityReceipt, 15, 2, 0.05F));
         } else {
-            ItemStack vacuumReceipt = createUpgradeReceipt(turret, "vacuum", "터렛 기술 인증서: 진공 환경 제어",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 중력을 배제하여 투사체가 낙하 없이 영구적 일직선으로 비행합니다.",
-                    "현재 상태: 일반 중력 ➔ 무중력 전환 (필요 중급 토큰: 2개)");
+            ItemStack vacuumReceipt = createUpgradeReceipt(turret, "vacuum", TurretTradeUtil.tr("changmin_villager_turret.text.villager.77"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.78"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.79"));
             materialOffers.add(new MerchantOffer(new ItemStack(Items.GOLD_INGOT, 1), vacuumReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_MID.get(), 2), vacuumReceipt, 5, 5, 0.05F));
         }
@@ -267,34 +267,34 @@ public class TurretTradeManager {
 
         // [구조물 관통 제어 토글 변경]
         if (turret.getPassBlocksEnabled() == 1) {
-            ItemStack normalBlocksReceipt = createUpgradeReceipt(turret, "normal_blocks", "터렛 기술 인증서: 일반 장애물 충돌 복구",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 관통 기능을 끄고 화살이 벽이나 블록 등의 장애물 구조물에 정상적으로 충돌해 박히도록 합니다.",
-                    "현재 상태: 구조물 관통 ➔ 충돌 활성 (필요 상급 토큰: 1개)");
+            ItemStack normalBlocksReceipt = createUpgradeReceipt(turret, "normal_blocks", TurretTradeUtil.tr("changmin_villager_turret.text.villager.80"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.81"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.82"));
             materialOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 1), normalBlocksReceipt, 15, 2, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_HIGH.get(), 1), normalBlocksReceipt, 15, 2, 0.05F));
         } else {
-            ItemStack passBlocksReceipt = createUpgradeReceipt(turret, "pass_blocks", "터렛 기술 인증서: 물질 관통 제어 (벽 투과)",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 화살이 벽이나 지형 블록 등의 구조물 방해를 받지 않고 그대로 뚫고 통과하여 적에게 도달합니다.",
-                    "현재 상태: 충돌 활성 ➔ 구조물 관통 (필요 상급 토큰: 5개)");
+            ItemStack passBlocksReceipt = createUpgradeReceipt(turret, "pass_blocks", TurretTradeUtil.tr("changmin_villager_turret.text.villager.83"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.84"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.85"));
             materialOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 1), passBlocksReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_HIGH.get(), 5), passBlocksReceipt, 5, 5, 0.05F));
         }
 
         // [벽 너머 투시 감지 토글 변경]
         if (turret.getCanSeeThroughWalls() == 1) {
-            ItemStack normalSightReceipt = createUpgradeReceipt(turret, "normal_sight", "터렛 기술 인증서: 표준 시야 감지 복구",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 투시 능력을 해제하고, 터렛 앞에 표적이 가려짐 없이 직접 노출되어 보일 때만 추적 및 공격하도록 합니다.",
-                    "현재 상태: 투시 감지 ➔ 표준 시야 (필요 상급 토큰: 1개)");
+            ItemStack normalSightReceipt = createUpgradeReceipt(turret, "normal_sight", TurretTradeUtil.tr("changmin_villager_turret.text.villager.86"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.87"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.88"));
             materialOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 1), normalSightReceipt, 15, 2, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_HIGH.get(), 1), normalSightReceipt, 15, 2, 0.05F));
         } else {
-            ItemStack canSeeThroughWallsReceipt = createUpgradeReceipt(turret, "can_see_through_walls", "터렛 기술 인증서: 투시 감지 제어 (벽 너머 조준)",
-                    "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                    "효과: 장애물이나 장벽 너머 보이지 않는 구역에 대기 중인 적을 감지하여 월핵처럼 표적을 정확히 조준합니다.",
-                    "현재 상태: 표준 시야 ➔ 투시 감지 (필요 상급 토큰: 3개)");
+            ItemStack canSeeThroughWallsReceipt = createUpgradeReceipt(turret, "can_see_through_walls", TurretTradeUtil.tr("changmin_villager_turret.text.villager.89"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.90"),
+                    TurretTradeUtil.tr("changmin_villager_turret.text.villager.91"));
             materialOffers.add(new MerchantOffer(new ItemStack(Items.EMERALD, 1), canSeeThroughWallsReceipt, 5, 5, 0.05F));
             tokenOffers.add(new MerchantOffer(new ItemStack(ModItems.TURRET_POINT_TOKEN_HIGH.get(), 3), canSeeThroughWallsReceipt, 5, 5, 0.05F));
         }
@@ -304,7 +304,7 @@ public class TurretTradeManager {
     }
 
     // 9진법 및 27진법 가격 자동 계산 및 만렙 달성 시 상인 거래 목록에서 완벽 영구 제외 기법 적용
-    private static void addDynamicOffer(VillagerTurretEntity turret, MerchantOffers offers, String type, String title, int currentLevel, String descEffect, int maxLimit) {
+    private static void addDynamicOffer(VillagerTurretEntity turret, MerchantOffers offers, String type, Component title, int currentLevel, Component descEffect, int maxLimit) {
         // 🌟 지정한 최대 한계 레벨 도달 시 거래 목록에서 아예 출력되지 않도록 영구 배제
         if (currentLevel >= maxLimit) {
             return;
@@ -312,9 +312,9 @@ public class TurretTradeManager {
 
         int totalLow = 1 + currentLevel;
         ItemStack receipt = createUpgradeReceipt(turret, type, title,
-                "■ 구매 즉시 이 터렛에 즉시 적용됩니다.",
-                "효과: " + descEffect,
-                "현재 강화 수준: " + currentLevel + " ➔ " + (currentLevel + 1));
+                TurretTradeUtil.tr("changmin_villager_turret.text.villager.49"),
+                TurretTradeUtil.tr("changmin_villager_turret.text.villager.92", descEffect),
+                TurretTradeUtil.tr("changmin_villager_turret.text.villager.93", currentLevel, (currentLevel + 1)));
 
         if (totalLow < 27) {
             int midNeeded = totalLow / 9;
@@ -356,10 +356,10 @@ public class TurretTradeManager {
     }
 
     public static ItemStack getBoundToken(VillagerTurretEntity turret, int count) {
-        return TurretTradeUtil.boundToken(ModItems.TURRET_POINT_TOKEN_LOW.get(), turret, count, "터렛 포인트 토큰 (하급)", 0xFFD700);
+        return TurretTradeUtil.boundToken(ModItems.TURRET_POINT_TOKEN_LOW.get(), turret, count, TurretTradeUtil.tr("changmin_villager_turret.text.villager.94"), 0xFFD700);
     }
 
-    public static ItemStack createUpgradeReceipt(VillagerTurretEntity turret, String type, String title, String desc1, String desc2, String currentLvlInfo) {
+    public static ItemStack createUpgradeReceipt(VillagerTurretEntity turret, String type, Component title, Component desc1, Component desc2, Component currentLvlInfo) {
         Item baseItem = switch (type) {
             case "speed" -> ModItems.SPEED_UPGRADE.get();
             case "recharge" -> ModItems.RECHARGE_UPGRADE.get();
@@ -380,14 +380,14 @@ public class TurretTradeManager {
 
         if (upgrade != null) {
             if (upgrade.canApply().test(turret)) {
-                String message = upgrade.apply().apply(turret);
+                Component message = upgrade.apply().apply(turret);
                 if (tradingPlayer != null && message != null) {
-                    tradingPlayer.displayClientMessage(new TextComponent(message), true);
+                    tradingPlayer.displayClientMessage(message, true);
                 }
             } else if (upgrade.maxedMessage() != null) {
                 // 최대치 도달 시 안내만 하고 종료 (효과음·화면 갱신 없음)
                 if (tradingPlayer != null) {
-                    tradingPlayer.displayClientMessage(new TextComponent(upgrade.maxedMessage()), true);
+                    tradingPlayer.displayClientMessage(upgrade.maxedMessage(), true);
                 }
                 return;
             }

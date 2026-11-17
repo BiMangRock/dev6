@@ -1,5 +1,7 @@
 package changmin.changmin_villager_turret.feature.hero.healer_hero;
 
+import changmin.changmin_villager_turret.feature.turret.common.TurretTradeUtil;
+
 import changmin.changmin_villager_turret.ally.IAlly;
 import changmin.changmin_villager_turret.zombieTribe.IZombieTribe;
 import changmin.changmin_villager_turret.feature.turret.healer.HealerTurretEntity;
@@ -108,7 +110,7 @@ public class HealerHeroEntity extends PathfinderMob implements IAlly, IAnimatabl
                         this.homeZ = tag.getInt("TargetZ");
                         this.isBound = true;
 
-                        player.displayClientMessage(new TextComponent("경비병이 이 위치에 고정되었습니다: X=" + this.homeX + ", Y=" + this.homeY + ", Z=" + this.homeZ), true);
+                        player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.misc.1", this.homeX, this.homeY, this.homeZ), true);
                         this.playSound(SoundEvents.VILLAGER_YES, 1.0F, 1.0F);
 
                         if (this.level instanceof ServerLevel serverLevel) {

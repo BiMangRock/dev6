@@ -476,6 +476,6 @@ public class VillagerTurretEntity extends AbstractTurretEntity implements Ranged
         this.updateMaxHealth(); // 업그레이드 보너스가 완전 조립된 데이터로 최대 체력 갱신
     }
 
-    @Override public Component getDisplayName() { return new TextComponent("주민 터렛"); }
+    @Override public Component getDisplayName() { return this.getType().getDescription(); } // 언어 파일을 따름
     @Override public void performRangedAttack(LivingEntity target, float velocity) {}
 }

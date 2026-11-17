@@ -248,6 +248,6 @@ public class TridentTurretEntity extends AbstractTurretEntity implements RangedA
         this.updateFollowRange();
     }
 
-    @Override public Component getDisplayName() { return new TextComponent("삼지창 주민 터렛"); }
+    @Override public Component getDisplayName() { return this.getType().getDescription(); } // 언어 파일을 따름
     @Override public void performRangedAttack(LivingEntity target, float velocity) {}
 }

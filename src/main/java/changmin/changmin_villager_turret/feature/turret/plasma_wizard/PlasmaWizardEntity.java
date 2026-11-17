@@ -295,5 +295,5 @@ public class PlasmaWizardEntity extends AbstractTurretEntity {
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(loadedMax);
     }
 
-    @Override public Component getDisplayName() { return new TextComponent("플라즈마 마법사 주민 터렛"); }
+    @Override public Component getDisplayName() { return this.getType().getDescription(); } // 언어 파일을 따름
 }

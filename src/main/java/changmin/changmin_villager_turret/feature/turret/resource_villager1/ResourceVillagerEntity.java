@@ -512,7 +512,12 @@ public class ResourceVillagerEntity extends PathfinderMob implements VillagerDat
         if (tag.contains("IsCombatPhase")) this.setCombatPhase(tag.getBoolean("IsCombatPhase"));
         if (tag.contains("PhaseTimer")) this.setPhaseTimer(tag.getInt("PhaseTimer"));
 
+        // 저장된 체력 유지: updateMaxHealth()가 체력을 가득 채우므로, 불러오기(재접속·회수 후 재설치) 때는 원래 체력으로 되돌립니다.
+        float savedHealth = this.getHealth();
         updateMaxHealth(this.getTurretLevel());
+        if (tag.contains("Health")) {
+            this.setHealth(Math.min(savedHealth, this.getMaxHealth()));
+        }
     }
 
     public int getWaveCount() { return 1; }

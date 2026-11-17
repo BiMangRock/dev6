@@ -1,5 +1,7 @@
 package changmin.changmin_villager_turret.feature.hero.healer_hero;
 
+import changmin.changmin_villager_turret.feature.turret.common.TurretTradeUtil;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -36,7 +38,7 @@ public class GuardLinkerItem extends Item {
             tag.putInt("TargetZ", pos.getZ());
             tag.putBoolean("HasCoords", true);
 
-            player.displayClientMessage(new TextComponent("좌표가 도구에 기록되었습니다: " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ()), true);
+            player.displayClientMessage(TurretTradeUtil.tr("changmin_villager_turret.text.misc.2", pos.getX(), pos.getY(), pos.getZ()), true);
             level.playSound(null, pos, SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 1.0F, 1.0F);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -49,9 +51,9 @@ public class GuardLinkerItem extends Item {
             int x = tag.getInt("TargetX");
             int y = tag.getInt("TargetY");
             int z = tag.getInt("TargetZ");
-            tooltip.add(new TextComponent("기록된 좌표: X=" + x + ", Y=" + y + ", Z=" + z).withStyle(style -> style.withColor(0x55FF55)));
+            tooltip.add(TurretTradeUtil.tr("changmin_villager_turret.text.misc.3", x, y, z).withStyle(style -> style.withColor(0x55FF55)));
         } else {
-            tooltip.add(new TextComponent("깃발이나 블록을 우클릭하여 좌표를 기록하세요.").withStyle(style -> style.withColor(0xAAAAAA)));
+            tooltip.add(TurretTradeUtil.tr("changmin_villager_turret.text.misc.4").withStyle(style -> style.withColor(0xAAAAAA)));
         }
         super.appendHoverText(stack, level, tooltip, flag);
     }

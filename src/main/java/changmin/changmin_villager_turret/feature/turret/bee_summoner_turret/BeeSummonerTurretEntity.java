@@ -370,7 +370,7 @@ public class BeeSummonerTurretEntity extends AbstractTurretEntity {
         this.updateFollowRange();
     }
 
-    @Override public Component getDisplayName() { return new TextComponent("주민 벌 소환사 터렛"); }
+    @Override public Component getDisplayName() { return this.getType().getDescription(); } // 언어 파일을 따름
 
     private static class RetaliateGoal extends net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal {
         public RetaliateGoal(BeeSummonerTurretEntity turret) {
